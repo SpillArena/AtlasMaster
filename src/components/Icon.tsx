@@ -135,9 +135,10 @@ const PATHS: Record<IconName, React.ReactNode> = {
 interface Props {
   name: IconName
   className?: string
+  style?: React.CSSProperties
 }
 
-export function Icon({ name, className }: Props) {
+export function Icon({ name, className, style }: Props) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -147,6 +148,7 @@ export function Icon({ name, className }: Props) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      style={style}
       aria-hidden
     >
       {PATHS[name]}

@@ -8,12 +8,26 @@
   "language": {
     "toggle": "Toggle language"
   },
+  "themeSwitcher": {
+    "light": "Switch to light theme",
+    "dark": "Switch to dark theme"
+  },
+  "languageSwitcher": {
+    "choose": "Choose language",
+    "section": "Language"
+  },
   "menu": {
     "title": "NorgesMester",
     "subtitle": "Choose what to practice"
   },
   "nav": {
     "name": "Name"
+  },
+  "namePrompt": {
+    "title": "What's your name?",
+    "desc": "Enter your name before starting — it shows up on the leaderboard.",
+    "confirm": "Start game",
+    "cancel": "Cancel"
   },
   "leaderboard": {
     "title": "Leaderboard",

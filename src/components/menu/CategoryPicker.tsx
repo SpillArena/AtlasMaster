@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { categories } from '../game/categories'
+import { categories } from '../../game/categories'
 import { MapPreview } from './MapPreview'
-import { Icon } from './Icon'
+import { Icon } from '../Icon'
 
 interface Props {
   onPick: (categoryId: string) => void

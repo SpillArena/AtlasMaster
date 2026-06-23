@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { MODES, type Category, type Mode } from '../game/types'
+import { MODES, type Category, type Mode } from '../../game/types'
 import { MapPreview } from './MapPreview'
-import { Icon, type IconName } from './Icon'
+import { Icon, type IconName } from '../Icon'
 
 interface Props {
   category: Category

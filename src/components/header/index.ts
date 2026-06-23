@@ -1,0 +1,8 @@
+export { Header } from './Header'
+export { Logo } from './Logo'
+export { NameInput } from './NameInput'
+export { NamePrompt } from './NamePrompt'
+export { LeaderboardButton } from './LeaderboardButton'
+export { NorwayFlag } from './NorwayFlag'
+export { default as ThemeSwitcher } from './ThemeSwitcher'
+export { default as LanguageSwitcher } from './LanguageSwitcher'

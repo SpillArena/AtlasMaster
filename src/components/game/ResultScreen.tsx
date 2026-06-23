@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Icon, type IconName } from './Icon'
-import { scoreFor } from '../game/leaderboard'
+import { Icon, type IconName } from '../Icon'
+import { scoreFor } from '../../game/leaderboard'
 
 interface Props {
   total: number

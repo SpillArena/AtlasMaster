@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { categories, getCategory } from '../game/categories'
-import { getEntries } from '../game/leaderboard'
-import { Icon } from './Icon'
+import { categories, getCategory } from '../../game/categories'
+import { getEntries } from '../../game/leaderboard'
+import { Icon } from '../Icon'
 
 interface Props {
   onBack: () => void

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import type { Mode } from '../game/types'
+import type { Mode } from '../../game/types'
 
 interface Choice {
   id: string
