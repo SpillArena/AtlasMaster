@@ -8,12 +8,27 @@
   "language": {
     "toggle": "Bytt språk"
   },
+  "themeSwitcher": {
+    "light": "Bytt til lyst tema",
+    "dark": "Bytt til mørkt tema"
+  },
+  "languageSwitcher": {
+    "choose": "Velg språk",
+    "section": "Språk"
+  },
   "menu": {
     "title": "NorgesMester",
-    "subtitle": "Velg hva du vil øve på"
+    "subtitle": "Velg hva du vil øve på",
+    "description": "Test dine geografikunnskaper. Hvor rask er du?"
   },
   "nav": {
     "name": "Navn"
+  },
+  "namePrompt": {
+    "title": "Hva heter du?",
+    "desc": "Skriv inn navnet ditt før du starter — det vises på ledertavla.",
+    "confirm": "Start spill",
+    "cancel": "Avbryt"
   },
   "leaderboard": {
     "title": "Ledertavle",

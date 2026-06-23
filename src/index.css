@@ -3,6 +3,34 @@
 @tailwind utilities;
 
 @layer base {
+  /* Designtokens hentet fra emilb.no — lyst tema (default) */
+  :root {
+    --accent-base: #f1376e;
+    --accent: var(--accent-base);
+    --bg: #f7f4f1;
+    --text: #1c1025;
+    --text-muted: #1c1025ad;
+    --text-subtle: #1c102570;
+    --border: #1c102517;
+    --border-hover: #f1376e66;
+    --surface: #fffcf8d1;
+    --surface-card: #fffcf8f5;
+    --nav-bg: #f7f4f1e0;
+  }
+
+  /* Mørkt tema — settes når <html> har klassen .dark (ThemeContext) */
+  .dark {
+    --bg: #000;
+    --text: #fff;
+    --text-muted: #ffffffbf;
+    --text-subtle: #ffffff80;
+    --border: #ffffff1a;
+    --border-hover: #f1376e73;
+    --surface: #01062699;
+    --surface-card: #0106263d;
+    --nav-bg: #010626bf;
+  }
+
   html {
     @apply font-sans antialiased;
   }

@@ -1,66 +1,56 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { ThemeSwitcher } from './components/ThemeSwitcher'
-import { LanguageSwitcher } from './components/LanguageSwitcher'
-import { CategoryPicker } from './components/CategoryPicker'
-import { ModePicker } from './components/ModePicker'
-import { GameScreen } from './components/GameScreen'
-import { Leaderboard } from './components/Leaderboard'
-import { NameInput } from './components/NameInput'
-import { NorwayFlag } from './components/NorwayFlag'
-import { Icon } from './components/Icon'
+import { Header, NamePrompt, Logo } from './components/header'
+import { CategoryPicker, ModePicker } from './components/menu'
+import { GameScreen } from './components/game'
+import { Leaderboard } from './components/leaderboard'
 import { getCategory } from './game/categories'
+import { getName } from './game/leaderboard'
 import type { Mode } from './game/types'
 
 function App() {
-  const { t } = useTranslation()
   // enkel skjerm-state; bytter til react-router når flere skjermer trengs
   const [categoryId, setCategoryId] = useState<string | null>(null)
   const [mode, setMode] = useState<Mode | null>(null)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  // modus venter på navn når spiller starter spill uten å ha satt navn
+  const [pendingMode, setPendingMode] = useState<Mode | null>(null)
 
   const reset = () => {
     setCategoryId(null)
     setMode(null)
     setShowLeaderboard(false)
+    setPendingMode(null)
+  }
+
+  // start spill direkte hvis navn finnes, ellers be om navn først
+  const startGame = (m: Mode) => {
+    if (getName().trim()) setMode(m)
+    else setPendingMode(m)
   }
 
   const category = categoryId ? getCategory(categoryId) : undefined
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
-      <header className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-4">
-        <button
-          onClick={reset}
-          className="flex shrink-0 items-center gap-2 rounded-xl px-2.5 py-1.5 shadow-sm ring-1 ring-black/10 transition-transform hover:scale-[1.03]"
-          style={{ backgroundColor: '#BA0C2F' }}
-        >
-          <NorwayFlag className="h-4 w-[1.375rem] rounded-[2px] ring-1 ring-white/40" />
-          <span className="hidden text-base font-extrabold tracking-tight text-white sm:inline">
-            NorgesMester
-          </span>
-        </button>
-        <div className="flex items-center gap-2">
-          <NameInput />
-          <button
-            onClick={() => setShowLeaderboard(true)}
-            aria-label={t('leaderboard.title')}
-            className="flex h-9 items-center gap-1.5 rounded-md border border-gray-300 px-2.5 text-sm transition-colors hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-          >
-            <Icon name="trophy" className="h-4 w-4 text-amber-500" />
-          </button>
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
-      </header>
+    <div
+      className="min-h-screen transition-colors duration-300"
+      style={{ background: 'var(--bg)', color: 'var(--text)' }}
+    >
+      <Header onLeaderboard={() => setShowLeaderboard(true)} />
 
       <main>
         {showLeaderboard ? (
           <Leaderboard onBack={() => setShowLeaderboard(false)} />
         ) : !category ? (
-          <CategoryPicker onPick={setCategoryId} />
+          <>
+            <div className="flex justify-center pt-8 pb-6">
+              <h1>
+                <Logo onClick={reset} size="large" />
+              </h1>
+            </div>
+            <CategoryPicker onPick={setCategoryId} />
+          </>
         ) : !mode ? (
-          <ModePicker category={category} onPick={setMode} onBack={reset} />
+          <ModePicker category={category} onPick={startGame} onBack={reset} />
         ) : (
           <GameScreen
             key={`${category.id}-${mode}`}
@@ -71,6 +61,16 @@ function App() {
           />
         )}
       </main>
+
+      {pendingMode && (
+        <NamePrompt
+          onConfirm={() => {
+            setMode(pendingMode)
+            setPendingMode(null)
+          }}
+          onCancel={() => setPendingMode(null)}
+        />
+      )}
     </div>
   )
 }

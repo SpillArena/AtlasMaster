@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { MODES, type Category, type Mode } from '../game/types'
+import { MODES, type Category, type Mode } from '../../game/types'
 import { MapPreview } from './MapPreview'
-import { Icon, type IconName } from './Icon'
+import { Icon, type IconName } from '../Icon'
 
 interface Props {
   category: Category
@@ -34,7 +34,7 @@ export function ModePicker({ category, onPick, onBack }: Props) {
         </span>
       </div>
 
-      <div className="grid h-[calc(100dvh-9rem)] grid-cols-1 gap-4 pb-4 sm:grid-cols-3">
+      <div className="grid h-[calc(100dvh-11.5rem)] grid-cols-1 gap-2 pb-4 sm:grid-cols-3">
         {MODES.map((m, i) => {
           const meta = MODE_META[m]
           return (
@@ -46,7 +46,7 @@ export function ModePicker({ category, onPick, onBack }: Props) {
               transition={{ delay: i * 0.1, type: 'spring', stiffness: 120 }}
               whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.985 }}
-              className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br ${meta.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
+              className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[1rem] bg-gradient-to-br ${meta.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
             >
               {/* blurret kart av valgt kategori */}
               <div className="absolute inset-0 scale-110 opacity-80 blur-[3px] transition-all duration-500 group-hover:scale-105 group-hover:blur-[1.5px]">
@@ -55,7 +55,7 @@ export function ModePicker({ category, onPick, onBack }: Props) {
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20" />
 
-              <div className="relative flex flex-col items-center gap-3 px-4 text-center text-white">
+              <div className="relative flex flex-col items-center gap-1.5 px-2 text-center text-white">
                 <motion.span
                   className="drop-shadow-lg"
                   animate={{ y: [0, -10, 0] }}
@@ -66,12 +66,12 @@ export function ModePicker({ category, onPick, onBack }: Props) {
                     delay: i * 0.4,
                   }}
                 >
-                  <Icon name={meta.icon} className="h-20 w-20" />
+                  <Icon name={meta.icon} className="h-10 w-10 sm:h-12 sm:w-12" />
                 </motion.span>
-                <span className="text-3xl font-extrabold tracking-tight drop-shadow-md">
+                <span className="text-lg font-extrabold tracking-tight drop-shadow-md sm:text-2xl">
                   {t(`mode.${m}.title`)}
                 </span>
-                <span className="max-w-xs text-base font-medium text-white/85 drop-shadow">
+                <span className="max-w-xs text-xs font-medium text-white/85 drop-shadow sm:text-sm">
                   {t(`mode.${m}.desc`)}
                 </span>
               </div>

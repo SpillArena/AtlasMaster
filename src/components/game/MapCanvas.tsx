@@ -3,9 +3,9 @@ import { motion } from 'framer-motion'
 import { select } from 'd3-selection'
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom'
 import type { FeatureCollection } from 'geojson'
-import { makePath, makeProjection } from '../game/projection'
-import type { GeomKind, QuizFeature } from '../game/types'
-import { Icon, type IconName } from './Icon'
+import { makePath, makeProjection } from '../../game/projection'
+import type { GeomKind, QuizFeature } from '../../game/types'
+import { Icon, type IconName } from '../Icon'
 
 const W = 700
 const H = 900

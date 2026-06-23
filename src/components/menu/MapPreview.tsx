@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FeatureCollection, Point } from 'geojson'
-import { makePath, makeProjection } from '../game/projection'
-import type { Category } from '../game/types'
+import { makePath, makeProjection } from '../../game/projection'
+import type { Category } from '../../game/types'
 
 const W = 700
 const H = 900
