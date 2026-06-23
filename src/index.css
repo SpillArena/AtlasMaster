@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply font-sans antialiased;
+  }
+  /* native skjema-elementer arver appens font */
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "greeting": "Hello",
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "toggle": "Toggle language"
+  },
+  "menu": {
+    "title": "NorgesMester",
+    "subtitle": "Choose what to practice"
+  },
+  "nav": {
+    "name": "Name"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "all": "All",
+    "empty": "No results yet — play a round!"
+  },
+  "tile": {
+    "fylker": "Learn all 15 counties",
+    "storbyer": "Find Norway's biggest cities"
+  },
+  "cat": {
+    "fylker": "Counties",
+    "storbyer": "Major cities",
+    "kommuner": "Municipalities",
+    "byer": "Cities",
+    "elver": "Rivers",
+    "fjell": "Mountain peaks"
+  },
+  "mode": {
+    "subtitle": "Choose game mode",
+    "back": "Back",
+    "click": {
+      "title": "Click the map",
+      "desc": "You get a name — click the right spot on the map."
+    },
+    "choice": {
+      "title": "Multiple choice",
+      "desc": "A place is highlighted — pick the right name of four."
+    },
+    "type": {
+      "title": "Type the name",
+      "desc": "A place is highlighted — type its name."
+    }
+  },
+  "game": {
+    "loading": "Loading map …"
+  },
+  "hud": {
+    "findThis": "Find on the map:",
+    "whatIsThis": "What is the highlighted place called?",
+    "typePlaceholder": "Type the name …",
+    "submit": "Answer",
+    "skip": "Skip for now",
+    "giveUp": "Don't know",
+    "mistakes": "wrong",
+    "correct": "Correct",
+    "mistakesLabel": "Wrong",
+    "done": "done"
+  },
+  "result": {
+    "title": "Done!",
+    "msg3": "Perfect!",
+    "msg2": "Great job!",
+    "msg1": "Good try!",
+    "score": "Score",
+    "time": "Time",
+    "mistakes": "Wrong",
+    "accuracy": "Accuracy",
+    "retry": "Try again",
+    "menu": "Menu",
+    "leaderboard": "View leaderboard"
+  }
+}

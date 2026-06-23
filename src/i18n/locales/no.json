@@ -1,0 +1,79 @@
+{
+  "greeting": "Hei",
+  "theme": {
+    "toggle": "Bytt tema",
+    "light": "Lys",
+    "dark": "Mørk"
+  },
+  "language": {
+    "toggle": "Bytt språk"
+  },
+  "menu": {
+    "title": "NorgesMester",
+    "subtitle": "Velg hva du vil øve på"
+  },
+  "nav": {
+    "name": "Navn"
+  },
+  "leaderboard": {
+    "title": "Ledertavle",
+    "all": "Alle",
+    "empty": "Ingen resultater enda — spill en runde!"
+  },
+  "tile": {
+    "fylker": "Lær alle de 15 fylkene",
+    "storbyer": "Finn Norges største byer"
+  },
+  "cat": {
+    "fylker": "Fylker",
+    "storbyer": "Storbyer",
+    "kommuner": "Kommuner",
+    "byer": "Byer",
+    "elver": "Elver",
+    "fjell": "Fjelltopper"
+  },
+  "mode": {
+    "subtitle": "Velg spillmodus",
+    "back": "Tilbake",
+    "click": {
+      "title": "Klikk på kartet",
+      "desc": "Du får et navn — klikk riktig sted på kartet."
+    },
+    "choice": {
+      "title": "Flervalg",
+      "desc": "Et sted markeres — velg riktig navn av fire."
+    },
+    "type": {
+      "title": "Skriv navnet",
+      "desc": "Et sted markeres — skriv inn navnet."
+    }
+  },
+  "game": {
+    "loading": "Laster kart …"
+  },
+  "hud": {
+    "findThis": "Finn på kartet:",
+    "whatIsThis": "Hva heter stedet som er markert?",
+    "typePlaceholder": "Skriv navnet …",
+    "submit": "Svar",
+    "skip": "Hopp over for nå",
+    "giveUp": "Vet ikke",
+    "mistakes": "feil",
+    "correct": "Riktig",
+    "mistakesLabel": "Feil",
+    "done": "ferdig"
+  },
+  "result": {
+    "title": "Ferdig!",
+    "msg3": "Perfekt!",
+    "msg2": "Bra jobba!",
+    "msg1": "Godt forsøk!",
+    "score": "Poeng",
+    "time": "Tid",
+    "mistakes": "Feil",
+    "accuracy": "Treff",
+    "retry": "Prøv igjen",
+    "menu": "Meny",
+    "leaderboard": "Se ledertavle"
+  }
+}
