@@ -18,7 +18,8 @@
   },
   "menu": {
     "title": "NorgesMester",
-    "subtitle": "Velg hva du vil øve på"
+    "subtitle": "Velg hva du vil øve på",
+    "description": "Test dine geografikunnskaper. Hvor rask er du?"
   },
   "nav": {
     "name": "Navn"

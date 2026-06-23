@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Header, NamePrompt } from './components/header'
+import { Header, NamePrompt, Logo } from './components/header'
 import { CategoryPicker, ModePicker } from './components/menu'
 import { GameScreen } from './components/game'
 import { Leaderboard } from './components/leaderboard'
@@ -35,13 +35,20 @@ function App() {
       className="min-h-screen transition-colors duration-300"
       style={{ background: 'var(--bg)', color: 'var(--text)' }}
     >
-      <Header onHome={reset} onLeaderboard={() => setShowLeaderboard(true)} />
+      <Header onLeaderboard={() => setShowLeaderboard(true)} />
 
       <main>
         {showLeaderboard ? (
           <Leaderboard onBack={() => setShowLeaderboard(false)} />
         ) : !category ? (
-          <CategoryPicker onPick={setCategoryId} />
+          <>
+            <div className="flex justify-center pt-8 pb-6">
+              <h1>
+                <Logo onClick={reset} size="large" />
+              </h1>
+            </div>
+            <CategoryPicker onPick={setCategoryId} />
+          </>
         ) : !mode ? (
           <ModePicker category={category} onPick={startGame} onBack={reset} />
         ) : (

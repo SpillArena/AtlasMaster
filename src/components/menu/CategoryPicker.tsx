@@ -19,7 +19,7 @@ export function CategoryPicker({ onPick }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      <div className="grid h-[calc(100dvh-5.5rem)] grid-cols-1 gap-4 pb-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2">
         {categories.map((c, i) => (
           <motion.button
             key={c.id}
@@ -29,9 +29,8 @@ export function CategoryPicker({ onPick }: Props) {
             transition={{ delay: i * 0.12, type: 'spring', stiffness: 120 }}
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.985 }}
-            className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br ${
-              GRADIENTS[c.id] ?? 'from-gray-700 to-gray-900'
-            } shadow-xl ring-4 ring-white/10 transition-shadow hover:ring-white/30 hover:shadow-2xl`}
+            className={`group relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br ${GRADIENTS[c.id] ?? 'from-gray-700 to-gray-900'
+              } shadow-xl ring-4 ring-white/10 transition-shadow hover:ring-white/30 hover:shadow-2xl`}
           >
             {/* blurret Norge-kart med uthevinger */}
             <div className="absolute inset-0 scale-110 opacity-90 blur-[3px] transition-all duration-500 group-hover:scale-105 group-hover:blur-[1.5px]">

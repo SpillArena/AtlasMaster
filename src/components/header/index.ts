@@ -1,5 +1,6 @@
 export { Header } from './Header'
 export { Logo } from './Logo'
+export { BackToArena } from './BackToArena'
 export { NameInput } from './NameInput'
 export { NamePrompt } from './NamePrompt'
 export { LeaderboardButton } from './LeaderboardButton'

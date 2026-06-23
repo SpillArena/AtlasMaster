@@ -17,8 +17,9 @@
     "section": "Language"
   },
   "menu": {
-    "title": "NorgesMester",
-    "subtitle": "Choose what to practice"
+    "title": "NorwayMaster",
+    "subtitle": "Choose what to practice",
+    "description": "Test your geography skills. How fast are you?"
   },
   "nav": {
     "name": "Name"
