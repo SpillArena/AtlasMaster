@@ -1,13 +1,16 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Header, NamePrompt, Logo } from './components/header'
 import { CategoryPicker, ModePicker } from './components/menu'
 import { GameScreen } from './components/game'
 import { Leaderboard } from './components/leaderboard'
+import { BackgroundMap } from './components/BackgroundMap'
 import { getCategory } from './game/categories'
 import { getName } from './game/leaderboard'
 import type { Mode } from './game/types'
 
 function App() {
+  const { t } = useTranslation()
   // enkel skjerm-state; bytter til react-router når flere skjermer trengs
   const [categoryId, setCategoryId] = useState<string | null>(null)
   const [mode, setMode] = useState<Mode | null>(null)
@@ -30,27 +33,43 @@ function App() {
 
   const category = categoryId ? getCategory(categoryId) : undefined
 
+  // toppnivå = ingen kategori/modus/ledertavle valgt — da viser headeren
+  // "Tilbake til Spillarena" i stedet for et internt tilbake-steg
+  const atRoot = !category && !mode && !showLeaderboard
+
+  // ett steg tilbake: lukk ledertavle > forlat spillmodus > forlat kategori
+  const goBack = () => {
+    if (showLeaderboard) {
+      setShowLeaderboard(false)
+    } else if (mode) {
+      setMode(null)
+    } else if (categoryId) {
+      setCategoryId(null)
+    }
+  }
+
   return (
     <div
-      className="min-h-screen transition-colors duration-300"
+      className="flex h-dvh flex-col overflow-hidden transition-colors duration-300"
       style={{ background: 'var(--bg)', color: 'var(--text)' }}
     >
-      <Header onLeaderboard={() => setShowLeaderboard(true)} />
+      <BackgroundMap />
+      <Header onLeaderboard={() => setShowLeaderboard(true)} atRoot={atRoot} onBack={goBack} />
 
-      <main>
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {showLeaderboard ? (
-          <Leaderboard onBack={() => setShowLeaderboard(false)} />
+          <Leaderboard />
         ) : !category ? (
-          <>
-            <div className="flex justify-center pt-8 pb-6">
+          <section aria-label={t('menu.title')}>
+            <div className="flex justify-center pb-6 pt-6 sm:pt-8">
               <h1>
                 <Logo onClick={reset} size="large" />
               </h1>
             </div>
             <CategoryPicker onPick={setCategoryId} />
-          </>
+          </section>
         ) : !mode ? (
-          <ModePicker category={category} onPick={startGame} onBack={reset} />
+          <ModePicker category={category} onPick={startGame} />
         ) : (
           <GameScreen
             key={`${category.id}-${mode}`}

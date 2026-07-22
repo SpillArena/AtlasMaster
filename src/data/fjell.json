@@ -1,0 +1,117 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Galdhøpiggen",
+                "name": "Galdhøpiggen"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.312,
+                    61.636
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Glittertind",
+                "name": "Glittertind"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.554,
+                    61.65
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Store Skagastølstind",
+                "name": "Store Skagastølstind"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.855,
+                    61.487
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Snøhetta",
+                "name": "Snøhetta"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.2622,
+                    62.3308
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Gaustatoppen",
+                "name": "Gaustatoppen"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.653,
+                    59.849
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Stetind",
+                "name": "Stetind"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    16.516,
+                    68.235
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Jiehkkevárri",
+                "name": "Jiehkkevárri"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    19.98,
+                    69.53
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Romsdalshorn",
+                "name": "Romsdalshorn"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.706,
+                    62.554
+                ]
+            }
+        }
+    ]
+}

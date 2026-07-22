@@ -27,7 +27,8 @@ export function MapPreview({ category }: Props) {
       category.base?.() ?? Promise.resolve<FeatureCollection | undefined>(undefined),
     ]).then(([data, base]) => {
       if (!alive) return
-      const fit = category.geom === 'point' && base ? base : data
+      // tilpass projeksjon til fylke-omrisset når det finnes, ellers til dataene selv
+      const fit = base ?? data
       const projection = makeProjection(fit, W, H)
       const path = makePath(projection)
       const basePaths = base
@@ -64,17 +65,33 @@ export function MapPreview({ category }: Props) {
         <path key={`b-${i}`} d={d} fill="#ffffff" fillOpacity={0.18} stroke="#ffffff" strokeOpacity={0.25} strokeWidth={0.6} />
       ))}
 
+      {/* uthevede linjer (elver) */}
+      {category.geom === 'line' &&
+        r.featurePaths.map((d, i) => (
+          <path
+            key={`f-${i}`}
+            d={d}
+            fill="none"
+            stroke={category.color}
+            strokeOpacity={0.9}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ))}
+
       {/* uthevede polygoner (fylker) */}
-      {r.featurePaths.map((d, i) => (
-        <path
-          key={`f-${i}`}
-          d={d}
-          fill={category.color}
-          fillOpacity={0.55 + (i % 4) * 0.1}
-          stroke="#ffffff"
-          strokeWidth={0.8}
-        />
-      ))}
+      {category.geom === 'polygon' &&
+        r.featurePaths.map((d, i) => (
+          <path
+            key={`f-${i}`}
+            d={d}
+            fill={category.color}
+            fillOpacity={0.55 + (i % 4) * 0.1}
+            stroke="#ffffff"
+            strokeWidth={0.8}
+          />
+        ))}
 
       {/* uthevede punkter (byer) — glødende prikker */}
       {r.points.map((p, i) => (

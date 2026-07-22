@@ -14,26 +14,45 @@ export function GameTopBar({ correctCount, done, total, mistakes }: Props) {
   const pct = total ? Math.round((done / total) * 100) : 0
 
   return (
-    <div className="border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
-      <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
-        <div className="flex items-center justify-between text-sm font-medium">
-          <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
-            {t('hud.correct')} {correctCount}/{total}
-          </span>
-          <span className="tabular-nums text-gray-500 dark:text-gray-400">
-            {pct}% {t('hud.done')}
-          </span>
-          <span className="tabular-nums text-red-500">
-            {t('hud.mistakesLabel')} {mistakes}
-          </span>
-        </div>
-        <div className="h-2.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+    <header
+      className="shrink-0 border-b px-3 py-2 backdrop-blur sm:px-4"
+      style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}
+    >
+      <div className="mx-auto flex max-w-6xl flex-col gap-1.5">
+        <dl className="flex items-center justify-between text-xs font-semibold sm:text-sm">
+          <div className="flex gap-1" style={{ color: 'var(--success)' }}>
+            <dt>{t('hud.correct')}</dt>
+            <dd className="tabular-nums">
+              {correctCount}/{total}
+            </dd>
+          </div>
+          <div className="flex gap-1" style={{ color: 'var(--text-subtle)' }}>
+            <dt className="capitalize">{t('hud.done')}</dt>
+            <dd className="tabular-nums">{pct}%</dd>
+          </div>
+          <div className="flex gap-1" style={{ color: 'var(--danger)' }}>
+            <dt>{t('hud.mistakesLabel')}</dt>
+            <dd className="tabular-nums">{mistakes}</dd>
+          </div>
+        </dl>
+        <div
+          className="h-2 overflow-hidden rounded-full sm:h-2.5"
+          style={{ background: 'var(--map-idle)' }}
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t('hud.done')}
+        >
           <div
-            className="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-300"
-            style={{ width: `${pct}%` }}
+            className="h-full rounded-full transition-all duration-300"
+            style={{
+              width: `${pct}%`,
+              background: 'linear-gradient(90deg, var(--accent), var(--info))',
+            }}
           />
         </div>
       </div>
-    </div>
+    </header>
   )
 }

@@ -22,7 +22,8 @@
     "description": "Test your geography skills. How fast are you?"
   },
   "nav": {
-    "name": "Name"
+    "name": "Name",
+    "backToArena": "Back to Arena"
   },
   "namePrompt": {
     "title": "What's your name?",
@@ -37,7 +38,9 @@
   },
   "tile": {
     "fylker": "Learn all 15 counties",
-    "storbyer": "Find Norway's biggest cities"
+    "storbyer": "Find Norway's biggest cities",
+    "elver": "Learn Norway's major rivers",
+    "fjell": "Learn Norway's tallest peaks"
   },
   "cat": {
     "fylker": "Counties",

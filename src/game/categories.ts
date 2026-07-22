@@ -28,6 +28,30 @@ export const categories: Category[] = [
     base: async () =>
       (await import('../data/fylker.json')).default as unknown as FeatureCollection,
   },
+  {
+    id: 'elver',
+    labelKey: 'cat.elver',
+    geom: 'line',
+    icon: 'river',
+    color: '#06b6d4',
+    load: async () =>
+      (await import('../data/elver.json')).default as unknown as FeatureCollection,
+    // fylke-omriss bak elvene for kontekst
+    base: async () =>
+      (await import('../data/fylker.json')).default as unknown as FeatureCollection,
+  },
+  {
+    id: 'fjell',
+    labelKey: 'cat.fjell',
+    geom: 'point',
+    icon: 'mountain',
+    color: '#f59e0b',
+    load: async () =>
+      (await import('../data/fjell.json')).default as unknown as FeatureCollection,
+    // fylke-omriss bak fjelltoppene for kontekst
+    base: async () =>
+      (await import('../data/fylker.json')).default as unknown as FeatureCollection,
+  },
 ]
 
 export function getCategory(id: string): Category | undefined {

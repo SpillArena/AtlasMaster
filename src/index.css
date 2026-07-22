@@ -16,6 +16,15 @@
     --surface: #fffcf8d1;
     --surface-card: #fffcf8f5;
     --nav-bg: #f7f4f1e0;
+
+    /* spillsemantikk — hentet fra det norske flagget + naturen på kartet */
+    --success: #12875a; /* riktig — furuskog */
+    --danger: #ba0c2f; /* feil — flaggrødt */
+    --info: #3a5fcd; /* opplyst/nøytralt svar — flaggblått, lysnet for kontrast */
+    --gold: #e8a317; /* mål/trofé/stjerner */
+
+    --map-idle: #1c102526; /* uklikkede kartflater */
+    --map-idle-hover: #f1376e4d;
   }
 
   /* Mørkt tema — settes når <html> har klassen .dark (ThemeContext) */
@@ -29,6 +38,14 @@
     --surface: #01062699;
     --surface-card: #0106263d;
     --nav-bg: #010626bf;
+
+    --success: #22b573;
+    --danger: #ef4a5f;
+    --info: #6d8dff;
+    --gold: #f5be3b;
+
+    --map-idle: #ffffff1f;
+    --map-idle-hover: #f1376e4d;
   }
 
   html {
@@ -40,5 +57,28 @@
   select,
   textarea {
     font-family: inherit;
+  }
+
+  /* synlig fokus-ring for tastatur/switch-navigasjon på alle enheter */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
