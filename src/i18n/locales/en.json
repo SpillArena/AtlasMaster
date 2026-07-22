@@ -22,7 +22,8 @@
     "description": "Test your geography skills. How fast are you?"
   },
   "nav": {
-    "name": "Name"
+    "name": "Name",
+    "backToArena": "Back to Arena"
   },
   "namePrompt": {
     "title": "What's your name?",

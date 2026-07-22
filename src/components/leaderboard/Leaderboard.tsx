@@ -5,10 +5,6 @@ import { categories, getCategory } from '../../game/categories'
 import { getEntries } from '../../game/leaderboard'
 import { Icon } from '../Icon'
 
-interface Props {
-  onBack: () => void
-}
-
 function fmtTime(ms: number): string {
   const s = Math.round(ms / 1000)
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -16,7 +12,7 @@ function fmtTime(ms: number): string {
 
 const RANK_COLOR = ['text-amber-500', 'text-gray-400', 'text-orange-700']
 
-export function Leaderboard({ onBack }: Props) {
+export function Leaderboard() {
   const { t } = useTranslation()
   const [filter, setFilter] = useState<string>('all')
   // les én gang ved montering (sortert synkende på score i storage)
@@ -27,21 +23,10 @@ export function Leaderboard({ onBack }: Props) {
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-2xl px-4 py-4">
-      <div className="mb-4 flex items-center gap-3">
-        <nav aria-label={t('mode.back')}>
-          <button
-            onClick={onBack}
-            className="rounded-full border px-3 py-1 text-sm font-medium transition-colors hover:bg-[var(--surface-card)]"
-            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
-          >
-            ← {t('mode.back')}
-          </button>
-        </nav>
-        <h1 className="font-display flex items-center gap-2 text-xl font-extrabold tracking-tight sm:text-2xl">
-          <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
-          {t('leaderboard.title')}
-        </h1>
-      </div>
+      <h1 className="font-display mb-4 flex items-center gap-2 text-xl font-extrabold tracking-tight sm:text-2xl">
+        <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
+        {t('leaderboard.title')}
+      </h1>
 
       {/* kategori-filter */}
       <nav aria-label={t('leaderboard.all')} className="mb-4 flex flex-wrap gap-2">

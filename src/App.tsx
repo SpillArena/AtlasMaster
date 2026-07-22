@@ -33,17 +33,32 @@ function App() {
 
   const category = categoryId ? getCategory(categoryId) : undefined
 
+  // toppnivå = ingen kategori/modus/ledertavle valgt — da viser headeren
+  // "Tilbake til Spillarena" i stedet for et internt tilbake-steg
+  const atRoot = !category && !mode && !showLeaderboard
+
+  // ett steg tilbake: lukk ledertavle > forlat spillmodus > forlat kategori
+  const goBack = () => {
+    if (showLeaderboard) {
+      setShowLeaderboard(false)
+    } else if (mode) {
+      setMode(null)
+    } else if (categoryId) {
+      setCategoryId(null)
+    }
+  }
+
   return (
     <div
       className="flex h-dvh flex-col overflow-hidden transition-colors duration-300"
       style={{ background: 'var(--bg)', color: 'var(--text)' }}
     >
       <BackgroundMap />
-      <Header onLeaderboard={() => setShowLeaderboard(true)} />
+      <Header onLeaderboard={() => setShowLeaderboard(true)} atRoot={atRoot} onBack={goBack} />
 
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {showLeaderboard ? (
-          <Leaderboard onBack={() => setShowLeaderboard(false)} />
+          <Leaderboard />
         ) : !category ? (
           <section aria-label={t('menu.title')}>
             <div className="flex justify-center pb-6 pt-6 sm:pt-8">
@@ -54,7 +69,7 @@ function App() {
             <CategoryPicker onPick={setCategoryId} />
           </section>
         ) : !mode ? (
-          <ModePicker category={category} onPick={startGame} onBack={reset} />
+          <ModePicker category={category} onPick={startGame} />
         ) : (
           <GameScreen
             key={`${category.id}-${mode}`}

@@ -7,7 +7,6 @@ import { Icon, type IconName } from '../Icon'
 interface Props {
   category: Category
   onPick: (mode: Mode) => void
-  onBack: () => void
 }
 
 // statiske gradient-klasser + ikon per modus (holdes hele for Tailwind JIT)
@@ -19,23 +18,14 @@ const MODE_META: Record<Mode, { gradient: string; icon: IconName }> = {
   type: { gradient: 'from-emerald-600 via-[#0f6b47] to-[#0a2e24]', icon: 'keyboard' },
 }
 
-export function ModePicker({ category, onPick, onBack }: Props) {
+export function ModePicker({ category, onPick }: Props) {
   const { t } = useTranslation()
 
   return (
     <div className="mx-auto flex h-full max-w-4xl flex-col px-4">
-      <nav aria-label={t('mode.back')} className="flex shrink-0 items-center gap-3 py-3">
-        <button
-          onClick={onBack}
-          className="rounded-full border px-3 py-1 text-sm font-medium transition-colors"
-          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
-        >
-          ← {t('mode.back')}
-        </button>
-        <span style={{ color: 'var(--text-subtle)' }}>
-          {t(category.labelKey)} · {t('mode.subtitle')}
-        </span>
-      </nav>
+      <p className="shrink-0 py-3" style={{ color: 'var(--text-subtle)' }}>
+        {t(category.labelKey)} · {t('mode.subtitle')}
+      </p>
 
       <ul className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-2.5 pb-4 sm:grid-cols-3 sm:grid-rows-1">
         {MODES.map((m, i) => {
