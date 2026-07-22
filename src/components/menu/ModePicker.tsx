@@ -11,42 +11,45 @@ interface Props {
 }
 
 // statiske gradient-klasser + ikon per modus (holdes hele for Tailwind JIT)
+// fargene hentes fra samme palett som resten av appen: accent (klikk),
+// info/flaggblått (velg), skog/success (skriv) — ikke tilfeldige Tailwind-toner
 const MODE_META: Record<Mode, { gradient: string; icon: IconName }> = {
-  click: { gradient: 'from-rose-500 via-rose-700 to-pink-950', icon: 'target' },
-  choice: { gradient: 'from-violet-600 via-purple-800 to-fuchsia-950', icon: 'list' },
-  type: { gradient: 'from-amber-500 via-orange-700 to-red-950', icon: 'keyboard' },
+  click: { gradient: 'from-rose-500 via-[#d61a5c] to-[#5c0f2c]', icon: 'target' },
+  choice: { gradient: 'from-[#4f6fe0] via-[#2a3f8f] to-[#0d1240]', icon: 'list' },
+  type: { gradient: 'from-emerald-600 via-[#0f6b47] to-[#0a2e24]', icon: 'keyboard' },
 }
 
 export function ModePicker({ category, onPick, onBack }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto max-w-6xl px-4">
-      <div className="flex items-center gap-3 py-2">
+    <div className="mx-auto flex h-full max-w-4xl flex-col px-4">
+      <nav aria-label={t('mode.back')} className="flex shrink-0 items-center gap-3 py-3">
         <button
           onClick={onBack}
-          className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+          className="rounded-full border px-3 py-1 text-sm font-medium transition-colors"
+          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
         >
           ← {t('mode.back')}
         </button>
-        <span className="text-gray-500 dark:text-gray-400">
+        <span style={{ color: 'var(--text-subtle)' }}>
           {t(category.labelKey)} · {t('mode.subtitle')}
         </span>
-      </div>
+      </nav>
 
-      <div className="grid h-[calc(100dvh-11.5rem)] grid-cols-1 gap-2 pb-4 sm:grid-cols-3">
+      <ul className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-2.5 pb-4 sm:grid-cols-3 sm:grid-rows-1">
         {MODES.map((m, i) => {
           const meta = MODE_META[m]
           return (
+            <li key={m} className="min-h-0">
             <motion.button
-              key={m}
               onClick={() => onPick(m)}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, type: 'spring', stiffness: 120 }}
               whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.985 }}
-              className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[1rem] bg-gradient-to-br ${meta.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
+              className={`group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1rem] bg-gradient-to-br ${meta.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
             >
               {/* blurret kart av valgt kategori */}
               <div className="absolute inset-0 scale-110 opacity-80 blur-[3px] transition-all duration-500 group-hover:scale-105 group-hover:blur-[1.5px]">
@@ -68,7 +71,7 @@ export function ModePicker({ category, onPick, onBack }: Props) {
                 >
                   <Icon name={meta.icon} className="h-10 w-10 sm:h-12 sm:w-12" />
                 </motion.span>
-                <span className="text-lg font-extrabold tracking-tight drop-shadow-md sm:text-2xl">
+                <span className="font-display text-lg font-extrabold tracking-tight drop-shadow-md sm:text-2xl">
                   {t(`mode.${m}.title`)}
                 </span>
                 <span className="max-w-xs text-xs font-medium text-white/85 drop-shadow sm:text-sm">
@@ -76,9 +79,10 @@ export function ModePicker({ category, onPick, onBack }: Props) {
                 </span>
               </div>
             </motion.button>
+            </li>
           )
         })}
-      </div>
+      </ul>
     </div>
   )
 }

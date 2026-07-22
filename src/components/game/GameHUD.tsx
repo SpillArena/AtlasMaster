@@ -34,19 +34,24 @@ export function GameHUD({
   const { t } = useTranslation()
 
   return (
-    <div className="border-t border-gray-200 bg-white/95 pt-3 backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-gray-800 dark:bg-gray-950/95">
-      <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4">
+    <footer
+      className="shrink-0 border-t pt-3 backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}
+    >
+      <div className="mx-auto flex max-w-3xl flex-col gap-3 px-3 sm:px-4">
         {/* prompt / kontroller */}
         {mode === 'click' ? (
           <div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>
               {t('hud.findThis')}
             </div>
-            <div className="text-3xl font-bold tracking-tight">{targetName}</div>
+            <div className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+              {targetName}
+            </div>
           </div>
         ) : (
           <div>
-            <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="mb-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
               {t('hud.whatIsThis')}
             </div>
             {mode === 'choice' ? (
@@ -65,20 +70,22 @@ export function GameHUD({
         <div className="flex items-center justify-center gap-2 text-sm">
           <button
             onClick={onSkip}
-            className="rounded-lg px-4 py-2 font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            className="rounded-lg px-4 py-2 font-medium transition-colors"
+            style={{ color: 'var(--text-subtle)' }}
           >
             {t('hud.skip')}
           </button>
-          <span className="text-gray-300 dark:text-gray-700">·</span>
+          <span style={{ color: 'var(--border)' }}>·</span>
           <button
             onClick={onGiveUp}
-            className="rounded-lg px-4 py-2 font-medium text-red-500/90 hover:bg-red-50 hover:text-red-600 dark:text-red-400/90 dark:hover:bg-red-950"
+            className="rounded-lg px-4 py-2 font-medium transition-colors"
+            style={{ color: 'var(--danger)' }}
           >
             {t('hud.giveUp')}
           </button>
         </div>
       </div>
-    </div>
+    </footer>
   )
 }
 
@@ -92,25 +99,34 @@ function ChoiceButtons({
   onChoose: (id: string) => void
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
       {choices.map((c, i) => (
-        <motion.button
-          // targetKey i nøkkel → re-animer ved nytt spørsmål
-          key={`${targetKey}-${c.id}`}
-          onClick={() => onChoose(c.id)}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-3 rounded-2xl border-2 border-sky-300 bg-sky-50 px-4 py-4 text-left text-lg font-semibold text-sky-900 shadow-sm transition-colors hover:border-sky-500 hover:bg-sky-100 dark:border-sky-700 dark:bg-sky-950/70 dark:text-sky-100 dark:hover:border-sky-500 dark:hover:bg-sky-900"
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-500 text-sm font-bold text-white">
-            {i + 1}
-          </span>
-          {c.name}
-        </motion.button>
+        <li key={`${targetKey}-${c.id}`}>
+          <motion.button
+            // targetKey i nøkkel → re-animer ved nytt spørsmål
+            onClick={() => onChoose(c.id)}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-4 text-left text-base font-semibold shadow-sm transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--surface-card)] sm:text-lg"
+            style={{
+              borderColor: 'var(--border)',
+              background: 'var(--surface)',
+              color: 'var(--text)',
+            }}
+          >
+            <span
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+              style={{ background: 'var(--info)' }}
+            >
+              {i + 1}
+            </span>
+            {c.name}
+          </motion.button>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -147,11 +163,13 @@ function TypeInput({
         autoComplete="off"
         autoCorrect="off"
         placeholder={t('hud.typePlaceholder')}
-        className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-base outline-none focus:border-sky-400 dark:border-gray-700 dark:bg-gray-900 dark:focus:border-sky-500"
+        className="flex-1 rounded-xl border px-4 py-3 text-base outline-none transition-colors focus:border-[var(--accent)]"
+        style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
       />
       <button
         type="submit"
-        className="rounded-xl bg-sky-500 px-5 py-3 text-base font-medium text-white hover:bg-sky-600"
+        className="rounded-xl px-5 py-3 text-base font-medium text-white transition-opacity hover:opacity-90"
+        style={{ background: 'var(--info)' }}
       >
         {t('hud.submit')}
       </button>

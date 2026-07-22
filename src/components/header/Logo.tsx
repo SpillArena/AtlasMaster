@@ -18,7 +18,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
         className="group flex items-center gap-2 transition-transform duration-200 ease-out hover:-translate-y-[1px]"
       >
         <NorwayFlag className="h-5 w-[1.5rem] rounded-[2px]" />
-        <span className="text-lg font-extrabold tracking-tight text-white">
+        <span className="font-display text-lg font-extrabold tracking-tight text-white">
           {t('menu.title')}
         </span>
       </button>
@@ -35,10 +35,10 @@ export function Logo({ onClick, size = 'small' }: Props) {
         <NorwayFlag className="relative h-12 w-16 rounded-md shadow-[0_8px_20px_rgba(0,0,0,0.35)] sm:h-14 sm:w-20" />
       </div>
       <div className="flex flex-col items-center gap-1">
-        <span className="text-4xl font-black tracking-tighter text-white drop-shadow-md sm:text-5xl">
+        <span className="font-display text-3xl font-black tracking-tighter text-white drop-shadow-md sm:text-5xl">
           {t('menu.title')}
         </span>
-        <span className="text-sm font-medium text-slate-400">
+        <span className="text-xs font-medium text-slate-400 sm:text-sm">
           {t('menu.description')}
         </span>
       </div>

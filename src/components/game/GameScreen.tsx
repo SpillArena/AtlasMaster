@@ -45,7 +45,11 @@ export function GameScreen({ categoryId, mode, onMenu, onLeaderboard }: Props) {
 
   if (!loaded) {
     return (
-      <div className="flex h-[70vh] items-center justify-center text-gray-500">
+      <div
+        role="status"
+        className="flex h-full items-center justify-center text-sm font-medium"
+        style={{ color: 'var(--text-subtle)' }}
+      >
         {t('game.loading')}
       </div>
     )
@@ -111,7 +115,7 @@ function Game({
   })
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
+    <section className="flex h-full flex-col">
       {/* riktig/feil + fremdrift øverst */}
       <GameTopBar
         correctCount={correctCount}
@@ -137,7 +141,10 @@ function Game({
         />
 
         {state.phase === 'finished' && (
-          <div className="absolute inset-0 bg-white/85 backdrop-blur-sm dark:bg-gray-950/85">
+          <div
+            className="absolute inset-0 backdrop-blur-sm"
+            style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)' }}
+          >
             <ResultScreen
               total={state.total}
               correctCount={correctCount}
@@ -164,6 +171,6 @@ function Game({
           onGiveUp={giveUp}
         />
       )}
-    </div>
+    </section>
   )
 }

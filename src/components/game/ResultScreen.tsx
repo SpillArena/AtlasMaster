@@ -54,7 +54,7 @@ export function ResultScreen({
   )
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center gap-6 overflow-hidden p-6 text-center">
+    <section aria-label={t('result.title')} className="relative h-full w-full overflow-hidden text-center">
       {/* konfetti */}
       {stars >= 2 &&
         confetti.map((c) => (
@@ -68,14 +68,16 @@ export function ResultScreen({
           />
         ))}
 
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4 overflow-y-auto p-4 sm:gap-6 sm:p-6">
       {/* trofé */}
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
-        className="flex h-28 w-28 items-center justify-center rounded-full bg-amber-100 text-amber-500 shadow-lg dark:bg-amber-950"
+        className="flex h-24 w-24 items-center justify-center rounded-full shadow-lg sm:h-28 sm:w-28"
+        style={{ background: 'color-mix(in srgb, var(--gold) 18%, var(--bg))', color: 'var(--gold)' }}
       >
-        <Icon name="trophy" className="h-16 w-16" />
+        <Icon name="trophy" className="h-14 w-14 sm:h-16 sm:w-16" />
       </motion.div>
 
       {/* stjerner */}
@@ -98,11 +100,13 @@ export function ResultScreen({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="text-4xl font-extrabold tracking-tight sm:text-5xl"
+          className="font-display text-3xl font-extrabold tracking-tight sm:text-5xl"
         >
           {msg}
         </motion.h2>
-        <p className="mt-1 text-gray-500 dark:text-gray-400">{t('result.title')}</p>
+        <p className="mt-1" style={{ color: 'var(--text-subtle)' }}>
+          {t('result.title')}
+        </p>
       </div>
 
       {/* total score */}
@@ -112,16 +116,22 @@ export function ResultScreen({
         transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.55 }}
         className="flex flex-col items-center"
       >
-        <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+        <span
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: 'var(--text-subtle)' }}
+        >
           {t('result.score')}
         </span>
-        <span className="bg-gradient-to-br from-amber-500 to-orange-600 bg-clip-text text-6xl font-black tabular-nums text-transparent sm:text-7xl">
+        <span
+          className="font-display bg-clip-text text-5xl font-black tabular-nums text-transparent sm:text-7xl"
+          style={{ backgroundImage: 'linear-gradient(135deg, var(--gold), var(--accent))' }}
+        >
           {score}
         </span>
       </motion.div>
 
       {/* statistikk */}
-      <motion.div
+      <motion.dl
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
@@ -130,7 +140,7 @@ export function ResultScreen({
         <Stat icon="clock" tone="sky" label={t('result.time')} value={fmtTime(elapsedMs)} />
         <Stat icon="check" tone="emerald" label={t('result.accuracy')} value={`${accuracy}%`} />
         <Stat icon="x" tone="red" label={t('result.mistakes')} value={String(mistakes)} />
-      </motion.div>
+      </motion.dl>
 
       {/* knapper */}
       <motion.div
@@ -141,13 +151,15 @@ export function ResultScreen({
       >
         <button
           onClick={onRetry}
-          className="flex-1 rounded-2xl bg-emerald-500 px-6 py-4 text-lg font-bold text-white shadow-md transition-transform hover:scale-[1.02] hover:bg-emerald-600"
+          className="flex-1 rounded-2xl px-6 py-4 text-lg font-bold text-white shadow-md transition-transform hover:scale-[1.02]"
+          style={{ background: 'var(--success)' }}
         >
           {t('result.retry')}
         </button>
         <button
           onClick={onMenu}
-          className="flex-1 rounded-2xl border-2 border-gray-300 px-6 py-4 text-lg font-bold transition-colors hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+          className="flex-1 rounded-2xl border-2 px-6 py-4 text-lg font-bold transition-colors hover:bg-[var(--surface-card)]"
+          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
         >
           {t('result.menu')}
         </button>
@@ -158,19 +170,21 @@ export function ResultScreen({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
         onClick={onLeaderboard}
-        className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:underline dark:text-amber-400"
+        className="flex items-center gap-2 text-sm font-semibold hover:underline"
+        style={{ color: 'var(--gold)' }}
       >
         <Icon name="trophy" className="h-4 w-4" />
         {t('result.leaderboard')}
       </motion.button>
-    </div>
+      </div>
+    </section>
   )
 }
 
 const TONE: Record<string, string> = {
-  sky: 'text-sky-500',
-  emerald: 'text-emerald-500',
-  red: 'text-red-500',
+  sky: 'var(--info)',
+  emerald: 'var(--success)',
+  red: 'var(--danger)',
 }
 
 function Stat({
@@ -185,10 +199,17 @@ function Stat({
   value: string
 }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900/80">
-      <Icon name={icon} className={`h-6 w-6 ${TONE[tone]}`} />
-      <span className="text-2xl font-bold tabular-nums">{value}</span>
-      <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
+    <div
+      className="flex flex-col items-center gap-1 rounded-2xl border p-3 shadow-sm sm:p-4"
+      style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+    >
+      <Icon name={icon} className="h-6 w-6" style={{ color: TONE[tone] }} />
+      <dd className="order-1 m-0 font-display text-xl font-bold tabular-nums sm:text-2xl">
+        {value}
+      </dd>
+      <dt className="order-2 text-xs" style={{ color: 'var(--text-subtle)' }}>
+        {label}
+      </dt>
     </div>
   )
 }
@@ -197,7 +218,8 @@ function Star({ filled }: { filled: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`h-12 w-12 ${filled ? 'text-amber-400' : 'text-gray-300 dark:text-gray-700'}`}
+      className="h-10 w-10 sm:h-12 sm:w-12"
+      style={{ color: filled ? 'var(--gold)' : 'var(--border)' }}
       fill="currentColor"
       aria-hidden
     >

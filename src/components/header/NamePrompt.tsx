@@ -27,16 +27,26 @@ export function NamePrompt({ onConfirm, onCancel }: Props) {
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="name-prompt-title"
+        aria-describedby="name-prompt-desc"
+        className="w-full max-w-sm rounded-2xl p-6 shadow-xl"
+        style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-lg font-bold">{t('namePrompt.title')}</h2>
-        <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        <h2 id="name-prompt-title" className="font-display mb-1 text-lg font-bold">
+          {t('namePrompt.title')}
+        </h2>
+        <p id="name-prompt-desc" className="mb-4 text-sm" style={{ color: 'var(--text-subtle)' }}>
           {t('namePrompt.desc')}
         </p>
 
-        <div className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 focus-within:border-sky-400 dark:border-gray-600 dark:focus-within:border-sky-500">
-          <Icon name="user" className="h-4 w-4 text-gray-400" />
+        <div
+          className="flex items-center gap-2 rounded-md border px-3 py-2 transition-colors focus-within:border-[var(--accent)]"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <Icon name="user" className="h-4 w-4" style={{ color: 'var(--text-subtle)' }} />
           <input
             autoFocus
             value={value}
@@ -44,14 +54,16 @@ export function NamePrompt({ onConfirm, onCancel }: Props) {
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder={t('nav.name')}
             autoComplete="off"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+            className="w-full bg-transparent text-sm outline-none"
+            style={{ color: 'var(--text)' }}
           />
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm transition-colors hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
+            className="rounded-md border px-4 py-2 text-sm transition-colors"
+            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
           >
             {t('namePrompt.cancel')}
           </button>
@@ -59,7 +71,7 @@ export function NamePrompt({ onConfirm, onCancel }: Props) {
             onClick={submit}
             disabled={!trimmed}
             className="rounded-md px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
-            style={{ backgroundColor: '#BA0C2F' }}
+            style={{ backgroundColor: 'var(--danger)' }}
           >
             {t('namePrompt.confirm')}
           </button>

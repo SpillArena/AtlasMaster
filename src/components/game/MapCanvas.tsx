@@ -134,7 +134,9 @@ export function MapCanvas({
               key={id}
               d={d}
               vectorEffect="non-scaling-stroke"
-              className="fill-gray-100 stroke-gray-300 stroke-[0.6] dark:fill-gray-800/40 dark:stroke-gray-700"
+              fill="var(--map-idle)"
+              stroke="var(--border)"
+              strokeWidth={0.6}
             />
           ))}
 
@@ -145,6 +147,15 @@ export function MapCanvas({
             const revealed = st === 'revealed'
             const wrong = flashId === id && !st
             const hl = highlightId === id
+            const fill = correct
+              ? 'var(--success)'
+              : revealed
+                ? 'var(--info)'
+                : wrong
+                  ? 'var(--danger)'
+                  : hl
+                    ? 'var(--gold)'
+                    : 'var(--map-idle)'
             return (
               <motion.path
                 key={wrong ? `${id}-${flashN}` : id}
@@ -153,20 +164,12 @@ export function MapCanvas({
                 vectorEffect="non-scaling-stroke"
                 animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
                 transition={{ duration: 0.3 }}
+                fill={fill}
                 className={[
                   'stroke-white stroke-[0.8] outline-none transition-colors',
-                  interactive && !disabled ? 'cursor-pointer' : 'pointer-events-none',
-                  correct
-                    ? 'fill-emerald-500 dark:fill-emerald-600'
-                    : revealed
-                      ? 'fill-indigo-400 dark:fill-indigo-500'
-                      : wrong
-                        ? 'fill-red-500 dark:fill-red-600'
-                        : hl
-                          ? 'fill-amber-400 dark:fill-amber-500'
-                          : interactive
-                            ? 'fill-gray-300 hover:fill-sky-300 dark:fill-gray-700 dark:hover:fill-sky-600'
-                            : 'fill-gray-300 dark:fill-gray-700',
+                  interactive && !disabled
+                    ? 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
+                    : 'pointer-events-none',
                 ].join(' ')}
               />
             )
@@ -180,13 +183,23 @@ export function MapCanvas({
             const wrong = flashId === id && !st
             const hl = highlightId === id
             const r = (hl ? 6 : 5) / k
+            const fill = correct
+              ? 'var(--success)'
+              : revealed
+                ? 'var(--info)'
+                : wrong
+                  ? 'var(--danger)'
+                  : hl
+                    ? 'var(--gold)'
+                    : 'var(--accent)'
             return (
               <g key={wrong ? `${id}-${flashN}` : id}>
                 {hl && (
                   <motion.circle
                     cx={x}
                     cy={y}
-                    className="fill-none stroke-amber-400"
+                    fill="none"
+                    stroke="var(--gold)"
                     style={{ strokeWidth: 2 / k }}
                     animate={{ r: [6 / k, 14 / k, 6 / k], opacity: [1, 0, 1] }}
                     transition={{ duration: 1.4, repeat: Infinity }}
@@ -200,18 +213,10 @@ export function MapCanvas({
                   vectorEffect="non-scaling-stroke"
                   animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
                   transition={{ duration: 0.3 }}
+                  fill={fill}
                   className={[
                     'stroke-white stroke-[1] outline-none transition-colors',
                     interactive && !disabled ? 'cursor-pointer' : 'pointer-events-none',
-                    correct
-                      ? 'fill-emerald-500'
-                      : revealed
-                        ? 'fill-indigo-400'
-                        : wrong
-                          ? 'fill-red-500'
-                          : hl
-                            ? 'fill-amber-400'
-                            : 'fill-sky-500 hover:fill-sky-400',
                   ].join(' ')}
                 />
               </g>
@@ -221,7 +226,7 @@ export function MapCanvas({
       </svg>
 
       {/* zoom-kontroller */}
-      <div className="absolute right-2 top-2 flex flex-col gap-1">
+      <div className="absolute right-2 top-2 flex flex-col gap-1.5 sm:right-3 sm:top-3">
         <ZoomBtn icon="plus" onClick={() => zoomBy(1.6)} />
         <ZoomBtn icon="minus" onClick={() => zoomBy(1 / 1.6)} />
         <ZoomBtn icon="reset" onClick={resetZoom} />
@@ -234,7 +239,8 @@ function ZoomBtn({ icon, onClick }: { icon: IconName; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white/90 shadow-sm backdrop-blur hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900/90 dark:hover:bg-gray-800"
+      className="flex h-11 w-11 items-center justify-center rounded-lg border shadow-sm backdrop-blur transition-colors hover:bg-[var(--surface-card)]"
+      style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
     >
       <Icon name={icon} className="h-5 w-5" />
     </button>
