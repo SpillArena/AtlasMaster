@@ -38,7 +38,7 @@ export function GameHUD({
       className="shrink-0 border-t pt-3 backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]"
       style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-3 px-3 sm:px-4">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 sm:px-4">
         {/* prompt / kontroller */}
         {mode === 'click' ? (
           <div>
@@ -99,7 +99,7 @@ function ChoiceButtons({
   onChoose: (id: string) => void
 }) {
   return (
-    <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
       {choices.map((c, i) => (
         <li key={`${targetKey}-${c.id}`}>
           <motion.button

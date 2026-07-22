@@ -18,7 +18,7 @@ export function GameTopBar({ correctCount, done, total, mistakes }: Props) {
       className="shrink-0 border-b px-3 py-2 backdrop-blur sm:px-4"
       style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
+      <div className="mx-auto flex max-w-6xl flex-col gap-1.5">
         <dl className="flex items-center justify-between text-xs font-semibold sm:text-sm">
           <div className="flex gap-1" style={{ color: 'var(--success)' }}>
             <dt>{t('hud.correct')}</dt>

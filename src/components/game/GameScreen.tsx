@@ -85,7 +85,8 @@ function Game({
     mode,
   )
 
-  const fitData = geom === 'point' && base ? base : data
+  // tilpass projeksjon til fylke-omrisset når det finnes, ellers til dataene selv
+  const fitData = base ?? data
   const isClick = mode === 'click'
   // antall faktisk riktige (oppgitt/«vet ikke» = 'revealed' teller ikke)
   const correctCount = Object.values(state.status).filter((s) => s === 'correct').length

@@ -140,14 +140,15 @@ export function MapCanvas({
             />
           ))}
 
-          {/* polygon-features */}
+          {/* polygon- og linje-features (fylker / elver) */}
           {paths.map(({ id, d }) => {
             const st = status[id]
             const correct = st === 'correct'
             const revealed = st === 'revealed'
             const wrong = flashId === id && !st
             const hl = highlightId === id
-            const fill = correct
+            const isLine = geom === 'line'
+            const color = correct
               ? 'var(--success)'
               : revealed
                 ? 'var(--info)'
@@ -155,7 +156,9 @@ export function MapCanvas({
                   ? 'var(--danger)'
                   : hl
                     ? 'var(--gold)'
-                    : 'var(--map-idle)'
+                    : isLine
+                      ? 'var(--text-subtle)'
+                      : 'var(--map-idle)'
             return (
               <motion.path
                 key={wrong ? `${id}-${flashN}` : id}
@@ -164,11 +167,18 @@ export function MapCanvas({
                 vectorEffect="non-scaling-stroke"
                 animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
                 transition={{ duration: 0.3 }}
-                fill={fill}
+                fill={isLine ? 'none' : color}
+                stroke={isLine ? color : undefined}
+                strokeWidth={isLine ? 6 : undefined}
+                strokeLinecap={isLine ? 'round' : undefined}
+                strokeLinejoin={isLine ? 'round' : undefined}
                 className={[
-                  'stroke-white stroke-[0.8] outline-none transition-colors',
+                  'outline-none transition-colors',
+                  isLine ? '' : 'stroke-white stroke-[0.8]',
                   interactive && !disabled
-                    ? 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
+                    ? isLine
+                      ? 'cursor-pointer hover:stroke-[var(--accent)]'
+                      : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
                     : 'pointer-events-none',
                 ].join(' ')}
               />

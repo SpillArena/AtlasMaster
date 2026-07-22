@@ -38,7 +38,9 @@
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
-    "storbyer": "Finn Norges største byer"
+    "storbyer": "Finn Norges største byer",
+    "elver": "Lær Norges største elver",
+    "fjell": "Lær Norges høyeste fjelltopper"
   },
   "cat": {
     "fylker": "Fylker",

@@ -1,0 +1,241 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Glomma",
+                "name": "Glomma"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        11.4,
+                        62.65
+                    ],
+                    [
+                        11.56,
+                        60.88
+                    ],
+                    [
+                        11.15,
+                        60.2
+                    ],
+                    [
+                        11.1,
+                        59.6
+                    ],
+                    [
+                        11.11,
+                        59.28
+                    ],
+                    [
+                        10.93,
+                        59.22
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Tana",
+                "name": "Tana"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        25.5,
+                        69.47
+                    ],
+                    [
+                        26.8,
+                        69.7
+                    ],
+                    [
+                        27.85,
+                        70.1
+                    ],
+                    [
+                        28.15,
+                        70.35
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Numedalslågen",
+                "name": "Numedalslågen"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.05,
+                        60.1
+                    ],
+                    [
+                        8.85,
+                        59.95
+                    ],
+                    [
+                        9.65,
+                        59.67
+                    ],
+                    [
+                        9.85,
+                        59.3
+                    ],
+                    [
+                        10.03,
+                        59.05
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Gaula",
+                "name": "Gaula"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        11.3,
+                        62.9
+                    ],
+                    [
+                        10.9,
+                        63.05
+                    ],
+                    [
+                        10.55,
+                        63.25
+                    ],
+                    [
+                        10.4,
+                        63.4
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Otra",
+                "name": "Otra"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        7.35,
+                        59.55
+                    ],
+                    [
+                        7.6,
+                        59
+                    ],
+                    [
+                        7.85,
+                        58.5
+                    ],
+                    [
+                        8,
+                        58.15
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Namsen",
+                "name": "Namsen"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        13.9,
+                        64.9
+                    ],
+                    [
+                        12.9,
+                        64.75
+                    ],
+                    [
+                        12.1,
+                        64.6
+                    ],
+                    [
+                        11.5,
+                        64.47
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Altaelva",
+                "name": "Altaelva"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        24.6,
+                        69.3
+                    ],
+                    [
+                        24,
+                        69.55
+                    ],
+                    [
+                        23.5,
+                        69.8
+                    ],
+                    [
+                        23.27,
+                        69.97
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "Driva",
+                "name": "Driva"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        9.5,
+                        62.4
+                    ],
+                    [
+                        9.1,
+                        62.5
+                    ],
+                    [
+                        8.75,
+                        62.6
+                    ],
+                    [
+                        8.56,
+                        62.67
+                    ]
+                ]
+            }
+        }
+    ]
+}

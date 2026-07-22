@@ -22,7 +22,7 @@ export function Leaderboard() {
     filter === 'all' ? entries : entries.filter((e) => e.categoryId === filter)
 
   return (
-    <section aria-label={t('leaderboard.title')} className="mx-auto max-w-2xl px-4 py-4">
+    <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
       <h1 className="font-display mb-4 flex items-center gap-2 text-xl font-extrabold tracking-tight sm:text-2xl">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}

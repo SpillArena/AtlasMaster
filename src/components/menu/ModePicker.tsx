@@ -22,7 +22,7 @@ export function ModePicker({ category, onPick }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col px-4">
+    <div className="mx-auto flex h-full max-w-6xl flex-col px-4">
       <p className="shrink-0 py-3" style={{ color: 'var(--text-subtle)' }}>
         {t(category.labelKey)} · {t('mode.subtitle')}
       </p>
@@ -59,7 +59,7 @@ export function ModePicker({ category, onPick }: Props) {
                     delay: i * 0.4,
                   }}
                 >
-                  <Icon name={meta.icon} className="h-10 w-10 sm:h-12 sm:w-12" />
+                  <Icon name={meta.icon} className="h-16 w-16 sm:h-20 sm:w-20" />
                 </motion.span>
                 <span className="font-display text-lg font-extrabold tracking-tight drop-shadow-md sm:text-2xl">
                   {t(`mode.${m}.title`)}
