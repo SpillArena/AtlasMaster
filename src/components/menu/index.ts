@@ -1,3 +1,5 @@
 export { CategoryPicker } from './CategoryPicker'
 export { ModePicker } from './ModePicker'
+export { PacePicker } from './PacePicker'
+export { ModeDemo } from './ModeDemo'
 export { MapPreview } from './MapPreview'

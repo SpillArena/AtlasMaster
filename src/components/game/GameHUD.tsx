@@ -34,51 +34,50 @@ export function GameHUD({
   const { t } = useTranslation()
 
   return (
-    <footer
-      className="shrink-0 border-t pt-3 backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-      style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}
-    >
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 sm:px-4">
-        {/* prompt / kontroller */}
+    <footer className="shrink-0 px-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
+      <div className="panel mx-auto flex max-w-6xl flex-col gap-3 rounded-2xl px-3 py-3 sm:px-4">
         {mode === 'click' ? (
           <div>
-            <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>
-              {t('hud.findThis')}
-            </div>
-            <div className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            <div className="stat-label">{t('hud.findThis')}</div>
+            <motion.div
+              // nytt mål = ny nøkkel = navnet slår inn på nytt
+              key={targetKey}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+              className="font-display mt-0.5 text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
+              style={{ color: 'var(--text)' }}
+            >
               {targetName}
-            </div>
+            </motion.div>
           </div>
         ) : (
           <div>
-            <div className="mb-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
-              {t('hud.whatIsThis')}
-            </div>
+            <div className="stat-label mb-2">{t('hud.whatIsThis')}</div>
             {mode === 'choice' ? (
-              <ChoiceButtons
-                choices={choices}
-                targetKey={targetKey}
-                onChoose={onChoose}
-              />
+              <ChoiceButtons choices={choices} targetKey={targetKey} onChoose={onChoose} />
             ) : (
-              <TypeInput targetKey={targetKey} onType={onType} />
+              // ny nøkkel per mål monterer feltet på nytt, så teksten nullstilles
+              <TypeInput key={targetKey} onType={onType} />
             )}
           </div>
         )}
 
-        {/* sekundære handlinger — ghost, tydelig ulike fra svar-alternativene */}
+        {/* sekundære handlinger — tydelig ulike fra svar-alternativene */}
         <div className="flex items-center justify-center gap-2 text-sm">
           <button
             onClick={onSkip}
-            className="rounded-lg px-4 py-2 font-medium transition-colors"
+            className="rounded-lg px-4 py-2 font-semibold transition-colors hover:text-[var(--text)]"
             style={{ color: 'var(--text-subtle)' }}
           >
             {t('hud.skip')}
           </button>
-          <span style={{ color: 'var(--border)' }}>·</span>
+          <span aria-hidden style={{ color: 'var(--border)' }}>
+            ·
+          </span>
           <button
             onClick={onGiveUp}
-            className="rounded-lg px-4 py-2 font-medium transition-colors"
+            className="rounded-lg px-4 py-2 font-semibold transition-colors"
             style={{ color: 'var(--danger)' }}
           >
             {t('hud.giveUp')}
@@ -98,18 +97,30 @@ function ChoiceButtons({
   targetKey: string
   onChoose: (id: string) => void
 }) {
+  // tastene 1–4 svarer også — raskere enn å sikte med musa
+  useEffect(() => {
+    function handleKey(event: KeyboardEvent) {
+      const index = Number(event.key) - 1
+      if (Number.isNaN(index) || index < 0 || index >= choices.length) return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+      onChoose(choices[index].id)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [choices, onChoose])
+
   return (
-    <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
       {choices.map((c, i) => (
         <li key={`${targetKey}-${c.id}`}>
           <motion.button
-            // targetKey i nøkkel → re-animer ved nytt spørsmål
             onClick={() => onChoose(c.id)}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
-            className="flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-4 text-left text-base font-semibold shadow-sm transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--surface-card)] sm:text-lg"
+            className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left text-base font-bold transition-all hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-lg"
             style={{
               borderColor: 'var(--border)',
               background: 'var(--surface)',
@@ -117,12 +128,13 @@ function ChoiceButtons({
             }}
           >
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-              style={{ background: 'var(--info)' }}
+              aria-hidden
+              className="numeric flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+              style={{ background: 'var(--map-idle)', color: 'var(--text-subtle)' }}
             >
               {i + 1}
             </span>
-            {c.name}
+            <span className="min-w-0 truncate">{c.name}</span>
           </motion.button>
         </li>
       ))}
@@ -130,21 +142,10 @@ function ChoiceButtons({
   )
 }
 
-function TypeInput({
-  targetKey,
-  onType,
-}: {
-  targetKey: string
-  onType: (text: string) => void
-}) {
+function TypeInput({ onType }: { onType: (text: string) => void }) {
   const { t } = useTranslation()
   const [text, setText] = useState('')
   const ref = useRef<HTMLInputElement>(null)
-
-  // nullstill når mål endres (ikke auto-fokus → unngå at mobiltastatur spretter opp)
-  useEffect(() => {
-    setText('')
-  }, [targetKey])
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,13 +164,17 @@ function TypeInput({
         autoComplete="off"
         autoCorrect="off"
         placeholder={t('hud.typePlaceholder')}
-        className="flex-1 rounded-xl border px-4 py-3 text-base outline-none transition-colors focus:border-[var(--accent)]"
-        style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+        className="flex-1 rounded-xl border-2 px-4 py-3 text-base outline-none transition-colors focus:border-[var(--accent)]"
+        style={{
+          borderColor: 'var(--border)',
+          background: 'var(--surface)',
+          color: 'var(--text)',
+        }}
       />
       <button
         type="submit"
-        className="rounded-xl px-5 py-3 text-base font-medium text-white transition-opacity hover:opacity-90"
-        style={{ background: 'var(--info)' }}
+        className="rounded-xl px-6 py-3 text-base font-bold text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        style={{ background: 'var(--accent)' }}
       >
         {t('hud.submit')}
       </button>

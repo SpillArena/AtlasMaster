@@ -12,3 +12,6 @@ coverage/
 
 .vscode/
 .idea/
+
+# Cloudflare Wrangler local state
+.wrangler/

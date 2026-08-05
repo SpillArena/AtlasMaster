@@ -1,40 +1,98 @@
 {
-  "greeting": "Hei",
   "theme": {
     "toggle": "Bytt tema",
+    "group": "Tema",
     "light": "Lys",
-    "dark": "Mørk"
-  },
-  "language": {
-    "toggle": "Bytt språk"
-  },
-  "themeSwitcher": {
-    "light": "Bytt til lyst tema",
-    "dark": "Bytt til mørkt tema"
+    "dark": "Mørk",
+    "system": "System"
   },
   "languageSwitcher": {
     "choose": "Velg språk",
     "section": "Språk"
   },
+  "settingsMenu": {
+    "settings": "Innstillinger",
+    "appearance": "Utseende",
+    "accentColor": "Aksentfarge",
+    "chooseAccent": "Velg aksentfarge",
+    "gameplay": "Spill",
+    "sound": "Lydeffekter",
+    "haptics": "Vibrasjon",
+    "reduceMotion": "Mindre bevegelse",
+    "reduceMotionHint": "Skrur av risting, konfetti og pulsering"
+  },
+  "pace": {
+    "relaxed": "Rolig",
+    "normal": "Normal",
+    "blitz": "Lynraskt",
+    "relaxedDesc": "Ta tiden du trenger. Poengene teller 20 % mindre.",
+    "normalDesc": "Standardrunden. Full poengsum.",
+    "blitzDesc": "Alt du rekker er verdt 40 % mer.",
+    "title": "Velg tempo",
+    "start": "Start runden",
+    "seconds": "{{count}} sekunder per sted",
+    "noClock": "Ingen klokke",
+    "beat": "Din rekord her: {{score}}"
+  },
+  "cookieConsent": {
+    "section": "Personvern",
+    "message": "NorgesMester lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
+    "accept": "Godta",
+    "decline": "Avslå",
+    "manage": "Endre cookie-innstillinger",
+    "showDetails": "Vis hva som lagres",
+    "hideDetails": "Skjul detaljer",
+    "statusAccepted": "Spillet husker deg på denne enheten, og resultatene dine havner på den globale ledertavla.",
+    "statusDeclined": "Ingenting lagres og ingenting sendes inn. Navn, poeng og valg forsvinner når du lukker fanen.",
+    "statusUndecided": "Du har ikke valgt ennå. Spillet lagrer og sender ingenting før du gjør det.",
+    "clear": "Slett alt som er lagret",
+    "clearConfirm": "Dette sletter navn, ledertavle, nivå og innstillinger. Kan ikke angres.",
+    "clearYes": "Slett alt",
+    "stored": {
+      "settings": {
+        "title": "Innstillinger",
+        "desc": "Tema, aksentfarge, språk, lyd og tempo."
+      },
+      "player": {
+        "title": "Spiller",
+        "desc": "Navnet ditt og nivået du har spilt deg opp til."
+      },
+      "scores": {
+        "title": "Resultater",
+        "desc": "Ledertavla og personlige rekorder — og resultatene som sendes til den globale tavla."
+      }
+    }
+  },
   "menu": {
     "title": "NorgesMester",
     "subtitle": "Velg hva du vil øve på",
-    "description": "Test dine geografikunnskaper. Hvor rask er du?"
+    "description": "Fylker, byer, elver og fjell. Hvor rask er du?"
   },
   "nav": {
     "name": "Navn",
+    "setName": "Sett navn",
+    "editName": "Endre navn ({{name}})",
+    "level": "Nivå {{level}}",
     "backToArena": "Tilbake til Arena"
   },
   "namePrompt": {
     "title": "Hva heter du?",
-    "desc": "Skriv inn navnet ditt før du starter — det vises på ledertavla.",
+    "editTitle": "Endre navn",
+    "desc": "Navnet vises på ledertavla.",
     "confirm": "Start spill",
+    "save": "Lagre",
     "cancel": "Avbryt"
   },
   "leaderboard": {
     "title": "Ledertavle",
     "all": "Alle",
-    "empty": "Ingen resultater enda — spill en runde!"
+    "empty": "Ingen resultater enda — spill en runde!",
+    "seeAll": "Se hele tavla",
+    "global": "Global",
+    "local": "Denne enheten",
+    "scope": "Velg tavle",
+    "loading": "Henter ledertavla …",
+    "offline": "Fikk ikke kontakt med den globale tavla — viser resultatene fra denne enheten."
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
@@ -64,34 +122,62 @@
     "type": {
       "title": "Skriv navnet",
       "desc": "Et sted markeres — skriv inn navnet."
-    }
+    },
+    "difficulty": "Vanskelighet",
+    "difficultyLevel": "Vanskelighet {{level}} av 3"
   },
   "game": {
     "loading": "Laster kart …"
   },
   "hud": {
-    "findThis": "Finn på kartet:",
+    "findThis": "Finn på kartet",
     "whatIsThis": "Hva heter stedet som er markert?",
     "typePlaceholder": "Skriv navnet …",
     "submit": "Svar",
-    "skip": "Hopp over for nå",
+    "skip": "Hopp over",
     "giveUp": "Vet ikke",
-    "mistakes": "feil",
+    "combo": "Combo",
+    "streak": "{{count}} på rad",
     "correct": "Riktig",
     "mistakesLabel": "Feil",
-    "done": "ferdig"
+    "done": "Fremdrift"
   },
   "result": {
     "title": "Ferdig!",
-    "msg3": "Perfekt!",
-    "msg2": "Bra jobba!",
-    "msg1": "Godt forsøk!",
     "score": "Poeng",
     "time": "Tid",
     "mistakes": "Feil",
     "accuracy": "Treff",
-    "retry": "Prøv igjen",
+    "bestStreak": "Lengste rekke",
+    "newRecord": "Ny rekord",
+    "levelUp": "Nivå {{level}} nådd",
+    "retry": "Spill igjen",
     "menu": "Meny",
-    "leaderboard": "Se ledertavle"
+    "leaderboard": "Se ledertavle",
+    "rank": {
+      "S": "Uslåelig",
+      "A": "Sterkt spilt",
+      "B": "Bra jobba",
+      "C": "Nesten der",
+      "D": "Prøv en runde til"
+    }
+  },
+  "meta": {
+    "title": "NorgesMester — kartspillet om Norge",
+    "description": "Test geografikunnskapene dine mot klokka. Klikk fylker, storbyer, elver og fjelltopper på kartet, jag combo og slå din egen rekord."
+  },
+  "giveUp": {
+    "action": "Gi opp",
+    "title": "Gi opp runden?",
+    "body": "Poengene i denne runden går tapt og resultatet havner ikke på ledertavla.",
+    "confirm": "Gi opp",
+    "cancel": "Fortsett å spille"
+  },
+  "footer": {
+    "label": "Bunntekst",
+    "tagline": "NorgesMester er et lite kartspill om norsk geografi, laget for Spillarena.",
+    "github": "Se på GitHub",
+    "madeBy": "Laget av",
+    "updated": "Sist oppdatert: {{month}} {{year}}"
   }
 }

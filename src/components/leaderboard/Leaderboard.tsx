@@ -1,32 +1,48 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { categories, getCategory } from '../../game/categories'
-import { getEntries } from '../../game/leaderboard'
+import { categories } from '../../game/categories'
+import { LeaderboardRow } from './LeaderboardRow'
+import { useBoard, type BoardScope } from './useBoard'
 import { Icon } from '../Icon'
-
-function fmtTime(ms: number): string {
-  const s = Math.round(ms / 1000)
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-}
-
-const RANK_COLOR = ['text-amber-500', 'text-gray-400', 'text-orange-700']
 
 export function Leaderboard() {
   const { t } = useTranslation()
+  const [scope, setScope] = useState<BoardScope>('global')
   const [filter, setFilter] = useState<string>('all')
-  // les én gang ved montering (sortert synkende på score i storage)
-  const entries = useMemo(() => getEntries(), [])
-
-  const filtered =
-    filter === 'all' ? entries : entries.filter((e) => e.categoryId === filter)
+  const { entries, loading, offline } = useBoard(scope, filter)
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
-      <h1 className="font-display mb-4 flex items-center gap-2 text-xl font-extrabold tracking-tight sm:text-2xl">
+      <h1 className="font-display mb-4 flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}
       </h1>
+
+      {/* hele verden, eller bare denne enheten */}
+      <div
+        className="mb-3 inline-flex rounded-full p-1"
+        role="tablist"
+        aria-label={t('leaderboard.scope')}
+        style={{ background: 'var(--map-idle)' }}
+      >
+        {(['global', 'local'] as BoardScope[]).map((value) => (
+          <button
+            key={value}
+            role="tab"
+            aria-selected={scope === value}
+            onClick={() => setScope(value)}
+            className="rounded-full px-4 py-1.5 text-sm font-bold transition-colors"
+            style={
+              scope === value
+                ? { background: 'var(--accent)', color: '#fff' }
+                : { color: 'var(--text-subtle)' }
+            }
+          >
+            {t(`leaderboard.${value}`)}
+          </button>
+        ))}
+      </div>
 
       {/* kategori-filter */}
       <nav aria-label={t('leaderboard.all')} className="mb-4 flex flex-wrap gap-2">
@@ -40,58 +56,32 @@ export function Leaderboard() {
         ))}
       </nav>
 
-      {filtered.length === 0 ? (
+      {offline && (
+        <p className="mb-3 text-sm" style={{ color: 'var(--text-subtle)' }}>
+          {t('leaderboard.offline')}
+        </p>
+      )}
+
+      {loading ? (
+        <p role="status" className="py-16 text-center" style={{ color: 'var(--text-subtle)' }}>
+          {t('leaderboard.loading')}
+        </p>
+      ) : entries.length === 0 ? (
         <p className="py-16 text-center" style={{ color: 'var(--text-subtle)' }}>
           {t('leaderboard.empty')}
         </p>
       ) : (
         <ol className="flex flex-col gap-2">
-          {filtered.map((e, i) => {
-            const cat = getCategory(e.categoryId)
-            const pct = e.total ? Math.round((e.correctCount / e.total) * 100) : 0
-            return (
-              <motion.li
-                key={e.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.03, 0.4) }}
-                className="flex items-center gap-3 rounded-xl border p-3"
-                style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-              >
-                <span
-                  className={`w-7 shrink-0 text-center text-lg font-black tabular-nums ${
-                    RANK_COLOR[i] ?? ''
-                  }`}
-                  style={RANK_COLOR[i] ? undefined : { color: 'var(--text-subtle)' }}
-                >
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-semibold">{e.name}</div>
-                  <div
-                    className="flex items-center gap-2 text-xs"
-                    style={{ color: 'var(--text-subtle)' }}
-                  >
-                    {cat && <Icon name={cat.icon} className="h-3.5 w-3.5" />}
-                    <span>{cat ? t(cat.labelKey) : e.categoryId}</span>
-                    <span>·</span>
-                    <span>{t(`mode.${e.mode}.title`)}</span>
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <div
-                    className="font-display text-lg font-black tabular-nums"
-                    style={{ color: 'var(--gold)' }}
-                  >
-                    {e.score}
-                  </div>
-                  <div className="text-xs tabular-nums" style={{ color: 'var(--text-subtle)' }}>
-                    {pct}% · {fmtTime(e.elapsedMs)}
-                  </div>
-                </div>
-              </motion.li>
-            )
-          })}
+          {entries.map((e, i) => (
+            <motion.li
+              key={e.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: Math.min(i * 0.03, 0.4) }}
+            >
+              <LeaderboardRow entry={e} place={i} />
+            </motion.li>
+          ))}
         </ol>
       )}
     </section>
@@ -110,13 +100,13 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
         active ? 'text-white' : 'border hover:bg-[var(--surface-card)]'
       }`}
       style={
         active
           ? { background: 'var(--accent)' }
-          : { borderColor: 'var(--border)', color: 'var(--text)' }
+          : { borderColor: 'var(--border)', color: 'var(--text-subtle)' }
       }
     >
       {children}

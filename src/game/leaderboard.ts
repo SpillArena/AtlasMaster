@@ -1,4 +1,5 @@
-import type { Mode } from './types'
+import { readPreference, writePreference } from '../lib/cookieConsent'
+import type { Mode, Pace } from './types'
 
 const SCORES_KEY = 'leaderboard'
 const NAME_KEY = 'playerName'
@@ -15,48 +16,39 @@ export interface Entry {
   mistakes: number
   elapsedMs: number
   date: number
+  /** lengste rekke riktige på rad (mangler på oppføringer fra før combo-systemet) */
+  bestStreak?: number
+  /** tempoet runden ble spilt på (mangler på eldre oppføringer) */
+  pace?: Pace
 }
 
 /**
- * Total score: 100 poeng per riktige + tidsbonus om man er raskere enn
- * normtid (5 s per mål), skalert med treffandel. Feil/oppgitt gir 0 poeng.
+ * Uten samtykke lagres ingenting på enheten — men navn og resultater lever
+ * videre i minnet, så runden og ledertavla fungerer ut økten.
  */
-export function scoreFor(
-  correctCount: number,
-  total: number,
-  elapsedMs: number,
-): number {
-  const base = correctCount * 100
-  const idealSec = total * 5
-  const elapsedSec = elapsedMs / 1000
-  const timeBonus = Math.max(0, Math.round((idealSec - elapsedSec) * 3))
-  const ratio = total ? correctCount / total : 0
-  return base + Math.round(timeBonus * ratio)
-}
+let sessionName: string | null = null
+let sessionEntries: Entry[] | null = null
 
 export function getName(): string {
-  try {
-    return localStorage.getItem(NAME_KEY) ?? ''
-  } catch {
-    return ''
-  }
+  if (sessionName !== null) return sessionName
+  sessionName = readPreference(NAME_KEY) ?? ''
+  return sessionName
 }
 
 export function setName(name: string): void {
-  try {
-    localStorage.setItem(NAME_KEY, name)
-  } catch {
-    /* ignore */
-  }
+  sessionName = name
+  writePreference(NAME_KEY, name)
 }
 
 export function getEntries(): Entry[] {
+  if (sessionEntries) return sessionEntries
   try {
-    const raw = localStorage.getItem(SCORES_KEY)
-    return raw ? (JSON.parse(raw) as Entry[]) : []
+    const raw = readPreference(SCORES_KEY)
+    sessionEntries = raw ? (JSON.parse(raw) as Entry[]) : []
   } catch {
-    return []
+    sessionEntries = []
   }
+  return sessionEntries
 }
 
 export function addEntry(entry: Omit<Entry, 'id' | 'date'>): Entry {
@@ -64,10 +56,13 @@ export function addEntry(entry: Omit<Entry, 'id' | 'date'>): Entry {
   const entries = [...getEntries(), full]
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_ENTRIES)
-  try {
-    localStorage.setItem(SCORES_KEY, JSON.stringify(entries))
-  } catch {
-    /* ignore */
-  }
+  sessionEntries = entries
+  writePreference(SCORES_KEY, JSON.stringify(entries))
   return full
+}
+
+/** Glemmer navn og resultater i minnet — kalles når lagrede data slettes. */
+export function forgetLeaderboard(): void {
+  sessionName = null
+  sessionEntries = null
 }

@@ -1,10 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { motion } from 'framer-motion'
 import type { FeatureCollection } from 'geojson'
 import { getCategory } from '../../game/categories'
-import { toQuizFeatures, type Mode, type QuizFeature, type GeomKind } from '../../game/types'
+import {
+  PACE_META,
+  toQuizFeatures,
+  type GeomKind,
+  type Mode,
+  type Pace,
+  type QuizFeature,
+} from '../../game/types'
 import { useQuizEngine } from '../../game/useQuizEngine'
-import { addEntry, getName, scoreFor } from '../../game/leaderboard'
+import { addEntry, getName } from '../../game/leaderboard'
+import { recordRun, type RunResult } from '../../game/progress'
+import { playSfx, vibrate } from '../../game/sfx'
+import { submitScore } from '../../game/scoreApi'
+import { useGameSettings } from '../../contexts/useGameSettings'
+import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { MapCanvas } from './MapCanvas'
 import { GameHUD } from './GameHUD'
 import { GameTopBar } from './GameTopBar'
@@ -13,8 +26,12 @@ import { ResultScreen } from './ResultScreen'
 interface Props {
   categoryId: string
   mode: Mode
+  /** tempoet spilleren valgte for denne runden */
+  pace: Pace
   onMenu: () => void
   onLeaderboard: () => void
+  /** varsler at en runde er lagret, så headeren kan lese nivået på nytt */
+  onRunRecorded: () => void
 }
 
 interface Loaded {
@@ -24,7 +41,14 @@ interface Loaded {
   geom: GeomKind
 }
 
-export function GameScreen({ categoryId, mode, onMenu, onLeaderboard }: Props) {
+export function GameScreen({
+  categoryId,
+  mode,
+  pace,
+  onMenu,
+  onLeaderboard,
+  onRunRecorded,
+}: Props) {
   const { t } = useTranslation()
   const [loaded, setLoaded] = useState<Loaded | null>(null)
 
@@ -32,12 +56,9 @@ export function GameScreen({ categoryId, mode, onMenu, onLeaderboard }: Props) {
     let alive = true
     const cat = getCategory(categoryId)
     if (!cat) return
-    Promise.all([cat.load(), cat.base?.() ?? Promise.resolve(undefined)]).then(
-      ([data, base]) => {
-        if (alive)
-          setLoaded({ data, base, features: toQuizFeatures(data), geom: cat.geom })
-      },
-    )
+    Promise.all([cat.load(), cat.base?.() ?? Promise.resolve(undefined)]).then(([data, base]) => {
+      if (alive) setLoaded({ data, base, features: toQuizFeatures(data), geom: cat.geom })
+    })
     return () => {
       alive = false
     }
@@ -60,8 +81,10 @@ export function GameScreen({ categoryId, mode, onMenu, onLeaderboard }: Props) {
       loaded={loaded}
       categoryId={categoryId}
       mode={mode}
+      pace={pace}
       onMenu={onMenu}
       onLeaderboard={onLeaderboard}
+      onRunRecorded={onRunRecorded}
     />
   )
 }
@@ -70,19 +93,26 @@ function Game({
   loaded,
   categoryId,
   mode,
+  pace,
   onMenu,
   onLeaderboard,
+  onRunRecorded,
 }: {
   loaded: Loaded
   categoryId: string
   mode: Mode
+  pace: Pace
   onMenu: () => void
   onLeaderboard: () => void
+  onRunRecorded: () => void
 }) {
   const { data, base, features, geom } = loaded
-  const { state, target, done, guess, type, skip, giveUp, restart } = useQuizEngine(
+  const { haptics } = useGameSettings()
+  const { consent } = useCookieConsent()
+  const { state, target, done, guess, type, skip, giveUp, timeout, restart } = useQuizEngine(
     features,
     mode,
+    pace,
   )
 
   // tilpass projeksjon til fylke-omrisset når det finnes, ellers til dataene selv
@@ -91,25 +121,98 @@ function Game({
   // antall faktisk riktige (oppgitt/«vet ikke» = 'revealed' teller ikke)
   const correctCount = Object.values(state.status).filter((s) => s === 'correct').length
 
-  // lagre resultat til ledertavle én gang når runden er ferdig
+  const questionMs = PACE_META[state.pace].seconds * 1000
+  const [remainingMs, setRemainingMs] = useState(questionMs)
+  const [run, setRun] = useState<RunResult | null>(null)
+
+  // klokka for ett spørsmål — starter på nytt for hvert nye mål
+  useEffect(() => {
+    if (!questionMs || state.phase !== 'playing') return
+    const deadline = state.questionStartedAt + questionMs
+    let warned = false
+
+    const tick = () => {
+      const left = Math.max(0, deadline - Date.now())
+      setRemainingMs(left)
+      if (left <= 3000 && left > 0 && !warned) {
+        warned = true
+        playSfx('tick')
+      }
+      if (left === 0) timeout()
+    }
+
+    tick()
+    const id = window.setInterval(tick, 100)
+    return () => window.clearInterval(id)
+  }, [state.questionStartedAt, state.phase, questionMs, timeout])
+
+  // riktig svar: lyd som stiger med rekka, og et lite dunk på mobil
+  useEffect(() => {
+    if (!state.award) return
+    playSfx(state.award.combo >= 5 ? 'combo' : 'correct', state.award.combo)
+    vibrate(12, haptics)
+    // kjøres for hver nye utdeling
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.award?.n])
+
+  // feil svar: buzz og en tydeligere vibrasjon
+  useEffect(() => {
+    if (!state.flash) return
+    playSfx('wrong')
+    vibrate([30, 40, 30], haptics)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.flash?.n])
+
+  // lagre resultat til ledertavle og profil én gang når runden er ferdig
   const savedRef = useRef(false)
   useEffect(() => {
     if (state.phase !== 'finished' || savedRef.current) return
     savedRef.current = true
+    playSfx('finish')
+
     const elapsedMs = (state.finishedAt ?? Date.now()) - state.startedAt
+    const name = getName().trim() || 'Anonym'
     addEntry({
-      name: getName().trim() || 'Anonym',
-      score: scoreFor(correctCount, state.total, elapsedMs),
+      name,
+      score: state.points,
       categoryId,
       mode,
       correctCount,
       total: state.total,
       mistakes: state.mistakes,
       elapsedMs,
+      bestStreak: state.bestStreak,
+      pace: state.pace,
     })
+
+    // den globale tavla får resultatet bare når spilleren har sagt ja —
+    // den lokale runden er uansett lagret over
+    if (consent === 'accepted') {
+      void submitScore({
+        username: name,
+        category: categoryId,
+        mode,
+        pace: state.pace,
+        score: state.points,
+        correctCount,
+        total: state.total,
+        mistakes: state.mistakes,
+        bestStreak: state.bestStreak,
+        elapsedMs,
+      })
+    }
+    setRun(recordRun(categoryId, mode, state.points))
+    onRunRecorded()
     // kjøres kun ved overgang til 'finished'
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase])
+
+  const handleRestart = () => {
+    savedRef.current = false
+    setRun(null)
+    restart()
+  }
+
   const choices = state.choices.map((id) => {
     const f = features.find((x) => x.id === id)
     return { id, name: f?.name ?? '' }
@@ -117,16 +220,24 @@ function Game({
 
   return (
     <section className="flex h-full flex-col">
-      {/* riktig/feil + fremdrift øverst */}
       <GameTopBar
+        points={state.points}
+        streak={state.streak}
         correctCount={correctCount}
         done={done}
         total={state.total}
         mistakes={state.mistakes}
+        remainingMs={remainingMs}
+        questionMs={questionMs}
       />
 
-      {/* kart fyller tilgjengelig høyde */}
-      <div className="relative min-h-0 flex-1">
+      {/* kart fyller tilgjengelig høyde; hele flaten rister ved feilsvar */}
+      <motion.div
+        className="relative min-h-0 flex-1"
+        key={state.flash ? `shake-${state.flash.n}` : 'steady'}
+        animate={state.flash ? { x: [0, -8, 7, -5, 0] } : { x: 0 }}
+        transition={{ duration: 0.32 }}
+      >
         <MapCanvas
           fitData={fitData}
           baseData={base}
@@ -136,6 +247,7 @@ function Game({
           flashId={state.flash?.id ?? null}
           flashN={state.flash?.n ?? 0}
           highlightId={isClick ? null : target?.id ?? null}
+          award={state.award}
           interactive={isClick}
           onPick={guess}
           disabled={state.phase === 'finished'}
@@ -150,14 +262,17 @@ function Game({
               total={state.total}
               correctCount={correctCount}
               mistakes={state.mistakes}
-              elapsedMs={(state.finishedAt ?? Date.now()) - state.startedAt}
-              onRetry={restart}
+              bestStreak={state.bestStreak}
+              score={state.points}
+              elapsedMs={(state.finishedAt ?? state.startedAt) - state.startedAt}
+              run={run}
+              onRetry={handleRestart}
               onMenu={onMenu}
               onLeaderboard={onLeaderboard}
             />
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* spill-kontroller nederst (tommelvennlig) */}
       {state.phase === 'playing' && (

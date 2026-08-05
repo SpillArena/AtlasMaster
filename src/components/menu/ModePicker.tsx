@@ -1,74 +1,148 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { MODES, type Category, type Mode } from '../../game/types'
-import { MapPreview } from './MapPreview'
-import { Icon, type IconName } from '../Icon'
+import { bestFor } from '../../game/progress'
+import { playSfx } from '../../game/sfx'
+import { ModeDemo } from './ModeDemo'
+import { Icon } from '../Icon'
 
 interface Props {
   category: Category
   onPick: (mode: Mode) => void
 }
 
-// statiske gradient-klasser + ikon per modus (holdes hele for Tailwind JIT)
-// fargene hentes fra samme palett som resten av appen: accent (klikk),
-// info/flaggblått (velg), skog/success (skriv) — ikke tilfeldige Tailwind-toner
-const MODE_META: Record<Mode, { gradient: string; icon: IconName }> = {
-  click: { gradient: 'from-rose-500 via-[#d61a5c] to-[#5c0f2c]', icon: 'target' },
-  choice: { gradient: 'from-[#4f6fe0] via-[#2a3f8f] to-[#0d1240]', icon: 'list' },
-  type: { gradient: 'from-emerald-600 via-[#0f6b47] to-[#0a2e24]', icon: 'keyboard' },
+/** Hvor krevende modusen er å svare i — 1–3 fylte staver. */
+const DIFFICULTY: Record<Mode, number> = {
+  choice: 1,
+  click: 2,
+  type: 3,
 }
 
+/**
+ * Modusvalget er et valg av kontroll, ikke av innhold — derfor rader med en
+ * levende demo av hvordan du svarer, i stedet for enda et rutenett av fliser
+ * som ligner kategorivalget rett før.
+ */
 export function ModePicker({ category, onPick }: Props) {
   const { t } = useTranslation()
 
+  // 1–3 velger modus, samme tall som står på radene
+  useEffect(() => {
+    function handleKey(event: KeyboardEvent) {
+      const index = Number(event.key) - 1
+      if (Number.isNaN(index) || index < 0 || index >= MODES.length) return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+      playSfx('ui')
+      onPick(MODES[index])
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onPick])
+
   return (
-    <div className="mx-auto flex h-full max-w-6xl flex-col px-4">
-      <p className="shrink-0 py-3" style={{ color: 'var(--text-subtle)' }}>
-        {t(category.labelKey)} · {t('mode.subtitle')}
-      </p>
+    <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
+      <div>
+        <p className="stat-label mb-1">{t(category.labelKey)}</p>
+        <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+          {t('mode.subtitle')}
+        </h2>
+      </div>
 
-      <ul className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-2.5 pb-4 sm:grid-cols-3 sm:grid-rows-1">
-        {MODES.map((m, i) => {
-          const meta = MODE_META[m]
+      <ul className="flex flex-col gap-2.5">
+        {MODES.map((mode, i) => {
+          const best = bestFor(category.id, mode)
+          const difficulty = DIFFICULTY[mode]
           return (
-            <li key={m} className="min-h-0">
-            <motion.button
-              onClick={() => onPick(m)}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, type: 'spring', stiffness: 120 }}
-              whileHover={{ scale: 1.015 }}
-              whileTap={{ scale: 0.985 }}
-              className={`group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1rem] bg-gradient-to-br ${meta.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
-            >
-              {/* blurret kart av valgt kategori */}
-              <div className="absolute inset-0 scale-110 opacity-80 blur-[3px] transition-all duration-500 group-hover:scale-105 group-hover:blur-[1.5px]">
-                <MapPreview category={category} />
-              </div>
+            <li key={mode}>
+              <motion.button
+                onClick={() => {
+                  playSfx('ui')
+                  onPick(mode)
+                }}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.07, type: 'spring', stiffness: 140, damping: 18 }}
+                whileHover={{ x: 4 }}
+                whileTap={{ scale: 0.99 }}
+                className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border p-3 text-left transition-colors hover:border-[var(--accent)] sm:gap-5 sm:p-4"
+                style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+              >
+                {/* aksentstripe i kanten — vokser når raden er aktiv */}
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0 left-0 w-1 origin-left scale-y-0 transition-transform duration-200 group-hover:scale-y-100 group-focus-visible:scale-y-100"
+                  style={{ background: 'var(--accent)' }}
+                />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20" />
-
-              <div className="relative flex flex-col items-center gap-1.5 px-2 text-center text-white">
-                <motion.span
-                  className="drop-shadow-lg"
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: i * 0.4,
-                  }}
+                {/* demo av hvordan du svarer i denne modusen */}
+                <span
+                  aria-hidden
+                  className="h-16 w-24 shrink-0 rounded-xl p-1 sm:h-20 sm:w-32"
+                  style={{ background: 'var(--bg-deep)' }}
                 >
-                  <Icon name={meta.icon} className="h-16 w-16 sm:h-20 sm:w-20" />
-                </motion.span>
-                <span className="font-display text-lg font-extrabold tracking-tight drop-shadow-md sm:text-2xl">
-                  {t(`mode.${m}.title`)}
+                  <ModeDemo mode={mode} />
                 </span>
-                <span className="max-w-xs text-xs font-medium text-white/85 drop-shadow sm:text-sm">
-                  {t(`mode.${m}.desc`)}
+
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="flex items-center gap-2">
+                    <span className="font-display text-lg font-extrabold tracking-[-0.02em] sm:text-xl">
+                      {t(`mode.${mode}.title`)}
+                    </span>
+                    <kbd
+                      className="numeric hidden rounded border px-1.5 py-0.5 text-[0.625rem] font-bold sm:inline"
+                      style={{ borderColor: 'var(--border)', color: 'var(--text-subtle)' }}
+                    >
+                      {i + 1}
+                    </kbd>
+                  </span>
+
+                  <span className="text-xs sm:text-sm" style={{ color: 'var(--text-subtle)' }}>
+                    {t(`mode.${mode}.desc`)}
+                  </span>
+
+                  <span className="mt-0.5 flex items-center gap-2">
+                    <span className="stat-label">{t('mode.difficulty')}</span>
+                    <span aria-hidden className="flex gap-1">
+                      {[1, 2, 3].map((step) => (
+                        <span
+                          key={step}
+                          className="h-1.5 w-4 rounded-full"
+                          style={{
+                            background: step <= difficulty ? 'var(--accent)' : 'var(--map-idle)',
+                          }}
+                        />
+                      ))}
+                    </span>
+                    <span className="sr-only">
+                      {t('mode.difficultyLevel', { level: difficulty })}
+                    </span>
+                  </span>
                 </span>
-              </div>
-            </motion.button>
+
+                <span className="flex shrink-0 flex-col items-end gap-1">
+                  {best > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Icon
+                        name="trophy"
+                        className="h-3.5 w-3.5"
+                        style={{ color: 'var(--gold)' }}
+                      />
+                      <span className="numeric text-sm font-bold" style={{ color: 'var(--gold)' }}>
+                        {best}
+                      </span>
+                    </span>
+                  )}
+                  <span
+                    aria-hidden
+                    className="text-xl transition-transform duration-200 group-hover:translate-x-1"
+                    style={{ color: 'var(--text-subtle)' }}
+                  >
+                    →
+                  </span>
+                </span>
+              </motion.button>
             </li>
           )
         })}

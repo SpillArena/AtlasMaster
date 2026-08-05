@@ -1,0 +1,112 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { motion } from 'framer-motion'
+import { PACES, PACE_META, type Category, type Mode, type Pace } from '../../game/types'
+import { bestFor } from '../../game/progress'
+import { playSfx } from '../../game/sfx'
+import { Icon } from '../Icon'
+
+interface Props {
+  category: Category
+  mode: Mode
+  /** forrige tempo — forhåndsvalgt, men runden starter først på START */
+  initialPace: Pace
+  onStart: (pace: Pace) => void
+}
+
+/**
+ * Siste steg før start. Tempoet velges her, per runde, fordi det avgjør både
+ * hvor hardt runden presser og hva den er verdt — det hører hjemme i
+ * oppstarten, ikke i en innstillingsmeny du åpner én gang.
+ */
+export function PacePicker({ category, mode, initialPace, onStart }: Props) {
+  const { t } = useTranslation()
+  const [pace, setPace] = useState<Pace>(initialPace)
+  const best = bestFor(category.id, mode)
+
+  return (
+    <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-5 px-4 py-6">
+      <div className="text-center">
+        <p className="stat-label mb-1">
+          {t(category.labelKey)} · {t(`mode.${mode}.title`)}
+        </p>
+        <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+          {t('pace.title')}
+        </h2>
+      </div>
+
+      <ul role="radiogroup" aria-label={t('pace.title')} className="grid gap-2.5 sm:grid-cols-3">
+        {PACES.map((value, i) => {
+          const meta = PACE_META[value]
+          const selected = pace === value
+          return (
+            <li key={value}>
+              <motion.button
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => {
+                  setPace(value)
+                  playSfx('ui')
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, type: 'spring', stiffness: 140 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex h-full w-full flex-col items-start gap-1 rounded-2xl border-2 p-4 text-left transition-all ${
+                  selected ? 'shadow-lg' : 'hover:-translate-y-[1px]'
+                }`}
+                style={{
+                  borderColor: selected ? 'var(--accent)' : 'var(--border)',
+                  background: selected
+                    ? 'color-mix(in srgb, var(--accent) 12%, var(--surface))'
+                    : 'var(--surface)',
+                }}
+              >
+                <span className="flex w-full items-center justify-between">
+                  <span className="font-display text-lg font-extrabold tracking-tight">
+                    {t(`pace.${value}`)}
+                  </span>
+                  <span
+                    className="numeric text-sm font-bold"
+                    style={{ color: selected ? 'var(--accent)' : 'var(--text-subtle)' }}
+                  >
+                    ×{meta.multiplier}
+                  </span>
+                </span>
+                <span
+                  className="flex items-center gap-1.5 text-xs font-bold"
+                  style={{ color: 'var(--text-subtle)' }}
+                >
+                  <Icon name="clock" className="h-3.5 w-3.5" />
+                  <span className="numeric">
+                    {meta.seconds ? t('pace.seconds', { count: meta.seconds }) : t('pace.noClock')}
+                  </span>
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                  {t(`pace.${value}Desc`)}
+                </span>
+              </motion.button>
+            </li>
+          )
+        })}
+      </ul>
+
+      <div className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onStart(pace)}
+          className="w-full max-w-sm rounded-2xl px-8 py-4 text-lg font-extrabold uppercase tracking-[0.12em] text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          style={{ background: 'var(--accent)' }}
+        >
+          {t('pace.start')}
+        </button>
+        {best > 0 && (
+          <p className="text-xs font-bold" style={{ color: 'var(--text-subtle)' }}>
+            {t('pace.beat', { score: best })}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}

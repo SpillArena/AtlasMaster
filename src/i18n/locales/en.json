@@ -1,40 +1,98 @@
 {
-  "greeting": "Hello",
   "theme": {
     "toggle": "Toggle theme",
+    "group": "Theme",
     "light": "Light",
-    "dark": "Dark"
-  },
-  "language": {
-    "toggle": "Toggle language"
-  },
-  "themeSwitcher": {
-    "light": "Switch to light theme",
-    "dark": "Switch to dark theme"
+    "dark": "Dark",
+    "system": "System"
   },
   "languageSwitcher": {
     "choose": "Choose language",
     "section": "Language"
   },
+  "settingsMenu": {
+    "settings": "Settings",
+    "appearance": "Appearance",
+    "accentColor": "Accent color",
+    "chooseAccent": "Choose accent color",
+    "gameplay": "Gameplay",
+    "sound": "Sound effects",
+    "haptics": "Vibration",
+    "reduceMotion": "Reduce motion",
+    "reduceMotionHint": "Turns off shake, confetti and pulsing"
+  },
+  "pace": {
+    "relaxed": "Relaxed",
+    "normal": "Normal",
+    "blitz": "Blitz",
+    "relaxedDesc": "Take your time. Points count 20% less.",
+    "normalDesc": "The standard run. Full points.",
+    "blitzDesc": "Everything you land is worth 40% more.",
+    "title": "Choose your pace",
+    "start": "Start round",
+    "seconds": "{{count}} seconds per place",
+    "noClock": "No clock",
+    "beat": "Your best here: {{score}}"
+  },
+  "cookieConsent": {
+    "section": "Privacy",
+    "message": "NorwayMaster stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "manage": "Change cookie preferences",
+    "showDetails": "Show what's stored",
+    "hideDetails": "Hide details",
+    "statusAccepted": "The game remembers you on this device, and your results reach the global leaderboard.",
+    "statusDeclined": "Nothing is stored and nothing is sent. Your name, scores and choices disappear when you close the tab.",
+    "statusUndecided": "You haven't chosen yet. The game stores and sends nothing until you do.",
+    "clear": "Delete everything stored",
+    "clearConfirm": "This deletes your name, leaderboard, level and settings. It can't be undone.",
+    "clearYes": "Delete everything",
+    "stored": {
+      "settings": {
+        "title": "Settings",
+        "desc": "Theme, accent color, language, sound and pace."
+      },
+      "player": {
+        "title": "Player",
+        "desc": "Your name and the level you've played your way up to."
+      },
+      "scores": {
+        "title": "Results",
+        "desc": "The leaderboard and personal bests — and the results sent to the global board."
+      }
+    }
+  },
   "menu": {
     "title": "NorwayMaster",
     "subtitle": "Choose what to practice",
-    "description": "Test your geography skills. How fast are you?"
+    "description": "Counties, cities, rivers and peaks. How fast are you?"
   },
   "nav": {
     "name": "Name",
+    "setName": "Set name",
+    "editName": "Change name ({{name}})",
+    "level": "Level {{level}}",
     "backToArena": "Back to Arena"
   },
   "namePrompt": {
     "title": "What's your name?",
-    "desc": "Enter your name before starting — it shows up on the leaderboard.",
+    "editTitle": "Change name",
+    "desc": "Your name shows up on the leaderboard.",
     "confirm": "Start game",
+    "save": "Save",
     "cancel": "Cancel"
   },
   "leaderboard": {
     "title": "Leaderboard",
     "all": "All",
-    "empty": "No results yet — play a round!"
+    "empty": "No results yet — play a round!",
+    "seeAll": "See full board",
+    "global": "Global",
+    "local": "This device",
+    "scope": "Choose board",
+    "loading": "Loading the leaderboard …",
+    "offline": "Couldn't reach the global board — showing results from this device."
   },
   "tile": {
     "fylker": "Learn all 15 counties",
@@ -64,34 +122,62 @@
     "type": {
       "title": "Type the name",
       "desc": "A place is highlighted — type its name."
-    }
+    },
+    "difficulty": "Difficulty",
+    "difficultyLevel": "Difficulty {{level}} of 3"
   },
   "game": {
     "loading": "Loading map …"
   },
   "hud": {
-    "findThis": "Find on the map:",
+    "findThis": "Find on the map",
     "whatIsThis": "What is the highlighted place called?",
     "typePlaceholder": "Type the name …",
     "submit": "Answer",
-    "skip": "Skip for now",
+    "skip": "Skip",
     "giveUp": "Don't know",
-    "mistakes": "wrong",
+    "combo": "Combo",
+    "streak": "{{count}} in a row",
     "correct": "Correct",
     "mistakesLabel": "Wrong",
-    "done": "done"
+    "done": "Progress"
   },
   "result": {
     "title": "Done!",
-    "msg3": "Perfect!",
-    "msg2": "Great job!",
-    "msg1": "Good try!",
     "score": "Score",
     "time": "Time",
     "mistakes": "Wrong",
     "accuracy": "Accuracy",
-    "retry": "Try again",
+    "bestStreak": "Best streak",
+    "newRecord": "New record",
+    "levelUp": "Reached level {{level}}",
+    "retry": "Play again",
     "menu": "Menu",
-    "leaderboard": "View leaderboard"
+    "leaderboard": "View leaderboard",
+    "rank": {
+      "S": "Untouchable",
+      "A": "Strong run",
+      "B": "Well played",
+      "C": "Almost there",
+      "D": "Give it another go"
+    }
+  },
+  "meta": {
+    "title": "NorwayMaster — the Norway map game",
+    "description": "Test your geography against the clock. Click counties, cities, rivers and peaks on the map, chase combos and beat your own record."
+  },
+  "giveUp": {
+    "action": "Give up",
+    "title": "Give up this round?",
+    "body": "The points from this round are lost and the result won't reach the leaderboard.",
+    "confirm": "Give up",
+    "cancel": "Keep playing"
+  },
+  "footer": {
+    "label": "Footer",
+    "tagline": "NorwayMaster is a small map game about Norwegian geography, built for Spillarena.",
+    "github": "View on GitHub",
+    "madeBy": "Made by",
+    "updated": "Last updated: {{month}} {{year}}"
   }
 }

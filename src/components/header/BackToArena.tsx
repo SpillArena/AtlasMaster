@@ -1,11 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import logo from '../../assets/logo.png'
+import { Icon } from '../Icon'
 
 interface Props {
   /** true på toppnivå (ingen kategori/modus/ledertavle valgt) */
   atRoot: boolean
+  /** true mens en runde spilles — da er knappen «Gi opp» */
+  inGame: boolean
   /** går ett steg tilbake i appen — brukes når ikke på toppnivå */
   onBack: () => void
+  /** ber om bekreftelse før runden forlates */
+  onGiveUp: () => void
 }
 
 const pillClass =
@@ -13,6 +18,12 @@ const pillClass =
 
 const pillStyle = {
   background: 'linear-gradient(135deg, #9B40D6 0%, #C94DBD 52%, #E24CB5 100%)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12)',
+}
+
+/** Rødt for «gi opp» — knappen kaster runden, og skal ikke se ut som navigasjon. */
+const dangerStyle = {
+  background: 'linear-gradient(135deg, #d4143a 0%, #ba0c2f 100%)',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12)',
 }
 
@@ -26,16 +37,35 @@ const Arrow = () => (
 )
 
 /**
- * Toppleft-knapp i headeren — dobler som "Tilbake til Spillarena" på
- * toppnivå og "Tilbake" (ett steg inn i appen) ellers, så det aldri
- * trengs mer enn én tilbakeknapp om gangen.
+ * Knappen øverst til venstre har tre jobber, én om gangen: ut til Spillarena
+ * på toppnivå, ett steg tilbake i menyene, og «Gi opp» mens en runde går —
+ * der et uforvarende tilbake-trykk ville kastet poengene dine.
  */
-export function BackToArena({ atRoot, onBack }: Props) {
+export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
   const { t } = useTranslation()
+
+  if (inGame) {
+    return (
+      <button
+        onClick={onGiveUp}
+        aria-label={t('giveUp.action')}
+        className={pillClass}
+        style={dangerStyle}
+      >
+        <Icon name="x" className="h-4 w-4" />
+        <span className="text-sm">{t('giveUp.action')}</span>
+      </button>
+    )
+  }
 
   if (atRoot) {
     return (
-      <a href="https://spillarena.no" aria-label={t('nav.backToArena')} className={pillClass} style={pillStyle}>
+      <a
+        href="https://spillarena.no"
+        aria-label={t('nav.backToArena')}
+        className={pillClass}
+        style={pillStyle}
+      >
         <Arrow />
         <img src={logo} alt="" aria-hidden="true" className="h-4 w-auto object-contain" />
         <span className="hidden text-sm sm:inline">Spillarena</span>
