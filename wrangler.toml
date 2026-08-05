@@ -1,0 +1,9 @@
+name = "norgesmester-pages"
+compatibility_date = "2026-08-05"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "norgesmester-leaderboard"
+database_id = "45bb7fbd-f266-4d8f-bfe5-a3c9eacc4cea"
+migrations_dir = "migrations"

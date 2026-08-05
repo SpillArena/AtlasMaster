@@ -5,6 +5,7 @@ import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom'
 import type { FeatureCollection } from 'geojson'
 import { makePath, makeProjection } from '../../game/projection'
 import type { GeomKind, QuizFeature } from '../../game/types'
+import type { Award } from '../../game/useQuizEngine'
 import { Icon, type IconName } from '../Icon'
 
 const W = 700
@@ -23,6 +24,8 @@ interface Props {
   flashN: number
   /** mål som skal markeres (choice/type) — pulserer */
   highlightId?: string | null
+  /** siste poengutdeling — gir ring og «+120» der treffet skjedde */
+  award?: Award | null
   /** kan features klikkes? (false i choice/type) */
   interactive?: boolean
   onPick: (id: string) => void
@@ -38,6 +41,7 @@ export function MapCanvas({
   flashId,
   flashN,
   highlightId,
+  award,
   interactive = true,
   onPick,
   disabled,
@@ -48,22 +52,31 @@ export function MapCanvas({
   // myk overgang kun for programmatisk zoom (auto-zoom), ikke manuell gest
   const [smooth, setSmooth] = useState(false)
 
-  const { paths, points, basePaths } = useMemo(() => {
+  const { paths, points, basePaths, centers } = useMemo(() => {
     const projection = makeProjection(fitData, W, H)
     const path = makePath(projection)
     const basePaths = baseData
       ? baseData.features.map((f, i) => ({ id: `base-${i}`, d: path(f.geometry) ?? '' }))
       : []
+    // sentrum per feature — brukes til å plassere poeng-popup og treffring
+    const centers: Record<string, [number, number]> = {}
+
     if (geom === 'point') {
       const points = features.map((f) => {
         const c = (f.geometry as GeoJSON.Point).coordinates
         const xy = projection([c[0], c[1]])
-        return { id: f.id, x: xy?.[0] ?? -99, y: xy?.[1] ?? -99 }
+        const p = { id: f.id, x: xy?.[0] ?? -99, y: xy?.[1] ?? -99 }
+        centers[f.id] = [p.x, p.y]
+        return p
       })
-      return { paths: [], points, basePaths }
+      return { paths: [], points, basePaths, centers }
     }
-    const paths = features.map((f) => ({ id: f.id, d: path(f.geometry) ?? '' }))
-    return { paths, points: [], basePaths }
+
+    const paths = features.map((f) => {
+      centers[f.id] = path.centroid(f.geometry) as [number, number]
+      return { id: f.id, d: path(f.geometry) ?? '' }
+    })
+    return { paths, points: [], basePaths, centers }
   }, [fitData, baseData, features, geom])
 
   // d3-zoom: hjul, pinch og dra-panorering
@@ -114,6 +127,7 @@ export function MapCanvas({
 
   // skala-kompensasjon så strek/prikker ikke vokser ekstremt ved innzooming
   const k = transform.k
+  const awardCenter = award ? centers[award.id] : undefined
 
   return (
     <div className="relative h-full w-full">
@@ -175,6 +189,7 @@ export function MapCanvas({
                 className={[
                   'outline-none transition-colors',
                   isLine ? '' : 'stroke-white stroke-[0.8]',
+                  hl ? 'animate-breathe' : '',
                   interactive && !disabled
                     ? isLine
                       ? 'cursor-pointer hover:stroke-[var(--accent)]'
@@ -185,7 +200,7 @@ export function MapCanvas({
             )
           })}
 
-          {/* punkt-features (byer) — radius kompenseres for zoom */}
+          {/* punkt-features (byer, fjelltopper) — radius kompenseres for zoom */}
           {points.map(({ id, x, y }) => {
             const st = status[id]
             const correct = st === 'correct'
@@ -211,6 +226,8 @@ export function MapCanvas({
                     fill="none"
                     stroke="var(--gold)"
                     style={{ strokeWidth: 2 / k }}
+                    // r må ha en startverdi, ellers rendres attributtet som «undefined»
+                    initial={{ r: 6 / k }}
                     animate={{ r: [6 / k, 14 / k, 6 / k], opacity: [1, 0, 1] }}
                     transition={{ duration: 1.4, repeat: Infinity }}
                   />
@@ -232,6 +249,38 @@ export function MapCanvas({
               </g>
             )
           })}
+
+          {/* treffmarkering: ring som slår ut, og poengene som stiger */}
+          {award && awardCenter && (
+            <g key={`award-${award.n}`} pointerEvents="none">
+              <motion.circle
+                cx={awardCenter[0]}
+                cy={awardCenter[1]}
+                fill="none"
+                stroke="var(--success)"
+                initial={{ r: 4 / k, opacity: 0.9 }}
+                animate={{ r: 44 / k, opacity: 0 }}
+                transition={{ duration: 0.7, ease: 'easeOut' }}
+                style={{ strokeWidth: 3 / k }}
+              />
+              <motion.text
+                x={awardCenter[0]}
+                y={awardCenter[1]}
+                textAnchor="middle"
+                initial={{ opacity: 0, y: awardCenter[1] }}
+                animate={{ opacity: [0, 1, 1, 0], y: awardCenter[1] - 46 / k }}
+                transition={{ duration: 1.1, ease: 'easeOut' }}
+                fill="var(--success)"
+                stroke="var(--bg)"
+                strokeWidth={3 / k}
+                paintOrder="stroke"
+                className="numeric font-bold"
+                style={{ fontSize: `${22 / k}px` }}
+              >
+                +{award.points}
+              </motion.text>
+            </g>
+          )}
         </g>
       </svg>
 
@@ -249,8 +298,8 @@ function ZoomBtn({ icon, onClick }: { icon: IconName; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex h-11 w-11 items-center justify-center rounded-lg border shadow-sm backdrop-blur transition-colors hover:bg-[var(--surface-card)]"
-      style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+      className="panel flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-card)]"
+      style={{ color: 'var(--text)' }}
     >
       <Icon name={icon} className="h-5 w-5" />
     </button>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="NorgesMester">
+  <rect width="32" height="32" rx="7" fill="#BA0C2F" />
+  <rect x="8.7" y="0" width="5.8" height="32" fill="#fff" />
+  <rect x="0" y="12.4" width="32" height="5.8" fill="#fff" />
+  <rect x="10.2" y="0" width="2.9" height="32" fill="#00205B" />
+  <rect x="0" y="13.9" width="32" height="2.9" fill="#00205B" />
+</svg>

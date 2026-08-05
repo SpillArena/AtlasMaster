@@ -3,54 +3,70 @@
 @tailwind utilities;
 
 @layer base {
-  /* Designtokens hentet fra emilb.no — lyst tema (default) */
+  /*
+   * Isbre — lyst tema. Kjølig papir med blått i skyggene, så kartet leser
+   * som snø og hav framfor kontordokument.
+   */
   :root {
     --accent-base: #f1376e;
     --accent: var(--accent-base);
-    --bg: #f7f4f1;
-    --text: #1c1025;
-    --text-muted: #1c1025ad;
-    --text-subtle: #1c102570;
-    --border: #1c102517;
+    --bg: #eef2f8;
+    --bg-deep: #dde5f0;
+    --text: #0d1526;
+    --text-muted: #0d1526b8;
+    --text-subtle: #0d152680;
+    --border: #0d15261f;
     --border-hover: #f1376e66;
-    --surface: #fffcf8d1;
-    --surface-card: #fffcf8f5;
-    --nav-bg: #f7f4f1e0;
+    --surface: #ffffffd6;
+    --surface-card: #fffffff2;
+    --nav-bg: #eef2f8e6;
+    /* panel = HUD-flatene: litt tyngre enn surface, med kant som fanger lys */
+    --panel: #ffffffe6;
+    --panel-edge: #ffffff;
 
-    /* spillsemantikk — hentet fra det norske flagget + naturen på kartet */
-    --success: #12875a; /* riktig — furuskog */
-    --danger: #ba0c2f; /* feil — flaggrødt */
-    --info: #3a5fcd; /* opplyst/nøytralt svar — flaggblått, lysnet for kontrast */
-    --gold: #e8a317; /* mål/trofé/stjerner */
+    /* spillsemantikk — flagget og naturen på kartet */
+    --success: #0e8f5c;
+    --danger: #d4143a;
+    --info: #2f55c8;
+    --gold: #d99106;
 
-    --map-idle: #1c102526; /* uklikkede kartflater */
+    --map-idle: #0d152626;
     --map-idle-hover: #f1376e4d;
+    --glow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
-  /* Mørkt tema — settes når <html> har klassen .dark (ThemeContext) */
+  /*
+   * Polarnatt — mørkt tema. Nesten svart med blått dypt i bunnen, og
+   * nordlysgrønt som belønningsfarge.
+   */
   .dark {
-    --bg: #000;
-    --text: #fff;
-    --text-muted: #ffffffbf;
-    --text-subtle: #ffffff80;
-    --border: #ffffff1a;
+    --bg: #05070f;
+    --bg-deep: #01030a;
+    --text: #f2f6ff;
+    --text-muted: #f2f6ffc4;
+    --text-subtle: #f2f6ff82;
+    --border: #ffffff1f;
     --border-hover: #f1376e73;
-    --surface: #01062699;
-    --surface-card: #0106263d;
-    --nav-bg: #010626bf;
+    --surface: #0d1730a8;
+    --surface-card: #101c3ae0;
+    --nav-bg: #060b18d9;
+    --panel: #0c1631cc;
+    --panel-edge: #ffffff26;
 
-    --success: #22b573;
-    --danger: #ef4a5f;
-    --info: #6d8dff;
-    --gold: #f5be3b;
+    --success: #3df5a8;
+    --danger: #ff3b5c;
+    --info: #5b8cff;
+    --gold: #ffc53d;
 
     --map-idle: #ffffff1f;
-    --map-idle-hover: #f1376e4d;
+    --map-idle-hover: #f1376e59;
+    --glow: 0 0 32px rgba(61, 245, 168, 0.25);
   }
 
   html {
     @apply font-sans antialiased;
   }
+
   /* native skjema-elementer arver appens font */
   button,
   input,
@@ -70,6 +86,73 @@
     background: var(--accent);
     color: #fff;
   }
+}
+
+@layer components {
+  /*
+   * Panelet er spillets gjennomgående flate: HUD, kort, menyer. Kanten er
+   * lysere øverst enn nederst, så flatene ser opplyste ut ovenfra.
+   */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow:
+      inset 0 1px 0 var(--panel-edge),
+      0 10px 30px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Store tall: poeng, combo, klokke. Alltid tabulære så de ikke hopper. */
+  .numeric {
+    font-family: theme('fontFamily.hud');
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Etikett over et tall — liten, sperret, dempet. */
+  .stat-label {
+    @apply text-[0.625rem] font-bold uppercase tracking-[0.2em];
+    color: var(--text-subtle);
+  }
+}
+
+@layer utilities {
+  /* Lysstripe som sveiper over et kort ved hover. */
+  .sheen-host {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen-host::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+  }
+  .sheen-host:hover::after {
+    animation: sheen 0.9s ease-out;
+  }
+}
+
+/*
+ * Redusert bevegelse: settes av operativsystemet eller av bryteren i
+ * innstillinger. Rister, konfetti og pulsering forsvinner — layout og
+ * fargeskift blir igjen, så spillet fortsatt gir tilbakemelding.
+ */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .sheen-host:hover::after {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
