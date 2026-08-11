@@ -1,32 +1,37 @@
 import { useEffect, useState } from 'react'
-import type { FeatureCollection } from 'geojson'
-import { makePath, makeProjection } from '../game/projection'
+import { makePath, makeProjection, naturalAspect } from '../game/projection'
+import { getRegion } from '../game/regions'
 
-const W = 700
 const H = 900
 
+interface Props {
+  /** regionen som skal ligge under skjermen */
+  regionId: string
+}
+
 /**
- * Arenaens bakvegg: nordlys som ligger og driver, med Norges omriss tegnet
- * over. Samme projeksjon og data som spillkartet, men dempet og uten
- * interaksjon — så «dette er Norge» ligger under hver skjerm.
+ * Arenaens bakvegg: nordlys som ligger og driver, med den valgte regionens
+ * omriss tegnet over. Samme projeksjon som spillkartet, men dempet og uten
+ * interaksjon — så «her er du» ligger under hver skjerm.
  */
-export function BackgroundMap() {
-  const [d, setD] = useState<string | null>(null)
+export function BackgroundMap({ regionId }: Props) {
+  const [map, setMap] = useState<{ d: string; w: number } | null>(null)
 
   useEffect(() => {
     let alive = true
-    import('../data/fylker.json').then((mod) => {
+    const region = getRegion(regionId)
+    if (!region) return
+    region.outline().then((data) => {
       if (!alive) return
-      const data = mod.default as unknown as FeatureCollection
-      const projection = makeProjection(data, W, H, 4)
+      const w = Math.round(H * naturalAspect(region.projection, data))
+      const projection = makeProjection(region.projection, data, w, H, 4)
       const path = makePath(projection)
-      const merged = data.features.map((f) => path(f.geometry) ?? '').join(' ')
-      setD(merged)
+      setMap({ d: data.features.map((f) => path(f.geometry) ?? '').join(' '), w })
     })
     return () => {
       alive = false
     }
-  }, [])
+  }, [regionId])
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -47,13 +52,13 @@ export function BackgroundMap() {
         }}
       />
 
-      {d && (
+      {map && (
         <svg
-          viewBox={`0 0 ${W} ${H}`}
+          viewBox={`0 0 ${map.w} ${H}`}
           preserveAspectRatio="xMidYMid slice"
           className="absolute inset-0 h-full w-full opacity-[0.06] dark:opacity-[0.09]"
         >
-          <path d={d} fill="none" stroke="var(--text)" strokeWidth={1.4} />
+          <path d={map.d} fill="none" stroke="var(--text)" strokeWidth={1.4} />
         </svg>
       )}
     </div>

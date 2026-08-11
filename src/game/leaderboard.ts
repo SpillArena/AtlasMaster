@@ -10,6 +10,8 @@ export interface Entry {
   name: string
   score: number
   categoryId: string
+  /** hvilken region runden ble spilt i */
+  regionId: string
   mode: Mode
   correctCount: number
   total: number
@@ -44,7 +46,9 @@ export function getEntries(): Entry[] {
   if (sessionEntries) return sessionEntries
   try {
     const raw = readPreference(SCORES_KEY)
-    sessionEntries = raw ? (JSON.parse(raw) as Entry[]) : []
+    const parsed = raw ? (JSON.parse(raw) as Entry[]) : []
+    // oppføringer lagret før regionene fantes er alltid norske runder
+    sessionEntries = parsed.map((e) => ({ ...e, regionId: e.regionId ?? 'norway' }))
   } catch {
     sessionEntries = []
   }

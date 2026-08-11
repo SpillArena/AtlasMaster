@@ -19,6 +19,7 @@ export interface CloudEntry {
   timestamp: string
   username: string
   category: string
+  region: string
   mode: Mode
   pace: Pace
   score: number
@@ -36,6 +37,7 @@ export function toEntry(cloud: CloudEntry): Entry {
     name: cloud.username,
     score: cloud.score,
     categoryId: cloud.category,
+    regionId: cloud.region,
     mode: cloud.mode,
     pace: cloud.pace,
     correctCount: cloud.correctCount,
@@ -75,13 +77,20 @@ async function callApi(query: string, init?: RequestInit): Promise<unknown | nul
   return null
 }
 
-/** Henter den globale toppen. Returnerer null når tavla ikke er tilgjengelig. */
+/**
+ * Henter den globale toppen. Returnerer null når tavla ikke er tilgjengelig.
+ *
+ * `regionId` uten `categoryId` gir hele regionens tavle på tvers av
+ * kategorier — det er den visningen dashbordet bruker.
+ */
 export async function fetchGlobalEntries(
+  regionId?: string,
   categoryId?: string,
   limit = 25,
 ): Promise<Entry[] | null> {
   const params = new URLSearchParams({ limit: String(limit) })
   if (categoryId && categoryId !== 'all') params.set('category', categoryId)
+  if (regionId && regionId !== 'all') params.set('region', regionId)
 
   const data = (await callApi(`?${params}`)) as { entries?: CloudEntry[] } | null
   if (!data?.entries) return null
@@ -91,6 +100,7 @@ export async function fetchGlobalEntries(
 export interface SubmitPayload {
   username: string
   category: string
+  region: string
   mode: Mode
   pace: Pace
   score: number

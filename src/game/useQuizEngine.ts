@@ -88,12 +88,15 @@ function lev(a: string, b: string): number {
   return dp[m][n]
 }
 
-function matchesName(text: string, name: string): boolean {
+/** Ett svar er riktig om det treffer én av skrivemåtene til stedet. */
+function matchesName(text: string, aliases: string[]): boolean {
   const a = normalize(text)
-  const b = normalize(name)
   if (!a) return false
-  // tillat 1 feil for navn ≥ 5 tegn
-  return a === b || (b.length >= 5 && lev(a, b) <= 1)
+  return aliases.some((alias) => {
+    const b = normalize(alias)
+    // tillat 1 feil for navn ≥ 5 tegn
+    return a === b || (b.length >= 5 && lev(a, b) <= 1)
+  })
 }
 
 /** Combo-multiplikator: ×1,1 på første riktige, ×2 fra ti på rad. */
@@ -232,8 +235,8 @@ function reducer(
       return action.id === target ? scoreHit(state, features) : scoreMiss(state, action.id)
 
     case 'TYPE': {
-      const name = features.find((f) => f.id === target)?.name ?? ''
-      return matchesName(action.text, name)
+      const aliases = features.find((f) => f.id === target)?.aliases ?? []
+      return matchesName(action.text, aliases)
         ? scoreHit(state, features)
         : scoreMiss(state, target)
     }

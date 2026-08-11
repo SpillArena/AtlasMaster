@@ -36,7 +36,7 @@
   },
   "cookieConsent": {
     "section": "Personvern",
-    "message": "NorgesMester lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
+    "message": "Atlas Arena lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
     "accept": "Godta",
     "decline": "Avslå",
     "manage": "Endre cookie-innstillinger",
@@ -64,9 +64,9 @@
     }
   },
   "menu": {
-    "title": "NorgesMester",
-    "subtitle": "Velg hva du vil øve på",
-    "description": "Fylker, byer, elver og fjell. Hvor rask er du?"
+    "title": "Atlas Arena",
+    "subtitle": "Velg hvor i verden",
+    "description": "Land, byer, elver og fjell. Hvor rask er du?"
   },
   "nav": {
     "name": "Navn",
@@ -92,21 +92,31 @@
     "local": "Denne enheten",
     "scope": "Velg tavle",
     "loading": "Henter ledertavla …",
-    "offline": "Fikk ikke kontakt med den globale tavla — viser resultatene fra denne enheten."
+    "offline": "Fikk ikke kontakt med den globale tavla — viser resultatene fra denne enheten.",
+    "region": "Velg region"
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
     "storbyer": "Finn Norges største byer",
     "elver": "Lær Norges største elver",
-    "fjell": "Lær Norges høyeste fjelltopper"
+    "fjell": "Lær Norges høyeste fjelltopper",
+    "countries": "Lær alle de 39 landene",
+    "capitals": "Finn Europas hovedsteder",
+    "rivers": "Lær Europas store elver",
+    "peaks": "Lær Europas høyeste topper"
   },
   "cat": {
+    "subtitle": "Velg hva du vil øve på",
     "fylker": "Fylker",
     "storbyer": "Storbyer",
     "kommuner": "Kommuner",
     "byer": "Byer",
     "elver": "Elver",
-    "fjell": "Fjelltopper"
+    "fjell": "Fjelltopper",
+    "countries": "Land",
+    "capitals": "Hovedsteder",
+    "rivers": "Elver",
+    "peaks": "Fjelltopper"
   },
   "mode": {
     "subtitle": "Velg spillmodus",
@@ -163,8 +173,8 @@
     }
   },
   "meta": {
-    "title": "NorgesMester — kartspillet om Norge",
-    "description": "Test geografikunnskapene dine mot klokka. Klikk fylker, storbyer, elver og fjelltopper på kartet, jag combo og slå din egen rekord."
+    "title": "Atlas Arena — kartspillet om Europa og Norge",
+    "description": "Test geografikunnskapene dine mot klokka. Klikk land, byer, elver og fjelltopper på kartet, jag combo og slå din egen rekord."
   },
   "giveUp": {
     "action": "Gi opp",
@@ -175,9 +185,16 @@
   },
   "footer": {
     "label": "Bunntekst",
-    "tagline": "NorgesMester er et lite kartspill om norsk geografi, laget for Spillarena.",
+    "tagline": "Atlas Arena er et kartspill om geografi — én region om gangen, laget for Spillarena.",
     "github": "Se på GitHub",
     "madeBy": "Laget av",
     "updated": "Sist oppdatert: {{month}} {{year}}"
+  },
+  "region": {
+    "title": "Velg region",
+    "norway": "Norge",
+    "europe": "Europa",
+    "count": "{{count}} kategorier",
+    "back": "Bytt region"
   }
 }

@@ -1,8 +1,8 @@
 /**
- * Global ledertavle for NorgesMester (Cloudflare Pages Function + D1).
+ * Global ledertavle for Atlas Arena (Cloudflare Pages Function + D1).
  *
- * GET  /api/leaderboard?category=fylker&limit=25 — beste resultater
- * POST /api/leaderboard                          — send inn et resultat
+ * GET  /api/leaderboard?region=norway&category=fylker&limit=25
+ * POST /api/leaderboard — send inn et resultat
  *
  * Poengsummen regnes ut i nettleseren, så den kan ikke stoles blindt på.
  * Derfor avvises alt som ikke kan ha skjedd i et ekte spill: ukjente
@@ -12,7 +12,16 @@
 const DEFAULT_LIMIT = 25
 const MAX_LIMIT = 100
 
-const CATEGORIES = new Set(['fylker', 'storbyer', 'elver', 'fjell'])
+/**
+ * Må speile regionregisteret i src/game/regions.ts. Kategori-id-ene er
+ * bevisst ulike per region — «fylker» finnes bare i Norge, «countries» bare
+ * i Europa — så et resultat kan ikke sendes inn under feil region.
+ */
+const REGION_CATEGORIES = {
+  norway: new Set(['fylker', 'storbyer', 'elver', 'fjell']),
+  europe: new Set(['countries', 'capitals', 'rivers', 'peaks']),
+}
+
 const MODES = new Set(['click', 'choice', 'type'])
 const PACES = new Set(['relaxed', 'normal', 'blitz'])
 
@@ -35,6 +44,7 @@ const SELECT_COLUMNS = `
     timestamp,
     username,
     category,
+    region,
     mode,
     pace,
     score,
@@ -44,17 +54,27 @@ const SELECT_COLUMNS = `
     best_streak AS bestStreak,
     elapsed_ms AS elapsedMs`
 
-/** Én oppføring per spiller per kategori+modus — den beste. */
-async function fetchTop(db, category, limit) {
-  const where = category ? 'WHERE category = ?' : ''
-  const binds = category ? [category, limit] : [limit]
+/** Én oppføring per spiller per region+kategori+modus — den beste. */
+async function fetchTop(db, region, category, limit) {
+  const filters = []
+  const binds = []
+  if (region) {
+    filters.push('region = ?')
+    binds.push(region)
+  }
+  if (category) {
+    filters.push('category = ?')
+    binds.push(category)
+  }
+  const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
+  binds.push(limit)
 
   const { results } = await db
     .prepare(
       `SELECT ${SELECT_COLUMNS}
        FROM leaderboard_entries
        ${where}
-       GROUP BY username, category, mode
+       GROUP BY username, region, category, mode
        HAVING score = MAX(score)
        ORDER BY score DESC, timestamp DESC, id DESC
        LIMIT ?`,
@@ -68,6 +88,7 @@ async function fetchTop(db, category, limit) {
 function parseEntry(raw) {
   const username = typeof raw.username === 'string' ? raw.username.trim() : ''
   const category = typeof raw.category === 'string' ? raw.category : ''
+  const region = typeof raw.region === 'string' ? raw.region : ''
   const mode = typeof raw.mode === 'string' ? raw.mode : ''
   const pace = typeof raw.pace === 'string' ? raw.pace : ''
   const score = Number(raw.score)
@@ -78,7 +99,8 @@ function parseEntry(raw) {
   const elapsedMs = Number(raw.elapsedMs)
 
   if (!username || username.length > 20) return { error: 'Invalid username' }
-  if (!CATEGORIES.has(category)) return { error: 'Invalid category' }
+  if (!Object.hasOwn(REGION_CATEGORIES, region)) return { error: 'Invalid region' }
+  if (!REGION_CATEGORIES[region].has(category)) return { error: 'Invalid category' }
   if (!MODES.has(mode)) return { error: 'Invalid mode' }
   if (!PACES.has(pace)) return { error: 'Invalid pace' }
   if (!Number.isInteger(total) || total < 1 || total > 500) return { error: 'Invalid total' }
@@ -100,6 +122,7 @@ function parseEntry(raw) {
       timestamp: new Date().toISOString(),
       username,
       category,
+      region,
       mode,
       pace,
       score: Math.round(score),
@@ -115,12 +138,18 @@ function parseEntry(raw) {
 export async function onRequestGet(context) {
   const { env, request } = context
   const url = new URL(request.url)
+  const regionParam = url.searchParams.get('region')
+  const region = Object.hasOwn(REGION_CATEGORIES, regionParam) ? regionParam : null
   const categoryParam = url.searchParams.get('category')
-  const category = categoryParam && CATEGORIES.has(categoryParam) ? categoryParam : null
+  // en kategori gir bare mening innenfor en region
+  const category =
+    region && categoryParam && REGION_CATEGORIES[region].has(categoryParam)
+      ? categoryParam
+      : null
   const limit = Math.min(Number(url.searchParams.get('limit')) || DEFAULT_LIMIT, MAX_LIMIT)
 
   try {
-    return json({ entries: await fetchTop(env.DB, category, limit) })
+    return json({ entries: await fetchTop(env.DB, region, category, limit) })
   } catch (error) {
     return json({ error: 'Failed to load leaderboard', details: String(error) }, 500)
   }
@@ -143,15 +172,16 @@ export async function onRequestPost(context) {
   try {
     await env.DB.prepare(
       `INSERT INTO leaderboard_entries
-        (id, timestamp, username, category, mode, pace, score,
+        (id, timestamp, username, category, region, mode, pace, score,
          correct_count, total, mistakes, best_streak, elapsed_ms)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         entry.id,
         entry.timestamp,
         entry.username,
         entry.category,
+        entry.region,
         entry.mode,
         entry.pace,
         entry.score,
@@ -163,7 +193,10 @@ export async function onRequestPost(context) {
       )
       .run()
 
-    return json({ entry, entries: await fetchTop(env.DB, null, DEFAULT_LIMIT) }, 201)
+    return json(
+      { entry, entries: await fetchTop(env.DB, entry.region, null, DEFAULT_LIMIT) },
+      201,
+    )
   } catch (error) {
     return json({ error: 'Failed to save entry', details: String(error) }, 500)
   }

@@ -1,16 +1,23 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { categories } from '../../game/categories'
+import { regions, getRegion } from '../../game/regions'
 import { LeaderboardRow } from './LeaderboardRow'
 import { useBoard, type BoardScope } from './useBoard'
 import { Icon } from '../Icon'
 
-export function Leaderboard() {
+interface Props {
+  /** regionen spilleren står i — tavla åpner der */
+  regionId: string
+}
+
+export function Leaderboard({ regionId }: Props) {
   const { t } = useTranslation()
   const [scope, setScope] = useState<BoardScope>('global')
+  const [region, setRegion] = useState<string>(regionId)
   const [filter, setFilter] = useState<string>('all')
-  const { entries, loading, offline } = useBoard(scope, filter)
+  const { entries, loading, offline } = useBoard(scope, region, filter)
+  const categories = getRegion(region)?.categories ?? []
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
@@ -43,6 +50,23 @@ export function Leaderboard() {
           </button>
         ))}
       </div>
+
+      {/* region-filter — kategoriene under følger valget */}
+      <nav aria-label={t('leaderboard.region')} className="mb-3 flex flex-wrap gap-2">
+        {regions.map((r) => (
+          <Chip
+            key={r.id}
+            active={region === r.id}
+            onClick={() => {
+              setRegion(r.id)
+              // kategoriene er regionspesifikke, så filteret må nullstilles
+              setFilter('all')
+            }}
+          >
+            {t(r.labelKey)}
+          </Chip>
+        ))}
+      </nav>
 
       {/* kategori-filter */}
       <nav aria-label={t('leaderboard.all')} className="mb-4 flex flex-wrap gap-2">
