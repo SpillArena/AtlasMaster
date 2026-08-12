@@ -103,7 +103,15 @@
     "countries": "Lær alle de 39 landene",
     "capitals": "Finn Europas hovedsteder",
     "rivers": "Lær Europas store elver",
-    "peaks": "Lær Europas høyeste topper"
+    "peaks": "Lær Europas høyeste topper",
+    "asiaCountries": "Lær alle de 44 landene",
+    "asiaCapitals": "Finn Asias hovedsteder",
+    "asiaRivers": "Lær Asias store elver",
+    "asiaPeaks": "Lær Asias høyeste topper",
+    "usStates": "Lær alle de 50 delstatene",
+    "usCities": "Finn USAs største byer",
+    "usRivers": "Lær USAs store elver",
+    "usPeaks": "Lær USAs høyeste topper"
   },
   "cat": {
     "subtitle": "Velg hva du vil øve på",
@@ -116,7 +124,9 @@
     "countries": "Land",
     "capitals": "Hovedsteder",
     "rivers": "Elver",
-    "peaks": "Fjelltopper"
+    "peaks": "Fjelltopper",
+    "states": "Delstater",
+    "cities": "Storbyer"
   },
   "mode": {
     "subtitle": "Velg spillmodus",
@@ -173,7 +183,7 @@
     }
   },
   "meta": {
-    "title": "Atlas Arena — kartspillet om Europa og Norge",
+    "title": "Atlas Arena — kartspillet om verden",
     "description": "Test geografikunnskapene dine mot klokka. Klikk land, byer, elver og fjelltopper på kartet, jag combo og slå din egen rekord."
   },
   "giveUp": {
@@ -194,6 +204,8 @@
     "title": "Velg region",
     "norway": "Norge",
     "europe": "Europa",
+    "asia": "Asia",
+    "usa": "USA",
     "count": "{{count}} kategorier",
     "back": "Bytt region"
   }

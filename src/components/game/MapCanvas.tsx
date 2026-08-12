@@ -14,6 +14,17 @@ import { Icon, type IconName } from '../Icon'
  */
 const H = 900
 
+/**
+ * Ønskt treffradius for punkt-features, i CSS-pikslar.
+ *
+ * Ein by er teikna med radius 5 i lerretskoordinatar. På ein telefon der 900
+ * lerretseiningar blir pressa ned i ~500 px er den prikken under 3 px brei —
+ * langt under dei 44 px i diameter både Apple og Google set som minstemål for
+ * eit trykkmål. Sjølve prikken skal ikkje vekse (kartet blir uleseleg), så i
+ * staden ligg det ei usynleg treffflate over.
+ */
+const HIT_PX = 22
+
 interface Props {
   /** regionens projeksjon */
   projectionSpec: ProjectionSpec
@@ -69,12 +80,23 @@ export function MapCanvas({
     const centers: Record<string, [number, number]> = {}
 
     if (geom === 'point') {
-      const points = features.map((f) => {
+      const placed = features.map((f) => {
         const c = (f.geometry as GeoJSON.Point).coordinates
         const xy = projection([c[0], c[1]])
         const p = { id: f.id, x: xy?.[0] ?? -99, y: xy?.[1] ?? -99 }
         centers[f.id] = [p.x, p.y]
         return p
+      })
+      // Halve avstanden til næraste nabo. Treffflata skal vere så stor som
+      // råd, men aldri så stor at ho stel klikk frå punktet ved sida av —
+      // hovudstadane i Benelux ligg tettare enn eit fingertupp er breitt.
+      const points = placed.map((p) => {
+        let gap = Infinity
+        for (const q of placed) {
+          if (q === p) continue
+          gap = Math.min(gap, Math.hypot(q.x - p.x, q.y - p.y) / 2)
+        }
+        return { ...p, gap }
       })
       return { paths: [], points, basePaths, centers, W }
     }
@@ -85,6 +107,27 @@ export function MapCanvas({
     })
     return { paths, points: [], basePaths, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom])
+
+  /**
+   * Kor mange lerretseiningar det går på ein CSS-piksel akkurat no. `viewBox`
+   * + `meet` skalerer med den minste av dei to faktorane, og det er den same
+   * rekninga her. Utan dette målet ville treffflata vore rett på ein skjerm og
+   * feil på alle andre.
+   */
+  const [unitsPerPx, setUnitsPerPx] = useState(1)
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect()
+      const scale = Math.min(width / W, height / H)
+      if (scale > 0) setUnitsPerPx(1 / scale)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [W])
 
   // d3-zoom: hjul, pinch og dra-panorering
   useEffect(() => {
@@ -161,6 +204,31 @@ export function MapCanvas({
             />
           ))}
 
+          {/*
+            Usynlege trykkmål for elvene. Ei elv er teikna 6 px brei — for
+            smal for ein finger. Banda ligg *under* dei synlege strekane med
+            vilje: der to elver kryssar, skal eit presist trykk rett på streken
+            alltid gje den elva du faktisk sikta på, og berre bomskota falle
+            ned på bandet.
+          */}
+          {geom === 'line' &&
+            interactive &&
+            !disabled &&
+            paths.map(({ id, d }) => (
+              <path
+                key={`hit-${id}`}
+                d={d}
+                onClick={() => onPick(id)}
+                vectorEffect="non-scaling-stroke"
+                fill="none"
+                stroke="transparent"
+                strokeWidth={HIT_PX}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="cursor-pointer"
+              />
+            ))}
+
           {/* polygon- og linje-features (fylker / elver) */}
           {paths.map(({ id, d }) => {
             const st = status[id]
@@ -181,40 +249,44 @@ export function MapCanvas({
                       ? 'var(--text-subtle)'
                       : 'var(--map-idle)'
             return (
-              <motion.path
-                key={wrong ? `${id}-${flashN}` : id}
-                d={d}
-                onClick={() => interactive && !disabled && onPick(id)}
-                vectorEffect="non-scaling-stroke"
-                animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
-                transition={{ duration: 0.3 }}
-                fill={isLine ? 'none' : color}
-                stroke={isLine ? color : undefined}
-                strokeWidth={isLine ? 6 : undefined}
-                strokeLinecap={isLine ? 'round' : undefined}
-                strokeLinejoin={isLine ? 'round' : undefined}
-                className={[
-                  'outline-none transition-colors',
-                  isLine ? '' : 'stroke-white stroke-[0.8]',
-                  hl ? 'animate-breathe' : '',
-                  interactive && !disabled
-                    ? isLine
-                      ? 'cursor-pointer hover:stroke-[var(--accent)]'
-                      : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
-                    : 'pointer-events-none',
-                ].join(' ')}
-              />
+              <g key={wrong ? `${id}-${flashN}` : id}>
+                <motion.path
+                  d={d}
+                  onClick={() => interactive && !disabled && onPick(id)}
+                  vectorEffect="non-scaling-stroke"
+                  animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  fill={isLine ? 'none' : color}
+                  stroke={isLine ? color : undefined}
+                  strokeWidth={isLine ? 6 : undefined}
+                  strokeLinecap={isLine ? 'round' : undefined}
+                  strokeLinejoin={isLine ? 'round' : undefined}
+                  className={[
+                    'outline-none transition-colors',
+                    isLine ? '' : 'stroke-white stroke-[0.8]',
+                    hl ? 'animate-breathe' : '',
+                    interactive && !disabled
+                      ? isLine
+                        ? 'cursor-pointer hover:stroke-[var(--accent)]'
+                        : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
+                      : 'pointer-events-none',
+                  ].join(' ')}
+                />
+              </g>
             )
           })}
 
           {/* punkt-features (byer, fjelltopper) — radius kompenseres for zoom */}
-          {points.map(({ id, x, y }) => {
+          {points.map(({ id, x, y, gap }) => {
             const st = status[id]
             const correct = st === 'correct'
             const revealed = st === 'revealed'
             const wrong = flashId === id && !st
             const hl = highlightId === id
             const r = (hl ? 6 : 5) / k
+            // treffflata veks aldri forbi halve naboavstanden, og krympar med
+            // zoomen slik at ho held same storleik på skjermen
+            const rHit = Math.max(r, Math.min((HIT_PX * unitsPerPx) / k, gap))
             const fill = correct
               ? 'var(--success)'
               : revealed
@@ -243,15 +315,22 @@ export function MapCanvas({
                   cx={x}
                   cy={y}
                   r={r}
-                  onClick={() => interactive && !disabled && onPick(id)}
                   vectorEffect="non-scaling-stroke"
                   animate={wrong ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
                   transition={{ duration: 0.3 }}
                   fill={fill}
-                  className={[
-                    'stroke-white stroke-[1] outline-none transition-colors',
-                    interactive && !disabled ? 'cursor-pointer' : 'pointer-events-none',
-                  ].join(' ')}
+                  className="pointer-events-none stroke-white stroke-[1] outline-none transition-colors"
+                />
+                {/* usynleg treffflate — ligg øvst, så fingeren treffer ho først */}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={rHit}
+                  fill="transparent"
+                  onClick={() => interactive && !disabled && onPick(id)}
+                  className={
+                    interactive && !disabled ? 'cursor-pointer' : 'pointer-events-none'
+                  }
                 />
               </g>
             )

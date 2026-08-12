@@ -16,6 +16,8 @@ const json = (loader: () => Promise<{ default: unknown }>) => async () =>
 
 const norwayCounties = json(() => import('../data/norway/counties.json'))
 const europeCountries = json(() => import('../data/europe/countries.json'))
+const asiaCountries = json(() => import('../data/asia/countries.json'))
+const usStates = json(() => import('../data/usa/states.json'))
 
 /**
  * MERK — kategori-id-ane til Noreg er med vilje norske og uendra
@@ -109,6 +111,96 @@ const europeCategories: Category[] = [
   },
 ]
 
+/**
+ * MERK — kategori-id-ane må vere unike på tvers av *alle* regionar, ikkje
+ * berre innanfor sin eigen. Flis-teksten blir slått opp som `tile.<id>`, så
+ * to regionar med kvar sin «countries» ville delt same skildring. Difor er
+ * Asia og USA sine prefiksa, medan Europa fekk dei korte namna først.
+ */
+const asiaCategories: Category[] = [
+  {
+    id: 'asiaCountries',
+    labelKey: 'cat.countries',
+    geom: 'polygon',
+    icon: 'map',
+    color: '#f97316',
+    gradient: 'from-orange-600 via-[#7c2d12] to-[#2a1206]',
+    load: asiaCountries,
+  },
+  {
+    id: 'asiaCapitals',
+    labelKey: 'cat.capitals',
+    geom: 'point',
+    icon: 'buildings',
+    color: '#e11d48',
+    gradient: 'from-rose-600 via-[#7f1d1d] to-[#2a0a12]',
+    load: json(() => import('../data/asia/capitals.json')),
+    base: asiaCountries,
+  },
+  {
+    id: 'asiaRivers',
+    labelKey: 'cat.rivers',
+    geom: 'line',
+    icon: 'river',
+    color: '#06b6d4',
+    gradient: 'from-teal-600 via-[#115e59] to-[#0b2f2c]',
+    load: json(() => import('../data/asia/rivers.json')),
+    base: asiaCountries,
+  },
+  {
+    id: 'asiaPeaks',
+    labelKey: 'cat.peaks',
+    geom: 'point',
+    icon: 'mountain',
+    color: '#f59e0b',
+    gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+    load: json(() => import('../data/asia/peaks.json')),
+    base: asiaCountries,
+  },
+]
+
+const usaCategories: Category[] = [
+  {
+    id: 'usStates',
+    labelKey: 'cat.states',
+    geom: 'polygon',
+    icon: 'map',
+    color: '#3b82f6',
+    gradient: 'from-blue-600 via-[#1e3a8a] to-[#0b1533]',
+    load: usStates,
+  },
+  {
+    id: 'usCities',
+    labelKey: 'cat.cities',
+    geom: 'point',
+    icon: 'buildings',
+    color: '#ef4444',
+    gradient: 'from-red-600 via-[#7f1d1d] to-[#2a0a0a]',
+    load: json(() => import('../data/usa/cities.json')),
+    base: usStates,
+  },
+  {
+    id: 'usRivers',
+    labelKey: 'cat.rivers',
+    geom: 'line',
+    icon: 'river',
+    color: '#06b6d4',
+    gradient: 'from-sky-600 via-[#0c4a6e] to-[#08283d]',
+    load: json(() => import('../data/usa/rivers.json')),
+    base: usStates,
+  },
+  {
+    id: 'usPeaks',
+    labelKey: 'cat.peaks',
+    geom: 'point',
+    icon: 'mountain',
+    color: '#f59e0b',
+    gradient: 'from-stone-500 via-[#57534e] to-[#1c1917]',
+    load: json(() => import('../data/usa/peaks.json')),
+    base: usStates,
+  },
+]
+
 export const regions: Region[] = [
   {
     id: 'norway',
@@ -131,6 +223,28 @@ export const regions: Region[] = [
     projection: { kind: 'conicConformal', parallels: [35, 65], rotate: -10 },
     outline: europeCountries,
     categories: europeCategories,
+  },
+  {
+    id: 'asia',
+    labelKey: 'region.asia',
+    code: 'AS',
+    gradient: 'from-[#c2410c] via-[#7c2d12] to-[#2a1206]',
+    // Asia spenner frå ekvator til 55°N og over 125 lengdegrader. Ein kjegle
+    // gjer Indonesia til ein banan i den eine enden av kartet; ei azimutal
+    // projeksjon sentrert midt i regionen held forma i alle retningar.
+    projection: { kind: 'azimuthalEqualArea', centre: [87, 22] },
+    outline: asiaCountries,
+    categories: asiaCategories,
+  },
+  {
+    id: 'usa',
+    labelKey: 'region.usa',
+    code: 'US',
+    gradient: 'from-[#1d4ed8] via-[#3b0d17] to-[#12040a]',
+    // Alaska og Hawaii ligg i innfelte ruter — sjå scripts/build-usa.mjs.
+    projection: { kind: 'albersUsa' },
+    outline: usStates,
+    categories: usaCategories,
   },
 ]
 

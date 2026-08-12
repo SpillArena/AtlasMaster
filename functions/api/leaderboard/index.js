@@ -20,6 +20,8 @@ const MAX_LIMIT = 100
 const REGION_CATEGORIES = {
   norway: new Set(['fylker', 'storbyer', 'elver', 'fjell']),
   europe: new Set(['countries', 'capitals', 'rivers', 'peaks']),
+  asia: new Set(['asiaCountries', 'asiaCapitals', 'asiaRivers', 'asiaPeaks']),
+  usa: new Set(['usStates', 'usCities', 'usRivers', 'usPeaks']),
 }
 
 const MODES = new Set(['click', 'choice', 'type'])

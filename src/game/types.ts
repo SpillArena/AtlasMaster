@@ -58,12 +58,16 @@ export interface Category {
  * kontinent som strekker seg øst-vest tåler ikke samme projeksjon.
  *
  * `conicConformal` passer alt som ligger på midlere breddegrader — det er
- * standardvalget for både land og kontinenter. `azimuthalEqualArea` er der
- * for regioner rundt en pol, og `naturalEarth` for et framtidig verdenskart.
+ * standardvalget for både land og kontinenter. `azimuthalEqualArea` holder
+ * formen på en region som spenner over et kvart jordklode i alle retninger.
+ * `albersUsa` er sammensatt: den flytter Alaska og Hawaii inn i hver sin
+ * innfelte rute, så alle 50 statene får plass på ett spillbart kart.
+ * `naturalEarth` er der for et framtidig verdenskart.
  */
 export type ProjectionSpec =
   | { kind: 'conicConformal'; parallels: [number, number]; rotate: number }
   | { kind: 'azimuthalEqualArea'; centre: [number, number] }
+  | { kind: 'albersUsa' }
   | { kind: 'naturalEarth' }
 
 /**

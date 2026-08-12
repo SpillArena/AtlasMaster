@@ -1,4 +1,10 @@
-import { geoConicConformal, geoAzimuthalEqualArea, geoNaturalEarth1, geoPath } from 'd3-geo'
+import {
+  geoAlbersUsa,
+  geoAzimuthalEqualArea,
+  geoConicConformal,
+  geoNaturalEarth1,
+  geoPath,
+} from 'd3-geo'
 import type { GeoPath, GeoProjection } from 'd3-geo'
 import type { FeatureCollection } from 'geojson'
 import type { ProjectionSpec } from './types'
@@ -17,6 +23,10 @@ function fromSpec(spec: ProjectionSpec): GeoProjection {
       return geoConicConformal().parallels(spec.parallels).rotate([spec.rotate, 0])
     case 'azimuthalEqualArea':
       return geoAzimuthalEqualArea().rotate([-spec.centre[0], -spec.centre[1]])
+    // albersUsa har hverken senter eller rotasjon å sette — de tre rutene
+    // ligger fast i projeksjonen. `fitExtent` skalerer dem som én figur.
+    case 'albersUsa':
+      return geoAlbersUsa()
     case 'naturalEarth':
       return geoNaturalEarth1()
   }

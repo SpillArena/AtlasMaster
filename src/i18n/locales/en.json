@@ -103,7 +103,15 @@
     "countries": "Learn all 39 countries",
     "capitals": "Find Europe's capital cities",
     "rivers": "Learn Europe's great rivers",
-    "peaks": "Learn Europe's highest peaks"
+    "peaks": "Learn Europe's highest peaks",
+    "asiaCountries": "Learn all 44 countries",
+    "asiaCapitals": "Find Asia's capital cities",
+    "asiaRivers": "Learn Asia's great rivers",
+    "asiaPeaks": "Learn Asia's highest peaks",
+    "usStates": "Learn all 50 states",
+    "usCities": "Find America's biggest cities",
+    "usRivers": "Learn America's great rivers",
+    "usPeaks": "Learn America's highest peaks"
   },
   "cat": {
     "subtitle": "Choose what to practise",
@@ -116,7 +124,9 @@
     "countries": "Countries",
     "capitals": "Capitals",
     "rivers": "Rivers",
-    "peaks": "Peaks"
+    "peaks": "Peaks",
+    "states": "States",
+    "cities": "Cities"
   },
   "mode": {
     "subtitle": "Choose game mode",
@@ -173,7 +183,7 @@
     }
   },
   "meta": {
-    "title": "Atlas Arena — the Europe and Norway map game",
+    "title": "Atlas Arena — the world map game",
     "description": "Test your geography against the clock. Click countries, cities, rivers and peaks on the map, chase combos and beat your own record."
   },
   "giveUp": {
@@ -194,6 +204,8 @@
     "title": "Choose a region",
     "norway": "Norway",
     "europe": "Europe",
+    "asia": "Asia",
+    "usa": "USA",
     "count": "{{count}} categories",
     "back": "Change region"
   }
