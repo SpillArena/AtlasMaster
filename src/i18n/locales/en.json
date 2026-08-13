@@ -36,7 +36,7 @@
   },
   "cookieConsent": {
     "section": "Privacy",
-    "message": "Atlas Arena stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
+    "message": "AtlasMaster stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
     "accept": "Accept",
     "decline": "Decline",
     "manage": "Change cookie preferences",
@@ -64,7 +64,7 @@
     }
   },
   "menu": {
-    "title": "Atlas Arena",
+    "title": "AtlasMaster",
     "subtitle": "Pick a part of the world",
     "description": "Countries, cities, rivers and peaks. How fast are you?"
   },
@@ -183,7 +183,7 @@
     }
   },
   "meta": {
-    "title": "Atlas Arena — the world map game",
+    "title": "AtlasMaster — the world map game",
     "description": "Test your geography against the clock. Click countries, cities, rivers and peaks on the map, chase combos and beat your own record."
   },
   "giveUp": {
@@ -195,7 +195,7 @@
   },
   "footer": {
     "label": "Footer",
-    "tagline": "Atlas Arena is a map game about geography — one region at a time, built for Spillarena.",
+    "tagline": "AtlasMaster is a map game about geography — one region at a time, built for Spillarena.",
     "github": "View on GitHub",
     "madeBy": "Made by",
     "updated": "Last updated: {{month}} {{year}}"

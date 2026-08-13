@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(here, '../..')
-const CACHE = resolve(ROOT, 'node_modules/.cache/atlas-arena')
+const CACHE = resolve(ROOT, 'node_modules/.cache/atlasmaster')
 
 const NE_BASE =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson'
