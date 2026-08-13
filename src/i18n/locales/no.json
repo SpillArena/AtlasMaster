@@ -36,7 +36,7 @@
   },
   "cookieConsent": {
     "section": "Personvern",
-    "message": "Atlas Arena lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
+    "message": "AtlasMaster lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
     "accept": "Godta",
     "decline": "Avslå",
     "manage": "Endre cookie-innstillinger",
@@ -64,7 +64,7 @@
     }
   },
   "menu": {
-    "title": "Atlas Arena",
+    "title": "AtlasMaster",
     "subtitle": "Velg hvor i verden",
     "description": "Land, byer, elver og fjell. Hvor rask er du?"
   },
@@ -183,7 +183,7 @@
     }
   },
   "meta": {
-    "title": "Atlas Arena — kartspillet om verden",
+    "title": "AtlasMaster — kartspillet om verden",
     "description": "Test geografikunnskapene dine mot klokka. Klikk land, byer, elver og fjelltopper på kartet, jag combo og slå din egen rekord."
   },
   "giveUp": {
@@ -195,7 +195,7 @@
   },
   "footer": {
     "label": "Bunntekst",
-    "tagline": "Atlas Arena er et kartspill om geografi — én region om gangen, laget for Spillarena.",
+    "tagline": "AtlasMaster er et kartspill om geografi — én region om gangen, laget for Spillarena.",
     "github": "Se på GitHub",
     "madeBy": "Laget av",
     "updated": "Sist oppdatert: {{month}} {{year}}"

@@ -16,7 +16,7 @@ export function AtlasMark({ className }: Props) {
       viewBox="0 0 24 24"
       className={className}
       role="img"
-      aria-label="Atlas Arena"
+      aria-label="AtlasMaster"
       fill="none"
     >
       <circle cx="12" cy="12" r="9.25" stroke="var(--accent)" strokeWidth="1.6" />

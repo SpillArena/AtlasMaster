@@ -1,5 +1,5 @@
 /**
- * Global ledertavle for Atlas Arena (Cloudflare Pages Function + D1).
+ * Global ledertavle for AtlasMaster (Cloudflare Pages Function + D1).
  *
  * GET  /api/leaderboard?region=norway&category=fylker&limit=25
  * POST /api/leaderboard — send inn et resultat

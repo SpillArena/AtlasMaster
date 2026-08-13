@@ -1,4 +1,4 @@
-# Atlas Arena
+# AtlasMaster
 
 Kartspelet om geografi — éin region om gongen. Klikk, vel eller skriv namnet
 på staden som er markert, jag combo og slå din eigen rekord.
@@ -50,7 +50,7 @@ regionane fanst.
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173/atlas/
+npm run dev            # http://localhost:5173/atlasmaster/
 npm run build
 npm run lint
 ```
@@ -76,7 +76,7 @@ npm run check:sql      # verifiserer migrasjonar + spørjingar mot SQLite
 
 Datascripta krev `npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3`.
 `data:asia` og `data:usa` hentar i tillegg Natural Earth-datasett over nettet
-første gongen, og cachar dei i `node_modules/.cache/atlas-arena/`.
+første gongen, og cachar dei i `node_modules/.cache/atlasmaster/`.
 Resultatet er sjekka inn, så scripta treng berre køyrast når stadlistene eller
 oppløysinga skal endrast.
 
