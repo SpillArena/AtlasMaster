@@ -86,13 +86,13 @@ over norske og engelske namn, og hentar berre koordinatar frå kjeldene.
 ## Migrasjonar
 
 ```bash
-npx wrangler d1 migrations apply norgesmester-leaderboard --remote
+npx wrangler d1 migrations apply atlasmaster-leaderboard --remote
 ```
 
 `0002_add_region.sql` legg til `region` med `DEFAULT 'norway'`, så alle rader
 frå før regionane blir liggande att som norske runder.
 
-> D1-databasen heiter framleis `norgesmester-leaderboard`. Det er med vilje —
-> namnet er ein Cloudflare-ressurs som ikkje kan døypast om ved å redigere
-> `wrangler.toml`, og `database_id` er det som faktisk bind appen til dataene.
-> Sjå kommentaren i `wrangler.toml`. Pages-prosjektet heiter `atlasmaster`.
+> Databasen heiter `atlasmaster-leaderboard`. D1 kan ikkje døypast om, så
+> omdøypinga frå `norgesmester-leaderboard` vart gjord som ny database pluss
+> kopiering av dei 19 radene. `database_id` er det som faktisk bind appen til
+> dataene. Sjå kommentaren i `wrangler.toml`.

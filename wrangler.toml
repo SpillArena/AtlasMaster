@@ -1,21 +1,16 @@
-# MERK — `database_name` peikar på ein Cloudflare-ressurs som alt eksisterer,
-# og er med vilje IKKJE døypt om saman med resten av rebrandinga.
-#
-# Å endre det her gjev ikkje nytt namn på databasen i Cloudflare; det gjer
-# berre at deploy peikar på ein annan database, og resultatet ville vore ei
-# tom leiartavle. Ei reell omdøyping må gjerast i Cloudflare først, og for D1
-# tyder det i praksis ny database + kopiering av radene. `database_id` er det
-# som faktisk bind appen til dataene, og den må stå urørt uansett.
-#
-# `name` er derimot oppdatert: Pages-prosjektet `atlasmaster` finst, og lokale
-# wrangler-kommandoar skal treffe det og ikkje det gamle norgesmester-
-# prosjektet. Sjølve deployen er Git-kopla og bryr seg ikkje om feltet.
 name = "atlasmaster"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./dist"
 
+# `atlasmaster-leaderboard` er ein ny database, oppretta då norgesmester vart
+# fjerna. D1 kan ikkje døypast om, så omdøypinga måtte gjerast som ny database
+# pluss kopiering av radene — dei 19 radene frå den gamle tavla ligg her, og
+# `region` er fylt med 'norway' slik migrasjon 0002 legg opp til.
+#
+# `database_id` er det som faktisk bind appen til dataene. Endrar du den, peikar
+# leiartavla på ein annan (tom) database.
 [[d1_databases]]
 binding = "DB"
-database_name = "norgesmester-leaderboard"
-database_id = "45bb7fbd-f266-4d8f-bfe5-a3c9eacc4cea"
+database_name = "atlasmaster-leaderboard"
+database_id = "65fe0353-af3a-4faf-b5e0-f5de2242c3d3"
 migrations_dir = "migrations"
