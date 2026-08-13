@@ -1,15 +1,16 @@
-# MERK — `name` og `database_name` peikar på Cloudflare-ressursar som alt
-# eksisterer, og er difor med vilje IKKJE døypte om saman med resten av
-# rebrandinga.
+# MERK — `database_name` peikar på ein Cloudflare-ressurs som alt eksisterer,
+# og er med vilje IKKJE døypt om saman med resten av rebrandinga.
 #
-# Å endre dei her gjev ikkje nytt namn på ressursen i Cloudflare; det gjer
-# berre at deploy peikar på eit anna (tomt) prosjekt og ein annan database.
-# Resultatet ville vore ei tom leiartavle og ein forlaten Pages-deploy.
-#
-# Vil du faktisk døype dei om, må det gjerast i Cloudflare først — og for D1
+# Å endre det her gjev ikkje nytt namn på databasen i Cloudflare; det gjer
+# berre at deploy peikar på ein annan database, og resultatet ville vore ei
+# tom leiartavle. Ei reell omdøyping må gjerast i Cloudflare først, og for D1
 # tyder det i praksis ny database + kopiering av radene. `database_id` er det
 # som faktisk bind appen til dataene, og den må stå urørt uansett.
-name = "norgesmester-pages"
+#
+# `name` er derimot oppdatert: Pages-prosjektet `atlasmaster` finst, og lokale
+# wrangler-kommandoar skal treffe det og ikkje det gamle norgesmester-
+# prosjektet. Sjølve deployen er Git-kopla og bryr seg ikkje om feltet.
+name = "atlasmaster"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./dist"
 
