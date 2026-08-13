@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { getCategory } from '../../game/categories'
+import { getCategory } from '../../game/regions'
 import type { Entry } from '../../game/leaderboard'
 import { hitRate } from '../../game/rank'
 import { Icon } from '../Icon'
@@ -23,7 +23,7 @@ interface Props {
 /** Én rad på ledertavla — samme rad på dashbordet og på full tavle. */
 export function LeaderboardRow({ entry, place, variant = 'full' }: Props) {
   const { t } = useTranslation()
-  const cat = getCategory(entry.categoryId)
+  const cat = getCategory(entry.regionId, entry.categoryId)
   const pct = Math.round(hitRate(entry.correctCount, entry.mistakes) * 100)
   const tone = RANK_TONE[place]
   const compact = variant === 'compact'

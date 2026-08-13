@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import type { FeatureCollection } from 'geojson'
-import { getCategory } from '../../game/categories'
+import { getCategory, getRegion } from '../../game/regions'
 import {
   PACE_META,
   toQuizFeatures,
   type GeomKind,
   type Mode,
   type Pace,
+  type ProjectionSpec,
   type QuizFeature,
 } from '../../game/types'
 import { useQuizEngine } from '../../game/useQuizEngine'
@@ -24,6 +25,7 @@ import { GameTopBar } from './GameTopBar'
 import { ResultScreen } from './ResultScreen'
 
 interface Props {
+  regionId: string
   categoryId: string
   mode: Mode
   /** tempoet spilleren valgte for denne runden */
@@ -39,9 +41,11 @@ interface Loaded {
   base?: FeatureCollection
   features: QuizFeature[]
   geom: GeomKind
+  projection: ProjectionSpec
 }
 
 export function GameScreen({
+  regionId,
   categoryId,
   mode,
   pace,
@@ -49,20 +53,29 @@ export function GameScreen({
   onLeaderboard,
   onRunRecorded,
 }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [loaded, setLoaded] = useState<Loaded | null>(null)
+  const lang = i18n.language
 
   useEffect(() => {
     let alive = true
-    const cat = getCategory(categoryId)
-    if (!cat) return
+    const region = getRegion(regionId)
+    const cat = getCategory(regionId, categoryId)
+    if (!region || !cat) return
     Promise.all([cat.load(), cat.base?.() ?? Promise.resolve(undefined)]).then(([data, base]) => {
-      if (alive) setLoaded({ data, base, features: toQuizFeatures(data), geom: cat.geom })
+      if (alive)
+        setLoaded({
+          data,
+          base,
+          features: toQuizFeatures(data, lang),
+          geom: cat.geom,
+          projection: region.projection,
+        })
     })
     return () => {
       alive = false
     }
-  }, [categoryId])
+  }, [regionId, categoryId, lang])
 
   if (!loaded) {
     return (
@@ -79,6 +92,7 @@ export function GameScreen({
   return (
     <Game
       loaded={loaded}
+      regionId={regionId}
       categoryId={categoryId}
       mode={mode}
       pace={pace}
@@ -91,6 +105,7 @@ export function GameScreen({
 
 function Game({
   loaded,
+  regionId,
   categoryId,
   mode,
   pace,
@@ -99,6 +114,7 @@ function Game({
   onRunRecorded,
 }: {
   loaded: Loaded
+  regionId: string
   categoryId: string
   mode: Mode
   pace: Pace
@@ -106,7 +122,7 @@ function Game({
   onLeaderboard: () => void
   onRunRecorded: () => void
 }) {
-  const { data, base, features, geom } = loaded
+  const { data, base, features, geom, projection } = loaded
   const { haptics } = useGameSettings()
   const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, restart } = useQuizEngine(
@@ -115,7 +131,7 @@ function Game({
     pace,
   )
 
-  // tilpass projeksjon til fylke-omrisset når det finnes, ellers til dataene selv
+  // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
   const fitData = base ?? data
   const isClick = mode === 'click'
   // antall faktisk riktige (oppgitt/«vet ikke» = 'revealed' teller ikke)
@@ -176,6 +192,7 @@ function Game({
       name,
       score: state.points,
       categoryId,
+      regionId,
       mode,
       correctCount,
       total: state.total,
@@ -191,6 +208,7 @@ function Game({
       void submitScore({
         username: name,
         category: categoryId,
+        region: regionId,
         mode,
         pace: state.pace,
         score: state.points,
@@ -201,7 +219,7 @@ function Game({
         elapsedMs,
       })
     }
-    setRun(recordRun(categoryId, mode, state.points))
+    setRun(recordRun(regionId, categoryId, mode, state.points))
     onRunRecorded()
     // kjøres kun ved overgang til 'finished'
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -239,6 +257,7 @@ function Game({
         transition={{ duration: 0.32 }}
       >
         <MapCanvas
+          projectionSpec={projection}
           fitData={fitData}
           baseData={base}
           features={features}

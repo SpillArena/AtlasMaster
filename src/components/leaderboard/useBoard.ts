@@ -22,26 +22,35 @@ interface Fetched {
  * Henter tavla for valgt omfang. Den globale hentes fra D1; svarer den ikke,
  * faller vi tilbake på enhetens egne resultater og sier fra om det.
  */
-export function useBoard(scope: BoardScope, categoryId: string, limit?: number): BoardState {
+export function useBoard(
+  scope: BoardScope,
+  regionId: string,
+  categoryId: string,
+  limit?: number,
+): BoardState {
   const [fetched, setFetched] = useState<Fetched | null>(null)
-  const key = `${categoryId}:${limit ?? 'all'}`
+  const key = `${regionId}:${categoryId}:${limit ?? 'all'}`
 
   const local = useMemo(() => {
     const all = getEntries()
-    const filtered = categoryId === 'all' ? all : all.filter((e) => e.categoryId === categoryId)
+    const filtered = all.filter(
+      (e) =>
+        (regionId === 'all' || e.regionId === regionId) &&
+        (categoryId === 'all' || e.categoryId === categoryId),
+    )
     return limit ? filtered.slice(0, limit) : filtered
-  }, [categoryId, limit])
+  }, [regionId, categoryId, limit])
 
   useEffect(() => {
     if (scope !== 'global') return
     let alive = true
-    fetchGlobalEntries(categoryId, limit).then((entries) => {
+    fetchGlobalEntries(regionId, categoryId, limit).then((entries) => {
       if (alive) setFetched({ key, entries })
     })
     return () => {
       alive = false
     }
-  }, [scope, categoryId, limit, key])
+  }, [scope, regionId, categoryId, limit, key])
 
   if (scope === 'local') return { entries: local, loading: false, offline: false }
 

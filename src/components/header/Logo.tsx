@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { NorwayFlag } from './NorwayFlag'
+import { AtlasMark } from './AtlasMark'
 
 interface Props {
   onClick: () => void
@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * Tittelen. Flagget sitter i en badge som et spillkassett-merke, og
+ * Tittelen. Merket sitter i en badge som et spillkassett-merke, og
  * ordmerket er satt i display-fonten med negativ sperring — det er dette
  * elementet resten av menyen henger under.
  */
@@ -21,7 +21,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
         onClick={onClick}
         className="group flex items-center gap-2 transition-transform duration-200 ease-out hover:-translate-y-[1px]"
       >
-        <NorwayFlag className="h-5 w-[1.5rem] rounded-[2px]" />
+        <AtlasMark className="h-6 w-6" />
         <span
           className="font-display text-lg font-extrabold tracking-tight"
           style={{ color: 'var(--text)' }}
@@ -61,7 +61,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
             boxShadow: 'inset 0 1px 0 var(--panel-edge)',
           }}
         >
-          <NorwayFlag className="h-7 w-[2.4rem] rounded-[3px] shadow-[0_4px_12px_rgba(0,0,0,0.35)] sm:h-9 sm:w-12" />
+          <AtlasMark className="h-9 w-9 sm:h-12 sm:w-12" />
           <span
             className="font-display text-3xl font-extrabold leading-none tracking-[-0.045em] sm:text-5xl"
             style={{ color: 'var(--text)' }}

@@ -36,7 +36,7 @@
   },
   "cookieConsent": {
     "section": "Privacy",
-    "message": "NorwayMaster stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
+    "message": "Atlas Arena stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
     "accept": "Accept",
     "decline": "Decline",
     "manage": "Change cookie preferences",
@@ -64,9 +64,9 @@
     }
   },
   "menu": {
-    "title": "NorwayMaster",
-    "subtitle": "Choose what to practice",
-    "description": "Counties, cities, rivers and peaks. How fast are you?"
+    "title": "Atlas Arena",
+    "subtitle": "Pick a part of the world",
+    "description": "Countries, cities, rivers and peaks. How fast are you?"
   },
   "nav": {
     "name": "Name",
@@ -92,21 +92,41 @@
     "local": "This device",
     "scope": "Choose board",
     "loading": "Loading the leaderboard …",
-    "offline": "Couldn't reach the global board — showing results from this device."
+    "offline": "Couldn't reach the global board — showing results from this device.",
+    "region": "Choose region"
   },
   "tile": {
     "fylker": "Learn all 15 counties",
     "storbyer": "Find Norway's biggest cities",
     "elver": "Learn Norway's major rivers",
-    "fjell": "Learn Norway's tallest peaks"
+    "fjell": "Learn Norway's tallest peaks",
+    "countries": "Learn all 39 countries",
+    "capitals": "Find Europe's capital cities",
+    "rivers": "Learn Europe's great rivers",
+    "peaks": "Learn Europe's highest peaks",
+    "asiaCountries": "Learn all 44 countries",
+    "asiaCapitals": "Find Asia's capital cities",
+    "asiaRivers": "Learn Asia's great rivers",
+    "asiaPeaks": "Learn Asia's highest peaks",
+    "usStates": "Learn all 50 states",
+    "usCities": "Find America's biggest cities",
+    "usRivers": "Learn America's great rivers",
+    "usPeaks": "Learn America's highest peaks"
   },
   "cat": {
+    "subtitle": "Choose what to practise",
     "fylker": "Counties",
-    "storbyer": "Major cities",
+    "storbyer": "Cities",
     "kommuner": "Municipalities",
-    "byer": "Cities",
+    "byer": "Towns",
     "elver": "Rivers",
-    "fjell": "Mountain peaks"
+    "fjell": "Peaks",
+    "countries": "Countries",
+    "capitals": "Capitals",
+    "rivers": "Rivers",
+    "peaks": "Peaks",
+    "states": "States",
+    "cities": "Cities"
   },
   "mode": {
     "subtitle": "Choose game mode",
@@ -163,8 +183,8 @@
     }
   },
   "meta": {
-    "title": "NorwayMaster — the Norway map game",
-    "description": "Test your geography against the clock. Click counties, cities, rivers and peaks on the map, chase combos and beat your own record."
+    "title": "Atlas Arena — the world map game",
+    "description": "Test your geography against the clock. Click countries, cities, rivers and peaks on the map, chase combos and beat your own record."
   },
   "giveUp": {
     "action": "Give up",
@@ -175,9 +195,18 @@
   },
   "footer": {
     "label": "Footer",
-    "tagline": "NorwayMaster is a small map game about Norwegian geography, built for Spillarena.",
+    "tagline": "Atlas Arena is a map game about geography — one region at a time, built for Spillarena.",
     "github": "View on GitHub",
     "madeBy": "Made by",
     "updated": "Last updated: {{month}} {{year}}"
+  },
+  "region": {
+    "title": "Choose a region",
+    "norway": "Norway",
+    "europe": "Europe",
+    "asia": "Asia",
+    "usa": "USA",
+    "count": "{{count}} categories",
+    "back": "Change region"
   }
 }

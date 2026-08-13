@@ -1,5 +1,5 @@
 {
-  "name": "norgesmester",
+  "name": "atlas-arena",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "data:europe": "node scripts/build-europe-countries.mjs",
+    "data:asia": "node scripts/build-asia.mjs",
+    "data:usa": "node scripts/build-usa.mjs",
+    "check:sql": "node --experimental-sqlite scripts/check-leaderboard-sql.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

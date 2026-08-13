@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 
 export type AccentColor =
-  | 'norsk'
+  | 'atlas'
   | 'indigo'
   | 'blue'
   | 'sky'
@@ -22,9 +22,15 @@ export interface AccentDefinition {
   dark: string
 }
 
-/** `norsk` er spillets egen farge; resten er standardpaletten fra malen. */
+/**
+ * `atlas` er spillets egen farge; resten er standardpaletten fra malen.
+ *
+ * Fargen het `norsk` fram til rebrandingen. Verdien er den samme, så en
+ * lagret `norsk` faller bare tilbake til standarden — som er nettopp denne
+ * fargen. Ingen spiller ser en endring.
+ */
 export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
-  norsk: { label: 'Norsk', light: '#f1376e', dark: '#ff4f86' },
+  atlas: { label: 'Atlas', light: '#f1376e', dark: '#ff4f86' },
   indigo: { label: 'Indigo', light: '#6366f1', dark: '#818cf8' },
   blue: { label: 'Blue', light: '#2563eb', dark: '#60a5fa' },
   sky: { label: 'Sky', light: '#0284c7', dark: '#38bdf8' },
@@ -40,7 +46,7 @@ export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
   violet: { label: 'Violet', light: '#7c3aed', dark: '#a78bfa' },
 }
 
-export const DEFAULT_ACCENT: AccentColor = 'norsk'
+export const DEFAULT_ACCENT: AccentColor = 'atlas'
 
 export interface AccentContextValue {
   accent: AccentColor

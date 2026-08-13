@@ -14,11 +14,26 @@ const XP_PER_LEVEL = 600
 export interface Progress {
   xp: number
   plays: number
-  /** `${categoryId}:${mode}` → beste poengsum */
+  /** `${regionId}:${categoryId}:${mode}` → beste poengsum */
   best: Record<string, number>
 }
 
 const EMPTY: Progress = { xp: 0, plays: 0, best: {} }
+
+/**
+ * Rekordnøklene var `${categoryId}:${mode}` før regionene fantes. Slike
+ * nøkler er per definisjon norske runder, så de får `norway:` foran seg ved
+ * innlesing. Uten dette ville hver personlige rekord se ut som null første
+ * gang spilleren åpner den nye versjonen.
+ */
+function migrateBestKeys(best: Record<string, number>): Record<string, number> {
+  const migrated: Record<string, number> = {}
+  for (const [key, value] of Object.entries(best)) {
+    const full = key.split(':').length === 2 ? `norway:${key}` : key
+    migrated[full] = Math.max(migrated[full] ?? 0, value)
+  }
+  return migrated
+}
 
 /** Holder profilen i live for økten når samtykke er avslått. */
 let session: Progress | null = null
@@ -32,7 +47,7 @@ export function getProgress(): Progress {
       session = {
         xp: parsed.xp ?? 0,
         plays: parsed.plays ?? 0,
-        best: parsed.best ?? {},
+        best: migrateBestKeys(parsed.best ?? {}),
       }
       return session
     }
@@ -75,19 +90,27 @@ export function levelProgress(xp: number): LevelProgress {
   return { level, into, need, pct: need ? Math.round((into / need) * 100) : 0 }
 }
 
-function bestKey(categoryId: string, mode: Mode): string {
-  return `${categoryId}:${mode}`
+function bestKey(regionId: string, categoryId: string, mode: Mode): string {
+  return `${regionId}:${categoryId}:${mode}`
 }
 
-export function bestFor(categoryId: string, mode: Mode): number {
-  return getProgress().best[bestKey(categoryId, mode)] ?? 0
+export function bestFor(regionId: string, categoryId: string, mode: Mode): number {
+  return getProgress().best[bestKey(regionId, categoryId, mode)] ?? 0
 }
 
 /** Høyeste poengsum i kategorien uansett modus — vises på kategori-flisa. */
-export function bestForCategory(categoryId: string): number {
+export function bestForCategory(regionId: string, categoryId: string): number {
   const { best } = getProgress()
   return Object.entries(best)
-    .filter(([key]) => key.startsWith(`${categoryId}:`))
+    .filter(([key]) => key.startsWith(`${regionId}:${categoryId}:`))
+    .reduce((max, [, value]) => Math.max(max, value), 0)
+}
+
+/** Høyeste poengsum i hele regionen — vises på regionflisa. */
+export function bestForRegion(regionId: string): number {
+  const { best } = getProgress()
+  return Object.entries(best)
+    .filter(([key]) => key.startsWith(`${regionId}:`))
     .reduce((max, [, value]) => Math.max(max, value), 0)
 }
 
@@ -101,9 +124,14 @@ export interface RunResult {
 }
 
 /** Registrerer en fullført runde og returnerer hva som endret seg. */
-export function recordRun(categoryId: string, mode: Mode, score: number): RunResult {
+export function recordRun(
+  regionId: string,
+  categoryId: string,
+  mode: Mode,
+  score: number,
+): RunResult {
   const progress = getProgress()
-  const key = bestKey(categoryId, mode)
+  const key = bestKey(regionId, categoryId, mode)
   const previousBest = progress.best[key] ?? 0
   const levelBefore = levelFromXp(progress.xp)
   const xp = progress.xp + Math.max(0, score)
