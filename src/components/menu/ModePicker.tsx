@@ -8,6 +8,7 @@ import { ModeDemo } from './ModeDemo'
 import { Icon } from '../Icon'
 
 interface Props {
+  regionId: string
   category: Category
   onPick: (mode: Mode) => void
 }
@@ -24,7 +25,7 @@ const DIFFICULTY: Record<Mode, number> = {
  * levende demo av hvordan du svarer, i stedet for enda et rutenett av fliser
  * som ligner kategorivalget rett før.
  */
-export function ModePicker({ category, onPick }: Props) {
+export function ModePicker({ regionId, category, onPick }: Props) {
   const { t } = useTranslation()
 
   // 1–3 velger modus, samme tall som står på radene
@@ -52,7 +53,7 @@ export function ModePicker({ category, onPick }: Props) {
 
       <ul className="flex flex-col gap-2.5">
         {MODES.map((mode, i) => {
-          const best = bestFor(category.id, mode)
+          const best = bestFor(regionId, category.id, mode)
           const difficulty = DIFFICULTY[mode]
           return (
             <li key={mode}>

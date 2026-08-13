@@ -7,6 +7,7 @@ import { playSfx } from '../../game/sfx'
 import { Icon } from '../Icon'
 
 interface Props {
+  regionId: string
   category: Category
   mode: Mode
   /** forrige tempo — forhåndsvalgt, men runden starter først på START */
@@ -19,10 +20,10 @@ interface Props {
  * hvor hardt runden presser og hva den er verdt — det hører hjemme i
  * oppstarten, ikke i en innstillingsmeny du åpner én gang.
  */
-export function PacePicker({ category, mode, initialPace, onStart }: Props) {
+export function PacePicker({ regionId, category, mode, initialPace, onStart }: Props) {
   const { t } = useTranslation()
   const [pace, setPace] = useState<Pace>(initialPace)
-  const best = bestFor(category.id, mode)
+  const best = bestFor(regionId, category.id, mode)
 
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-5 px-4 py-6">

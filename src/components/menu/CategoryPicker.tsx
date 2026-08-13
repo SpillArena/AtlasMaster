@@ -1,32 +1,31 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { categories } from '../../game/categories'
 import { bestForCategory } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { MapPreview } from './MapPreview'
 import { Icon } from '../Icon'
+import type { Region } from '../../game/types'
 
 interface Props {
+  region: Region
   onPick: (categoryId: string) => void
 }
 
-// statiske gradient-klasser per kategori (holdes hele for Tailwind JIT)
-// fylker = skog, storbyer = flaggblå natt-by, elver = vann, fjell = granitt
-const GRADIENTS: Record<string, string> = {
-  fylker: 'from-emerald-600 via-[#0f6b47] to-[#0a2e24]',
-  storbyer: 'from-[#3a5fcd] via-[#182a6e] to-[#0a1230]',
-  elver: 'from-cyan-600 via-[#0e7490] to-[#0b3a4a]',
-  fjell: 'from-stone-500 via-[#57534e] to-[#1c1917]',
-}
-
-export function CategoryPicker({ onPick }: Props) {
+export function CategoryPicker({ region, onPick }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto max-w-6xl px-4">
-      <ul className="grid grid-cols-1 gap-4 pb-6 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((c, i) => {
-          const best = bestForCategory(c.id)
+    <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-4 px-4 py-6">
+      <div>
+        <p className="stat-label mb-1">{t(region.labelKey)}</p>
+        <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+          {t('cat.subtitle')}
+        </h2>
+      </div>
+
+      <ul className="grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-4">
+        {region.categories.map((c, i) => {
+          const best = bestForCategory(region.id, c.id)
           return (
             <li key={c.id}>
               <motion.button
@@ -39,13 +38,11 @@ export function CategoryPicker({ onPick }: Props) {
                 transition={{ delay: i * 0.09, type: 'spring', stiffness: 120 }}
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.975 }}
-                className={`sheen-host group relative flex aspect-[4/3] w-full flex-col items-center justify-center rounded-[2rem] bg-gradient-to-br ${
-                  GRADIENTS[c.id] ?? 'from-gray-700 to-gray-900'
-                } shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
+                className={`sheen-host group relative flex aspect-[4/3] w-full flex-col items-center justify-center rounded-[2rem] bg-gradient-to-br ${c.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
               >
-                {/* blurret Norge-kart med kategoriens plasseringer uthevet */}
+                {/* blurret regionkart med kategoriens plasseringer uthevet */}
                 <div className="absolute inset-0 scale-110 opacity-90 blur-[3px] transition-all duration-500 group-hover:scale-105 group-hover:blur-[1.5px]">
-                  <MapPreview category={c} />
+                  <MapPreview category={c} projection={region.projection} />
                 </div>
 
                 {/* kontrast-gradient for tekst */}

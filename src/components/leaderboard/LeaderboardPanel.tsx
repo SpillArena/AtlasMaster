@@ -5,6 +5,8 @@ import { useBoard } from './useBoard'
 import { Icon } from '../Icon'
 
 interface Props {
+  /** regionen dashbordet viser tavla for */
+  regionId: string
   /** åpner full ledertavle */
   onSeeAll: () => void
   /** hvor mange plasseringer som får plass på dashbordet */
@@ -15,9 +17,9 @@ interface Props {
  * Toppen av den globale tavla, rett på dashbordet. Poengsummer er hele
  * poenget med å spille en runde til — de skal stå framme, ikke bak en knapp.
  */
-export function LeaderboardPanel({ onSeeAll, limit = 5 }: Props) {
+export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
   const { t } = useTranslation()
-  const { entries, loading, offline } = useBoard('global', 'all', limit)
+  const { entries, loading, offline } = useBoard('global', regionId, 'all', limit)
 
   return (
     <motion.section

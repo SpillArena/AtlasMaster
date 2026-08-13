@@ -1,3 +1,14 @@
+# MERK — `name` og `database_name` peikar på Cloudflare-ressursar som alt
+# eksisterer, og er difor med vilje IKKJE døypte om saman med resten av
+# rebrandinga.
+#
+# Å endre dei her gjev ikkje nytt namn på ressursen i Cloudflare; det gjer
+# berre at deploy peikar på eit anna (tomt) prosjekt og ein annan database.
+# Resultatet ville vore ei tom leiartavle og ein forlaten Pages-deploy.
+#
+# Vil du faktisk døype dei om, må det gjerast i Cloudflare først — og for D1
+# tyder det i praksis ny database + kopiering av radene. `database_id` er det
+# som faktisk bind appen til dataene, og den må stå urørt uansett.
 name = "norgesmester-pages"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./dist"
