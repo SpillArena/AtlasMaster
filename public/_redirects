@@ -1,8 +1,0 @@
-# Spelet låg på /norgesmester/ fram til rebrandinga til Atlas Arena.
-# Bokmerke, delte lenker og installerte PWA-ar peikar framleis dit — utan
-# denne regelen møter dei 404 i staden for spelet.
-#
-# 301 og ikkje 302: flyttinga er permanent, og søkemotorane skal flytte
-# rangeringa over på den nye adressa.
-/norgesmester/*  /atlas/:splat  301
-/norgesmester    /atlas/        301
