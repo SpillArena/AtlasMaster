@@ -4,7 +4,7 @@ Kartspelet om geografi — éin region om gongen. Klikk, vel eller skriv namnet
 på staden som er markert, jag combo og slå din eigen rekord.
 
 Bygd for [Spillarena](https://spillarena.no). Ligg på
-**https://spillarena.no/atlas/**.
+**https://spillarena.no/atlasmaster/**.
 
 Spelet heitte NorgesMester og dekte berre Noreg fram til august 2026.
 
