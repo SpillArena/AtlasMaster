@@ -159,7 +159,8 @@
     "streak": "{{count}} på rad",
     "correct": "Riktig",
     "mistakesLabel": "Feil",
-    "done": "Fremdrift"
+    "done": "Fremdrift",
+    "remaining": "{{left}} av {{total}} igjen"
   },
   "result": {
     "title": "Ferdig!",

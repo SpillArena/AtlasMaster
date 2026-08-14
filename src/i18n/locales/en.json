@@ -159,7 +159,8 @@
     "streak": "{{count}} in a row",
     "correct": "Correct",
     "mistakesLabel": "Wrong",
-    "done": "Progress"
+    "done": "Progress",
+    "remaining": "{{left}} of {{total}} left"
   },
   "result": {
     "title": "Done!",

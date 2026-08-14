@@ -5,7 +5,7 @@ import {
   geoNaturalEarth1,
   geoPath,
 } from 'd3-geo'
-import type { GeoPath, GeoProjection } from 'd3-geo'
+import type { GeoPath, GeoProjection, GeoStream, GeoStreamWrapper } from 'd3-geo'
 import type { FeatureCollection } from 'geojson'
 import type { ProjectionSpec } from './types'
 
@@ -50,6 +50,70 @@ export function makeProjection(
 
 export function makePath(projection: GeoProjection): GeoPath {
   return geoPath(projection)
+}
+
+/**
+ * Same projeksjon, men med punkta tynna ut *etter* at dei er projiserte.
+ *
+ * Kystlinja til Noreg er nesten ti tusen punkt. Å fylle den flata er billeg —
+ * nettlesaren rasteriserer eit polygon éin gong. Å *streke* henne er det
+ * ikkje: ei strek med breidd og runde hjørne må byggjast som ein ny figur med
+ * to sider og eit ledd per punkt, og sokkelstripa rundt kysten er den breiaste
+ * streken på kartet. Ho blir bygd på nytt for kvar biletramme medan fingeren
+ * dreg.
+ *
+ * Ei ni einingar brei, mjuk stripe treng ikkje fjordane. Vi lèt difor stripa
+ * gå på ein grovare kopi av same geometrien: fyllinga og kystlinja står
+ * framleis i full oppløysing, så ingenting synleg endrar seg — det er berre
+ * det brede laget under som sluttar å telje kvar skjærgardsholme.
+ *
+ * Toleransen er i lerretseiningar (lerretet er 900 høgt). Første punktet i
+ * kvar ring blir alltid med, så ein ring kan aldri forsvinne heilt; små øyar
+ * kan derimot krympe til eit punkt og falle ut av stripa. Det er meininga —
+ * dei har landflata si i full oppløysing rett oppå.
+ */
+function coarsen(projection: GeoProjection, tolerance: number): GeoStreamWrapper {
+  return {
+    stream(sink: GeoStream): GeoStream {
+      let lastX = 0
+      let lastY = 0
+      let atStart = true
+
+      const thinned: GeoStream = {
+        point(x: number, y: number, z?: number) {
+          if (atStart || Math.abs(x - lastX) + Math.abs(y - lastY) >= tolerance) {
+            atStart = false
+            lastX = x
+            lastY = y
+            sink.point(x, y, z)
+          }
+        },
+        lineStart() {
+          atStart = true
+          sink.lineStart()
+        },
+        lineEnd() {
+          sink.lineEnd()
+        },
+        polygonStart() {
+          sink.polygonStart()
+        },
+        polygonEnd() {
+          sink.polygonEnd()
+        },
+        sphere() {
+          sink.sphere?.()
+        },
+      }
+
+      return projection.stream(thinned)
+    },
+  }
+}
+
+/** Baneteiknar for den grove kopien — sjå `coarsen`. */
+export function makeCoarsePath(projection: GeoProjection, tolerance: number): GeoPath {
+  return geoPath(coarsen(projection, tolerance))
 }
 
 /**

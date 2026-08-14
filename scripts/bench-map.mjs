@@ -9,9 +9,12 @@
  *   - kor mange SVG-nodar kartet legg i DOM-en
  *   - kor mange React-element som blir bygde på nytt per zoom-ramme
  *   - kor mange gonger landmassen blir rasterisert per ramme
+ *   - kor mange punkt den breie sokkelstripa må strekast gjennom
+ *   - kor mange React-element spelet byggjer per sekund medan det står stille
  *
- * Dei tre siste tala er dei som avgjer om kartet held 60 fps: alt React lagar
- * på nytt medan fingeren dreg, må òg samanliknast og potensielt teiknast om.
+ * Dei siste tala er dei som avgjer om kartet held 60 fps: alt React lagar på
+ * nytt medan fingeren dreg, må òg samanliknast og potensielt teiknast om, og
+ * ei brei strek kostar omtrent lineært i talet på punkt ho går gjennom.
  *
  * MERK — skriptet speglar rendermodellen i `MapCanvas.tsx`. Endrar du
  * lagdelinga der, må tabellane under følgje etter, elles måler du eit kart
@@ -69,6 +72,44 @@ function countPoints(geometry) {
   const walk = (node) => (typeof node[0] === 'number' ? 1 : node.reduce((n, c) => n + walk(c), 0))
   return walk(geometry.coordinates)
 }
+
+/**
+ * Spegling av `coarsen` i src/game/projection.ts — punkta blir tynna ut etter
+ * at dei er projiserte, så toleransen er i lerretseiningar.
+ */
+function coarsen(projection, tolerance) {
+  return {
+    stream(sink) {
+      let lastX = 0
+      let lastY = 0
+      let atStart = true
+      return projection.stream({
+        point(x, y, z) {
+          if (atStart || Math.abs(x - lastX) + Math.abs(y - lastY) >= tolerance) {
+            atStart = false
+            lastX = x
+            lastY = y
+            sink.point(x, y, z)
+          }
+        },
+        lineStart() {
+          atStart = true
+          sink.lineStart()
+        },
+        lineEnd: () => sink.lineEnd(),
+        polygonStart: () => sink.polygonStart(),
+        polygonEnd: () => sink.polygonEnd(),
+        sphere: () => sink.sphere?.(),
+      })
+    },
+  }
+}
+
+/** Talet på koordinatpar i ein SVG-banestreng. */
+const pathPoints = (d) => (d.match(/[-\d.]+,[-\d.]+/g) ?? []).length
+
+/** Same toleranse som SHELF_TOLERANCE i MapCanvas.tsx. */
+const SHELF_TOLERANCE = 2.5
 
 /** Ei full oppbygging av kartet, slik `MapCanvas` gjer det ved montering. */
 function build(spec, data, { probeAspect }) {
@@ -140,26 +181,76 @@ function model(featureCount) {
   }
 }
 
+/**
+ * Sokkelstripa: punkta ho må gå gjennom før og etter at ho fekk sin eigen,
+ * grovare kopi av landmassen.
+ */
+function shelf(spec, data) {
+  const projection = fromSpec(spec).fitExtent(
+    [
+      [12, 12],
+      [1188, H - 12],
+    ],
+    data,
+  )
+  const geometry = {
+    type: 'GeometryCollection',
+    geometries: data.features.map((f) => f.geometry),
+  }
+  return {
+    before: pathPoints(geoPath(projection)(geometry) ?? ''),
+    after: pathPoints(geoPath(coarsen(projection, SHELF_TOLERANCE))(geometry) ?? ''),
+  }
+}
+
 const rows = []
 for (const c of CASES) {
   const data = JSON.parse(readFileSync(resolve(root, c.file), 'utf8'))
   const points = data.features.reduce((n, f) => n + countPoints(f.geometry), 0)
   const withProbe = time(() => build(c.projection, data, { probeAspect: true }))
   const cached = time(() => build(c.projection, data, { probeAspect: false }))
-  rows.push({ ...c, features: data.features.length, points, withProbe, cached, ...model(data.features.length) })
+  rows.push({
+    ...c,
+    features: data.features.length,
+    points,
+    withProbe,
+    cached,
+    shelf: shelf(c.projection, data),
+    ...model(data.features.length),
+  })
 }
 
 const pad = (v, n) => String(v).padStart(n)
-console.log('region      features   punkt   montering ms      SVG-nodar    element per zoom-ramme   land-raster/ramme')
+console.log('region      features   punkt   montering ms      SVG-nodar    element per zoom-ramme   land-raster/ramme   sokkelpunkt')
 for (const r of rows) {
   console.log(
     `${r.region.padEnd(10)} ${pad(r.features, 8)} ${pad(r.points, 7)}   ` +
       `${pad(r.withProbe.toFixed(1), 5)} → ${r.cached.toFixed(1).padEnd(5)}` +
       `  ${pad(r.before.nodes, 5)} → ${String(r.after.nodes).padEnd(5)}` +
       `      ${pad(r.before.perZoom, 5)} → ${String(r.after.perZoom).padEnd(5)}` +
-      `          ${r.before.landRaster} → ${r.after.landRaster}`,
+      `          ${r.before.landRaster} → ${r.after.landRaster}` +
+      `        ${pad(r.shelf.before, 6)} → ${r.shelf.after}`,
   )
 }
 console.log(
   '\nmontering: venstre = med aspekt-proben, høgre = når proben er hugsa (andre gong same region blir opna)',
+)
+
+/*
+ * Kva spelet gjer medan ingen rører noko.
+ *
+ * Klokka tikkar ti gonger i sekundet. Før låg ho i `GameScreen`, så kvart
+ * tikk bygde heile spelegreina på nytt: toppbjelken med alle tala sine, og
+ * props-objekta til HUD og kart. No eig `QuestionClock` tilstanden sjølv, og
+ * berre tidsstripa blir bygd på nytt.
+ */
+const TICKS_PER_SECOND = 10
+// Game sin eigen JSX + heile GameTopBar-treet, talt i elementnodar
+const BEFORE_PER_TICK = 45
+// QuestionClock + TimerBar
+const AFTER_PER_TICK = 4
+console.log(
+  `\nkvilande spel: ${TICKS_PER_SECOND * BEFORE_PER_TICK} → ` +
+    `${TICKS_PER_SECOND * AFTER_PER_TICK} React-element per sekund ` +
+    `(klokka tikkar ${TICKS_PER_SECOND} gonger i sekundet uansett)`,
 )

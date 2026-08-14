@@ -1,10 +1,9 @@
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import { geoBounds, geoGraticule } from 'd3-geo'
 import { select } from 'd3-selection'
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom'
 import type { FeatureCollection } from 'geojson'
-import { makePath, makeProjection, naturalAspect } from '../../game/projection'
+import { makeCoarsePath, makePath, makeProjection, naturalAspect } from '../../game/projection'
 import type { GeomKind, ProjectionSpec, QuizFeature } from '../../game/types'
 import type { Award } from '../../game/useQuizEngine'
 import { Icon, type IconName } from '../Icon'
@@ -36,6 +35,14 @@ const HIT_PX = 22
  * det som gjer kartet hakkete.
  */
 const K_STEP = 0.05
+
+/**
+ * Kor grov geometrien under sokkelstripa er, i lerretseiningar.
+ *
+ * Sjå `coarsen` i game/projection.ts. 2,5 einingar er under tre piksler på ein
+ * telefon ved full utzooming, og stripa som teiknar dei er ni einingar brei.
+ */
+const SHELF_TOLERANCE = 2.5
 
 /** Kva tilstand ei feature er i akkurat no — styrer farge og klikkbarheit. */
 type ShapeState = 'idle' | 'correct' | 'revealed' | 'wrong' | 'target'
@@ -102,12 +109,11 @@ export const MapCanvas = memo(function MapCanvas({
   // useId gjev ':r1:' — kolon må vekk, elles blir url(#…) ein ugyldig selektor
   const uid = useId().replace(/:/g, '')
   const oceanId = `ocean${uid}`
-  const landShapeId = `land${uid}`
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
   /** grovkorna zoomnivå — sjå K_STEP */
   const [k, setK] = useState(1)
 
-  const { paths, points, basePaths, land, graticule, centers, W } = useMemo(() => {
+  const { paths, points, basePaths, land, shelf, graticule, centers, W } = useMemo(() => {
     const W = Math.round(H * naturalAspect(projectionSpec, fitData))
     const projection = makeProjection(projectionSpec, fitData, W, H)
     const path = makePath(projection)
@@ -116,13 +122,16 @@ export const MapCanvas = memo(function MapCanvas({
       : []
 
     /*
-     * Heile landmassen som éin bane — grunnfarge, kystlinje og sokkelstripe
-     * deler denne geometrien.
+     * Heile landmassen som éin bane — grunnfarge og kystlinje deler denne
+     * geometrien.
      */
-    const land = path({
+    const landGeometry: GeoJSON.GeometryCollection = {
       type: 'GeometryCollection',
       geometries: fitData.features.map((f) => f.geometry),
-    }) ?? ''
+    }
+    const land = path(landGeometry) ?? ''
+    // sokkelstripa køyrer på ein grovare kopi — sjå SHELF_TOLERANCE
+    const shelf = makeCoarsePath(projection, SHELF_TOLERANCE)(landGeometry) ?? ''
 
     /*
      * Lengde- og breiddegradsnettet, klipt til regionen sitt eige utsnitt
@@ -164,14 +173,14 @@ export const MapCanvas = memo(function MapCanvas({
         }
         return { ...p, gap }
       })
-      return { paths: [], points, basePaths, land, graticule, centers, W }
+      return { paths: [], points, basePaths, land, shelf, graticule, centers, W }
     }
 
     const paths = features.map((f) => {
       centers[f.id] = path.centroid(f.geometry) as [number, number]
       return { id: f.id, d: path(f.geometry) ?? '' }
     })
-    return { paths, points: [], basePaths, land, graticule, centers, W }
+    return { paths, points: [], basePaths, land, shelf, graticule, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom])
 
   /**
@@ -236,11 +245,24 @@ export const MapCanvas = memo(function MapCanvas({
         [0, 0],
         [W, H],
       ])
+      /*
+       * Medan fingeren er nede blir kartet rasterisert på nytt for kvar
+       * biletramme. `optimizeSpeed` slår av kantutjamninga så lenge gesten
+       * varer: nettlesaren slepp å blande farge langs kvar einaste kant i
+       * ei kystlinje på tusenvis av punkt. Skilnaden ser du berre om du
+       * frys biletet — og då står kartet stille, og kanten er mjuk igjen.
+       */
+      .on('start', () => {
+        layerRef.current?.setAttribute('shape-rendering', 'optimizeSpeed')
+      })
       .on('zoom', (e) => {
         pending = e.transform
         // sourceEvent finnes for bruker-gest; null for programmatisk .transform
         smooth = !e.sourceEvent
         if (!frame) frame = requestAnimationFrame(flush)
+      })
+      .on('end', () => {
+        layerRef.current?.setAttribute('shape-rendering', 'auto')
       })
     zoomRef.current = z
     sel.call(z)
@@ -300,12 +322,7 @@ export const MapCanvas = memo(function MapCanvas({
           verdien React kjenner, midt i ein gest.
         */}
         <g ref={layerRef}>
-          <BaseMap
-            land={land}
-            graticule={graticule}
-            basePaths={basePaths}
-            shapeId={landShapeId}
-          />
+          <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
 
           {geom !== 'point' && (
             <ShapeLayer
@@ -626,7 +643,19 @@ const PointMark = memo(function PointMark({
   )
 })
 
-/** Ringen og «+120» som slår ut der treffet skjedde. */
+/**
+ * Ringen og «+120» som slår ut der treffet skjedde.
+ *
+ * Begge var framer-motion-element før. Ein slik komponent tek med seg ein
+ * animasjonsmotor som reknar ut nye attributtverdiar i JavaScript seksti
+ * gonger i sekundet — midt oppå det tyngste laget i appen, akkurat i det
+ * sekundet spelet skal kjennast raskast. To CSS-keyframes gjer det same, på
+ * kompositeringstråden, og let hovudtråden halde fram med kartet.
+ *
+ * Gruppa ber `scale(1/k)`, motsett av zoomen på laget over. Ringen og
+ * teksten held difor same storleik på skjermen uansett kor langt inn spelaren
+ * har zooma, utan at nokon reknar om radiar per ramme.
+ */
 const AwardBurst = memo(function AwardBurst({
   x,
   y,
@@ -639,33 +668,26 @@ const AwardBurst = memo(function AwardBurst({
   k: number
 }) {
   return (
-    <g pointerEvents="none">
-      <motion.circle
-        cx={x}
-        cy={y}
+    <g pointerEvents="none" transform={`translate(${x},${y}) scale(${1 / k})`}>
+      <circle
+        className="award-ring"
+        r={4}
         fill="none"
         stroke="var(--success)"
-        initial={{ r: 4 / k, opacity: 0.9 }}
-        animate={{ r: 44 / k, opacity: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
-        style={{ strokeWidth: 3 / k }}
+        strokeWidth={2}
+        vectorEffect="non-scaling-stroke"
       />
-      <motion.text
-        x={x}
-        y={y}
+      <text
+        className="award-points numeric font-bold"
         textAnchor="middle"
-        initial={{ opacity: 0, y }}
-        animate={{ opacity: [0, 1, 1, 0], y: y - 46 / k }}
-        transition={{ duration: 1.1, ease: 'easeOut' }}
         fill="var(--success)"
         stroke="var(--bg)"
-        strokeWidth={3 / k}
+        strokeWidth={3}
         paintOrder="stroke"
-        className="numeric font-bold"
-        style={{ fontSize: `${22 / k}px` }}
+        fontSize={22}
       >
         +{points}
-      </motion.text>
+      </text>
     </g>
   )
 })
@@ -687,14 +709,14 @@ const AwardBurst = memo(function AwardBurst({
  */
 const BaseMap = memo(function BaseMap({
   land,
+  shelf,
   graticule,
   basePaths,
-  shapeId,
 }: {
   land: string
+  shelf: string
   graticule: string
   basePaths: { id: string; d: string }[]
-  shapeId: string
 }) {
   return (
     <g pointerEvents="none">
@@ -703,15 +725,12 @@ const BaseMap = memo(function BaseMap({
         punkt fjordkyst — og han låg her fire gonger: to sokkelstriper, ei
         fylling og ei kystlinje. Nettlesaren rasteriserte då den same
         geometrien fire gonger for kvar biletramme under ein zoom. No er det
-        to: éi sokkelstripe, og éi flate som ber både fyll og kystlinje.
+        to passeringar, og den breiaste av dei går på ein grovare kopi.
       */}
-      <defs>
-        <path id={shapeId} d={land} />
-      </defs>
 
       {/* kontinentalsokkelen — ei brei, mjuk stripe langs kysten */}
-      <use
-        href={`#${shapeId}`}
+      <path
+        d={shelf}
         fill="none"
         stroke="var(--shelf-3)"
         strokeWidth={9}
@@ -720,8 +739,8 @@ const BaseMap = memo(function BaseMap({
       />
 
       {/* landmassen, med kystlinja som si eiga strek i same passering */}
-      <use
-        href={`#${shapeId}`}
+      <path
+        d={land}
         fill="var(--map-land)"
         stroke="var(--coast)"
         strokeWidth={1.1}

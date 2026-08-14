@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useAnimationControls } from 'framer-motion'
 import type { FeatureCollection } from 'geojson'
 import { getCategory, getRegion } from '../../game/regions'
 import {
@@ -137,29 +136,7 @@ function Game({
   const correctCount = Object.values(state.status).filter((s) => s === 'correct').length
 
   const questionMs = PACE_META[state.pace].seconds * 1000
-  const [remainingMs, setRemainingMs] = useState(questionMs)
   const [run, setRun] = useState<RunResult | null>(null)
-
-  // klokka for ett spørsmål — starter på nytt for hvert nye mål
-  useEffect(() => {
-    if (!questionMs || state.phase !== 'playing') return
-    const deadline = state.questionStartedAt + questionMs
-    let warned = false
-
-    const tick = () => {
-      const left = Math.max(0, deadline - Date.now())
-      setRemainingMs(left)
-      if (left <= 3000 && left > 0 && !warned) {
-        warned = true
-        playSfx('tick')
-      }
-      if (left === 0) timeout()
-    }
-
-    tick()
-    const id = window.setInterval(tick, 100)
-    return () => window.clearInterval(id)
-  }, [state.questionStartedAt, state.phase, questionMs, timeout])
 
   // riktig svar: lyd som stiger med rekka
   useEffect(() => {
@@ -169,12 +146,24 @@ function Game({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.award?.n])
 
-  // feil svar: buzz og eit nikk i kartflata
-  const nudge = useAnimationControls()
+  /*
+   * Feil svar: buzz og eit nikk i kartflata.
+   *
+   * Nikket er ein CSS-keyframe, ikkje ei JS-animasjon. Klassen må fjernast og
+   * leggjast på att med ein reflow imellom for å starte på nytt — alternativet
+   * er ein ny `key` på flata, og det ville rive ned heile kartet for kvart
+   * bomskot.
+   */
+  const nudgeRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!state.flash) return
     playSfx('wrong')
-    void nudge.start({ x: [0, -3, 3, 0], transition: { duration: 0.2 } })
+    const el = nudgeRef.current
+    if (!el) return
+    el.classList.remove('map-nudge')
+    void el.offsetWidth
+    el.classList.add('map-nudge')
+    // kjøres for hvert nye bomskot
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
 
@@ -248,9 +237,12 @@ function Game({
         correctCount={correctCount}
         done={done}
         total={state.total}
+        remaining={state.queue.length}
         mistakes={state.mistakes}
-        remainingMs={remainingMs}
+        questionStartedAt={state.questionStartedAt}
         questionMs={questionMs}
+        running={state.phase === 'playing'}
+        onTimeout={timeout}
       />
 
       {/*
@@ -259,7 +251,7 @@ function Game({
         nøkkel ville rive ned og bygge opp att heile kartet — terreng, zoom og
         alt — for kvart bomskot.
       */}
-      <motion.div className="relative min-h-0 flex-1" animate={nudge}>
+      <div ref={nudgeRef} className="relative min-h-0 flex-1">
         <MapCanvas
           projectionSpec={projection}
           fitData={fitData}
@@ -300,7 +292,7 @@ function Game({
             />
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* spill-kontroller nederst (tommelvennlig) */}
       {state.phase === 'playing' && (
