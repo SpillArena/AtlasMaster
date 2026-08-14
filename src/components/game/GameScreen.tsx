@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, useAnimationControls } from 'framer-motion'
 import type { FeatureCollection } from 'geojson'
 import { getCategory, getRegion } from '../../game/regions'
 import {
@@ -15,9 +15,8 @@ import {
 import { useQuizEngine } from '../../game/useQuizEngine'
 import { addEntry, getName } from '../../game/leaderboard'
 import { recordRun, type RunResult } from '../../game/progress'
-import { playSfx, vibrate } from '../../game/sfx'
+import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
-import { useGameSettings } from '../../contexts/useGameSettings'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { MapCanvas } from './MapCanvas'
 import { GameHUD } from './GameHUD'
@@ -56,6 +55,7 @@ export function GameScreen({
   const { t, i18n } = useTranslation()
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const lang = i18n.language
+
 
   useEffect(() => {
     let alive = true
@@ -123,7 +123,6 @@ function Game({
   onRunRecorded: () => void
 }) {
   const { data, base, features, geom, projection } = loaded
-  const { haptics } = useGameSettings()
   const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, restart } = useQuizEngine(
     features,
@@ -162,20 +161,20 @@ function Game({
     return () => window.clearInterval(id)
   }, [state.questionStartedAt, state.phase, questionMs, timeout])
 
-  // riktig svar: lyd som stiger med rekka, og et lite dunk på mobil
+  // riktig svar: lyd som stiger med rekka
   useEffect(() => {
     if (!state.award) return
     playSfx(state.award.combo >= 5 ? 'combo' : 'correct', state.award.combo)
-    vibrate(12, haptics)
     // kjøres for hver nye utdeling
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.award?.n])
 
-  // feil svar: buzz og en tydeligere vibrasjon
+  // feil svar: buzz og eit nikk i kartflata
+  const nudge = useAnimationControls()
   useEffect(() => {
     if (!state.flash) return
     playSfx('wrong')
-    vibrate([30, 40, 30], haptics)
+    void nudge.start({ x: [0, -3, 3, 0], transition: { duration: 0.2 } })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
 
@@ -231,10 +230,15 @@ function Game({
     restart()
   }
 
-  const choices = state.choices.map((id) => {
-    const f = features.find((x) => x.id === id)
-    return { id, name: f?.name ?? '' }
-  })
+  // stabil referanse, elles ville HUD-en teikna seg på nytt for kvart klokketikk
+  const choices = useMemo(
+    () =>
+      state.choices.map((id) => {
+        const f = features.find((x) => x.id === id)
+        return { id, name: f?.name ?? '' }
+      }),
+    [state.choices, features],
+  )
 
   return (
     <section className="flex h-full flex-col">
@@ -249,13 +253,13 @@ function Game({
         questionMs={questionMs}
       />
 
-      {/* kart fyller tilgjengelig høyde; hele flaten rister ved feilsvar */}
-      <motion.div
-        className="relative min-h-0 flex-1"
-        key={state.flash ? `shake-${state.flash.n}` : 'steady'}
-        animate={state.flash ? { x: [0, -8, 7, -5, 0] } : { x: 0 }}
-        transition={{ duration: 0.32 }}
-      >
+      {/*
+        Kart fyller tilgjengelig høyde; flaten får et lite nikk ved feilsvar.
+        Nikket køyrer gjennom `controls` og ikkje ved å byte `key`: ein ny
+        nøkkel ville rive ned og bygge opp att heile kartet — terreng, zoom og
+        alt — for kvart bomskot.
+      */}
+      <motion.div className="relative min-h-0 flex-1" animate={nudge}>
         <MapCanvas
           projectionSpec={projection}
           fitData={fitData}
@@ -264,7 +268,6 @@ function Game({
           geom={geom}
           status={state.status}
           flashId={state.flash?.id ?? null}
-          flashN={state.flash?.n ?? 0}
           highlightId={isClick ? null : target?.id ?? null}
           award={state.award}
           interactive={isClick}

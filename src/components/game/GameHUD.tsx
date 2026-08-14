@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import type { Mode } from '../../game/types'
@@ -21,7 +21,12 @@ interface Props {
   onGiveUp: () => void
 }
 
-export function GameHUD({
+/**
+ * Memoisert: HUD-en er uendra mellom kvart klokketikk i toppbjelken, og han
+ * ber både framer-motion-knappar og eit tekstfelt som ikkje har noko å tene
+ * på å bli avstemt ti gonger i sekundet.
+ */
+export const GameHUD = memo(function GameHUD({
   mode,
   targetName,
   choices,
@@ -86,7 +91,7 @@ export function GameHUD({
       </div>
     </footer>
   )
-}
+})
 
 function ChoiceButtons({
   choices,
@@ -120,7 +125,7 @@ function ChoiceButtons({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
-            className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left text-base font-bold transition-all hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-lg"
+            className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left text-base font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-lg"
             style={{
               borderColor: 'var(--border)',
               background: 'var(--surface)',

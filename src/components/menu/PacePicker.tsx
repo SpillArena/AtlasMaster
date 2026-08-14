@@ -52,7 +52,10 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
                 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, type: 'spring', stiffness: 140 }}
+                // høg demping: utan henne bruker fjæra over 1,3 s på å roe
+                // seg, og dette er siste steget før start — han skal svare
+                // med ein gong, ikkje duve seg ferdig
+                transition={{ delay: i * 0.03, type: 'spring', stiffness: 260, damping: 24 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex h-full w-full flex-col items-start gap-1 rounded-2xl border-2 p-4 text-left transition-all ${
                   selected ? 'shadow-lg' : 'hover:-translate-y-[1px]'

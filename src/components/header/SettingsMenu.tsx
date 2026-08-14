@@ -146,7 +146,7 @@ export default function SettingsMenu() {
   const { i18n, t } = useTranslation()
   const { theme, currentTheme, setTheme } = useTheme()
   const { accent, setAccent } = useAccent()
-  const { sound, haptics, motion, setSound, setHaptics, setMotion } = useGameSettings()
+  const { sound, motion, setSound, setMotion } = useGameSettings()
   const { consent, accept, decline, showBanner, clearStoredData } = useCookieConsent()
   const [open, setOpen] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
@@ -353,7 +353,6 @@ export default function SettingsMenu() {
 
           <Section title={t('settingsMenu.gameplay')}>
             <Toggle label={t('settingsMenu.sound')} checked={sound} onChange={setSound} />
-            <Toggle label={t('settingsMenu.haptics')} checked={haptics} onChange={setHaptics} />
             <Toggle
               label={t('settingsMenu.reduceMotion')}
               hint={t('settingsMenu.reduceMotionHint')}

@@ -38,7 +38,7 @@ export function RegionPicker({ onPick }: Props) {
                 className={`sheen-host group relative flex aspect-[16/10] w-full flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br ${region.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
               >
                 {/* regionens omriss, dempet og litt overskalert */}
-                <div className="absolute inset-0 scale-105 opacity-90 transition-transform duration-500 group-hover:scale-100">
+                <div className="absolute inset-0 scale-105 opacity-90 transition-transform duration-200 group-hover:scale-100">
                   <RegionPreview region={region} />
                 </div>
 

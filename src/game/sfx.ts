@@ -93,9 +93,3 @@ export function playSfx(name: SfxName, combo = 0): void {
       break
   }
 }
-
-/** Kort vibrasjon på enheter som støtter det. */
-export function vibrate(pattern: number | number[], allowed: boolean): void {
-  if (!allowed || typeof navigator === 'undefined' || !navigator.vibrate) return
-  navigator.vibrate(pattern)
-}

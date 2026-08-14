@@ -16,10 +16,13 @@ export function TimerBar({ remainingMs, totalMs }: Props) {
 
   return (
     <div className="flex items-center gap-2">
+      {/*
+        Sekunda står stille — fargeskiftet og lyden bær tidspresset. Eit hopp
+        per sekund gjorde nedteljinga urolig å sjå på.
+      */}
       <span
-        className={`numeric w-6 shrink-0 text-right text-sm font-bold ${urgent ? 'animate-combo-pop' : ''}`}
+        className="numeric w-6 shrink-0 text-right text-sm font-bold"
         style={{ color: urgent ? 'var(--danger)' : 'var(--text-subtle)' }}
-        key={seconds}
         role="timer"
         aria-live="off"
       >
@@ -30,12 +33,18 @@ export function TimerBar({ remainingMs, totalMs }: Props) {
         className="h-1.5 flex-1 overflow-hidden rounded-full"
         style={{ background: 'var(--map-idle)' }}
       >
+        {/*
+          Stolpen krympar med `transform`, ikkje `width`. Breidde er layout:
+          nettlesaren måtte rekna om flyten ti gonger i sekundet, heile runden
+          gjennom. Ein skalering blir handtert av kompositoren åleine.
+        */}
         <span
-          className="block h-full rounded-full"
+          className="block h-full origin-left rounded-full"
           style={{
-            width: `${left * 100}%`,
+            width: '100%',
+            transform: `scaleX(${left})`,
             background: urgent ? 'var(--danger)' : 'var(--info)',
-            transition: 'width 120ms linear, background 200ms ease',
+            transition: 'transform 120ms linear, background 200ms ease',
           }}
         />
       </span>

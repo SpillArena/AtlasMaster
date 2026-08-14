@@ -24,7 +24,6 @@ function readPace(): Pace {
 
 export function GameSettingsProvider({ children }: { children: ReactNode }) {
   const [sound, setSound] = useState(() => readBool('sound', true))
-  const [haptics, setHaptics] = useState(() => readBool('haptics', true))
   const [motion, setMotion] = useState<MotionSetting>(readMotion)
   const [pace, setPace] = useState<Pace>(readPace)
 
@@ -32,10 +31,6 @@ export function GameSettingsProvider({ children }: { children: ReactNode }) {
     setSfxEnabled(sound)
     writePreference('sound', sound ? 'on' : 'off')
   }, [sound])
-
-  useEffect(() => {
-    writePreference('haptics', haptics ? 'on' : 'off')
-  }, [haptics])
 
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', motion === 'reduced')
@@ -48,7 +43,7 @@ export function GameSettingsProvider({ children }: { children: ReactNode }) {
 
   return (
     <GameSettingsContext.Provider
-      value={{ sound, haptics, motion, pace, setSound, setHaptics, setMotion, setPace }}
+      value={{ sound, motion, pace, setSound, setMotion, setPace }}
     >
       {children}
     </GameSettingsContext.Provider>

@@ -11,7 +11,6 @@ export const PREFERENCE_KEYS = [
   'accent',
   'lang',
   'sound',
-  'haptics',
   'motion',
   'pace',
   'playerName',
