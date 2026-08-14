@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { comboMultiplier } from '../../game/useQuizEngine'
+import { comboMultiplier } from '../../game/scoring'
 
 interface Props {
   streak: number

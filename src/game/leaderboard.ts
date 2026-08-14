@@ -22,6 +22,11 @@ export interface Entry {
   bestStreak?: number
   /** tempoet runden ble spilt på (mangler på eldre oppføringer) */
   pace?: Pace
+  /**
+   * Hvilke poengregler resultatet ble regnet etter — se game/scoring.ts.
+   * Mangler på oppføringer fra før modusene fikk hver sin verdi.
+   */
+  scoringVersion?: number
 }
 
 /**

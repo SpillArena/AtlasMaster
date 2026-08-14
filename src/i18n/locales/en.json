@@ -92,18 +92,20 @@
     "scope": "Choose board",
     "loading": "Loading the leaderboard …",
     "offline": "Couldn't reach the global board — showing results from this device.",
-    "region": "Choose region"
+    "region": "Choose region",
+    "mode": "Choose game mode",
+    "mixedModes": "The modes aren't worth the same — pick one for a fair comparison."
   },
   "tile": {
     "fylker": "Learn all 15 counties",
     "storbyer": "Find Norway's biggest cities",
     "elver": "Learn Norway's major rivers",
     "fjell": "Learn Norway's tallest peaks",
-    "countries": "Learn all 39 countries",
+    "countries": "Learn all 40 countries",
     "capitals": "Find Europe's capital cities",
     "rivers": "Learn Europe's great rivers",
     "peaks": "Learn Europe's highest peaks",
-    "asiaCountries": "Learn all 44 countries",
+    "asiaCountries": "Learn all 45 countries",
     "asiaCapitals": "Find Asia's capital cities",
     "asiaRivers": "Learn Asia's great rivers",
     "asiaPeaks": "Learn Asia's highest peaks",
@@ -143,7 +145,8 @@
       "desc": "A place is highlighted — type its name."
     },
     "difficulty": "Difficulty",
-    "difficultyLevel": "Difficulty {{level}} of 3"
+    "difficultyLevel": "Difficulty {{level}} of 3",
+    "worth": "Worth ×{{multiplier}} points"
   },
   "game": {
     "loading": "Loading map …"
@@ -159,7 +162,9 @@
     "streak": "{{count}} in a row",
     "correct": "Correct",
     "mistakesLabel": "Wrong",
-    "done": "Progress"
+    "done": "Progress",
+    "remaining": "{{left}} of {{total}} left",
+    "correctAnswer": "Correct answer"
   },
   "result": {
     "title": "Done!",
@@ -179,7 +184,10 @@
       "B": "Well played",
       "C": "Almost there",
       "D": "Give it another go"
-    }
+    },
+    "missedTitle_one": "1 place to practise",
+    "missedTitle_other": "{{count}} places to practise",
+    "missedTitle": "{{count}} places to practise"
   },
   "meta": {
     "title": "AtlasMaster — the world map game",

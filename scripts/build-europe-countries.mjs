@@ -7,20 +7,22 @@
  *   npm i --no-save world-atlas@2 topojson-client@3
  *   node scripts/build-europe-countries.mjs
  *
- * To ting gjer kartet spelbart i staden for berre korrekt:
+ * Tre ting gjer kartet spelbart i staden for berre korrekt:
  *
- * 1. Transkontinentale land (Russland, Tyrkia, Kasakhstan) er utelatne.
- *    Geometrien deira strekk seg djupt inn i Asia, og `fitExtent` ville
- *    zooma ut til heile Eurasia for å få dei med.
+ * 1. Tyrkia og Kasakhstan er utelatne. Geometrien deira strekk seg djupt inn
+ *    i Asia, og `fitExtent` ville zooma ut til heile Eurasia for å få dei med.
  * 2. Øyer og oversjøiske område utanfor Europa-boksen blir kutta ring for
  *    ring — Kanariøyane, Azorane, Fransk Guyana og Svalbard. Utan dette
  *    krympar fastlandet til ein flekk midt i eit tomt hav.
+ * 3. Russland blir *kutta*, ikkje utelate. Sjå RUSSIA under.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { feature } from 'topojson-client'
+import rewind from '@mapbox/geojson-rewind'
+import { clipGeometryToBox } from './lib/sources.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '../src/data/europe/countries.json')
@@ -53,8 +55,29 @@ const EUROPE = new Map([
   [705, ['Slovenia', 'Slovenia']], [724, ['Spania', 'Spain']],
   [752, ['Sverige', 'Sweden']], [756, ['Sveits', 'Switzerland']],
   [804, ['Ukraina', 'Ukraine']], [807, ['Nord-Makedonia', 'North Macedonia']],
+  [643, ['Russland', 'Russia']],
   [826, ['Storbritannia', 'United Kingdom']],
 ])
+
+/**
+ * Russland er det einaste landet som blir kutta tvers gjennom.
+ *
+ * Ringtesten dei andre landa går gjennom spør om midtpunktet i ein ring ligg
+ * i Europa. For Russland svarer han «nei» — tyngdepunktet i ytterringen ligg
+ * i Sibir — og landet forsvinn heilt. Det er slik det har vore til no, og
+ * grunnen til at Russland ikkje har vore eit svar i nokon av dei to
+ * regionane.
+ *
+ * Landet blir i staden klipt geometrisk mot den *same* boksen resten av
+ * Europa held seg innanfor. Då endrar utsnittet seg nesten ikkje — den
+ * austlegaste andre geometrien er Ukraina på 40°Ø — og den russiske flata
+ * fyller hjørnet nordaust, med kanten sin akkurat der kartet uansett sluttar.
+ *
+ * Kuttet er òg det som held datolinja unna: den russiske ytterringen går
+ * forbi 180°, og eit polygon som kryssar antimeridianen legg seg som ei
+ * stripe tvers over heile kartet. Her stoppar geometrien på 46°Ø.
+ */
+const RUSSIA = 643
 
 /**
  * Mikrostatane (Vatikanstaten, Monaco, San Marino, Liechtenstein, Andorra) er
@@ -127,7 +150,7 @@ for (const f of world.features) {
   missing.delete(code)
 
   const [name, nameEn] = EUROPE.get(code)
-  const clipped = clipToEurope(f.geometry)
+  const clipped = code === RUSSIA ? clipGeometryToBox(f.geometry, BOX) : clipToEurope(f.geometry)
   if (!clipped) {
     console.warn(`  ! ${name} fell utanfor Europa-boksen — hoppa over`)
     continue
@@ -143,7 +166,16 @@ for (const f of world.features) {
 features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
 
 mkdirSync(dirname(OUT), { recursive: true })
-writeFileSync(OUT, JSON.stringify({ type: 'FeatureCollection', features }))
+/*
+ * d3-geo les eit polygon sfærisk: kva side av ringen som er «inne» følgjer av
+ * kva veg han går. Ein ytterring som går feil veg blir teikna som *resten av
+ * kloden*, og kartet blir eit einsfarga rektangel. Klippinga over held
+ * orienteringa, men kjelda treng ikkje ha vore konsistent i utgangspunktet,
+ * så heile samlinga blir normalisert til med klokka rundt ytterringen — den
+ * konvensjonen d3 reknar med.
+ */
+const collection = rewind({ type: 'FeatureCollection', features }, true)
+writeFileSync(OUT, JSON.stringify(collection))
 
 console.log(`Skreiv ${features.length} land til ${OUT}`)
 if (missing.size > 0) {

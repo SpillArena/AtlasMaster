@@ -28,6 +28,8 @@ export interface CloudEntry {
   mistakes: number
   bestStreak: number
   elapsedMs: number
+  /** hvilke poengregler resultatet ble regnet etter — se game/scoring.ts */
+  scoringVersion?: number
 }
 
 /** Oversetter en skyoppføring til samme form som de lokale radene. */
@@ -45,6 +47,7 @@ export function toEntry(cloud: CloudEntry): Entry {
     mistakes: cloud.mistakes,
     bestStreak: cloud.bestStreak,
     elapsedMs: cloud.elapsedMs,
+    scoringVersion: cloud.scoringVersion,
     date: Date.parse(cloud.timestamp) || Date.now(),
   }
 }
@@ -81,16 +84,20 @@ async function callApi(query: string, init?: RequestInit): Promise<unknown | nul
  * Henter den globale toppen. Returnerer null når tavla ikke er tilgjengelig.
  *
  * `regionId` uten `categoryId` gir hele regionens tavle på tvers av
- * kategorier — det er den visningen dashbordet bruker.
+ * kategorier — det er den visningen dashbordet bruker. `mode` snevrer inn til
+ * én spillmodus: modusene er ikke like mye verdt, så en blandet tavle
+ * rangerer ikke like øvelser mot hverandre.
  */
 export async function fetchGlobalEntries(
   regionId?: string,
   categoryId?: string,
+  mode?: string,
   limit = 25,
 ): Promise<Entry[] | null> {
   const params = new URLSearchParams({ limit: String(limit) })
   if (categoryId && categoryId !== 'all') params.set('category', categoryId)
   if (regionId && regionId !== 'all') params.set('region', regionId)
+  if (mode && mode !== 'all') params.set('mode', mode)
 
   const data = (await callApi(`?${params}`)) as { entries?: CloudEntry[] } | null
   if (!data?.entries) return null

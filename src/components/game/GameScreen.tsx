@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useAnimationControls } from 'framer-motion'
 import type { FeatureCollection } from 'geojson'
+import type { EmblemSet } from '../../game/flags'
 import { getCategory, getRegion } from '../../game/regions'
 import {
   PACE_META,
@@ -15,6 +15,7 @@ import {
 import { useQuizEngine } from '../../game/useQuizEngine'
 import { addEntry, getName } from '../../game/leaderboard'
 import { recordRun, type RunResult } from '../../game/progress'
+import { SCORING_VERSION } from '../../game/scoring'
 import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
@@ -35,12 +36,22 @@ interface Props {
   onRunRecorded: () => void
 }
 
+/**
+ * Kor lenge det rette svaret står framme etter eit bomskot, i millisekund.
+ *
+ * Lang nok til at auget rekk å finne staden på kartet og knyte namnet til
+ * han; kort nok til at ei runde på femti stader ikkje blir ei venteliste.
+ */
+const REVEAL_MS = 1200
+
 interface Loaded {
   data: FeatureCollection
   base?: FeatureCollection
   features: QuizFeature[]
   geom: GeomKind
   projection: ProjectionSpec
+  /** merkesettet kategorien viser ved siden av navnene, om noen */
+  emblems: EmblemSet | null
 }
 
 export function GameScreen({
@@ -70,6 +81,7 @@ export function GameScreen({
           features: toQuizFeatures(data, lang),
           geom: cat.geom,
           projection: region.projection,
+          emblems: cat.emblems ?? null,
         })
     })
     return () => {
@@ -122,13 +134,10 @@ function Game({
   onLeaderboard: () => void
   onRunRecorded: () => void
 }) {
-  const { data, base, features, geom, projection } = loaded
+  const { data, base, features, geom, projection, emblems } = loaded
   const { consent } = useCookieConsent()
-  const { state, target, done, guess, type, skip, giveUp, timeout, restart } = useQuizEngine(
-    features,
-    mode,
-    pace,
-  )
+  const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
+    useQuizEngine(features, mode, pace)
 
   // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
   const fitData = base ?? data
@@ -137,29 +146,7 @@ function Game({
   const correctCount = Object.values(state.status).filter((s) => s === 'correct').length
 
   const questionMs = PACE_META[state.pace].seconds * 1000
-  const [remainingMs, setRemainingMs] = useState(questionMs)
   const [run, setRun] = useState<RunResult | null>(null)
-
-  // klokka for ett spørsmål — starter på nytt for hvert nye mål
-  useEffect(() => {
-    if (!questionMs || state.phase !== 'playing') return
-    const deadline = state.questionStartedAt + questionMs
-    let warned = false
-
-    const tick = () => {
-      const left = Math.max(0, deadline - Date.now())
-      setRemainingMs(left)
-      if (left <= 3000 && left > 0 && !warned) {
-        warned = true
-        playSfx('tick')
-      }
-      if (left === 0) timeout()
-    }
-
-    tick()
-    const id = window.setInterval(tick, 100)
-    return () => window.clearInterval(id)
-  }, [state.questionStartedAt, state.phase, questionMs, timeout])
 
   // riktig svar: lyd som stiger med rekka
   useEffect(() => {
@@ -169,14 +156,37 @@ function Game({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.award?.n])
 
-  // feil svar: buzz og eit nikk i kartflata
-  const nudge = useAnimationControls()
+  /*
+   * Feil svar: buzz og eit nikk i kartflata.
+   *
+   * Nikket er ein CSS-keyframe, ikkje ei JS-animasjon. Klassen må fjernast og
+   * leggjast på att med ein reflow imellom for å starte på nytt — alternativet
+   * er ein ny `key` på flata, og det ville rive ned heile kartet for kvart
+   * bomskot.
+   */
+  const nudgeRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!state.flash) return
     playSfx('wrong')
-    void nudge.start({ x: [0, -3, 3, 0], transition: { duration: 0.2 } })
+    const el = nudgeRef.current
+    if (!el) return
+    el.classList.remove('map-nudge')
+    void el.offsetWidth
+    el.classList.add('map-nudge')
+    // kjøres for hvert nye bomskot
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
+
+  /*
+   * Etter eit bomskot står det rette svaret framme ei lita stund før køen går
+   * vidare. Motoren kan ikkje halde ei klokke sjølv — ein reduserar veit ikkje
+   * kva tid det er — så pausen ligg her.
+   */
+  useEffect(() => {
+    if (state.phase !== 'reveal') return
+    const id = window.setTimeout(resume, REVEAL_MS)
+    return () => window.clearTimeout(id)
+  }, [state.phase, state.reveal?.n, resume])
 
   // lagre resultat til ledertavle og profil én gang når runden er ferdig
   const savedRef = useRef(false)
@@ -199,6 +209,7 @@ function Game({
       elapsedMs,
       bestStreak: state.bestStreak,
       pace: state.pace,
+      scoringVersion: SCORING_VERSION,
     })
 
     // den globale tavla får resultatet bare når spilleren har sagt ja —
@@ -230,6 +241,24 @@ function Game({
     restart()
   }
 
+  /*
+   * Fasiten på slutten: kva som rauk, og kor mange forsøk det kosta.
+   *
+   * Eit sted hamnar her både når det blei bomma på og seinare teke, og når
+   * spelaren gav opp — det er stadene runden avdekte som ikkje sat, og dei er
+   * det einaste ein spelar faktisk kan gjere noko med til neste gong.
+   */
+  const missed = useMemo(
+    () =>
+      state.missed.map((id) => ({
+        id,
+        name: features.find((f) => f.id === id)?.name ?? id,
+        attempts: state.attempts[id] ?? 0,
+        solved: state.status[id] === 'correct',
+      })),
+    [state.missed, state.attempts, state.status, features],
+  )
+
   // stabil referanse, elles ville HUD-en teikna seg på nytt for kvart klokketikk
   const choices = useMemo(
     () =>
@@ -248,9 +277,12 @@ function Game({
         correctCount={correctCount}
         done={done}
         total={state.total}
+        remaining={state.queue.length}
         mistakes={state.mistakes}
-        remainingMs={remainingMs}
+        questionStartedAt={state.questionStartedAt}
         questionMs={questionMs}
+        running={state.phase === 'playing'}
+        onTimeout={timeout}
       />
 
       {/*
@@ -259,7 +291,7 @@ function Game({
         nøkkel ville rive ned og bygge opp att heile kartet — terreng, zoom og
         alt — for kvart bomskot.
       */}
-      <motion.div className="relative min-h-0 flex-1" animate={nudge}>
+      <div ref={nudgeRef} className="relative min-h-0 flex-1">
         <MapCanvas
           projectionSpec={projection}
           fitData={fitData}
@@ -268,17 +300,24 @@ function Game({
           geom={geom}
           status={state.status}
           flashId={state.flash?.id ?? null}
-          highlightId={isClick ? null : target?.id ?? null}
+          revealId={state.reveal?.id ?? null}
+          highlightId={isClick ? null : (target?.id ?? null)}
           award={state.award}
           interactive={isClick}
           onPick={guess}
-          disabled={state.phase === 'finished'}
+          disabled={state.phase !== 'playing'}
         />
 
+        {/*
+          Resultatflata låg med `backdrop-filter` over kartet. Konfettien over
+          henne rører seg, og kvar ramme tvinga då nettlesaren til å sløre
+          heile kartutsnittet på nytt. Ei nesten ugjennomsiktig flate gjev same
+          lesing utan den kostnaden.
+        */}
         {state.phase === 'finished' && (
           <div
-            className="absolute inset-0 backdrop-blur-sm"
-            style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)' }}
+            className="absolute inset-0"
+            style={{ background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
           >
             <ResultScreen
               total={state.total}
@@ -286,6 +325,8 @@ function Game({
               mistakes={state.mistakes}
               bestStreak={state.bestStreak}
               score={state.points}
+              mode={mode}
+              missed={missed}
               elapsedMs={(state.finishedAt ?? state.startedAt) - state.startedAt}
               run={run}
               onRetry={handleRestart}
@@ -294,15 +335,22 @@ function Game({
             />
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* spill-kontroller nederst (tommelvennlig) */}
-      {state.phase === 'playing' && (
+      {state.phase !== 'finished' && (
         <GameHUD
           mode={mode}
           targetName={target?.name ?? ''}
           choices={choices}
           targetKey={target?.id ?? ''}
+          revealId={state.reveal?.id ?? null}
+          /*
+           * Ikkje i skrivemodus. Der står landet allereie markert på kartet,
+           * og eit flagg ved sida av ville vore fasiten for alle som kan
+           * flagg — oppgåva er å hugse namnet, ikkje å kjenne att flagget.
+           */
+          emblems={mode === 'type' ? null : emblems}
           onChoose={guess}
           onType={type}
           onSkip={skip}

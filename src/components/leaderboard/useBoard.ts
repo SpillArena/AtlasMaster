@@ -26,31 +26,34 @@ export function useBoard(
   scope: BoardScope,
   regionId: string,
   categoryId: string,
+  /** 'all' eller én spillmodus — se kommentaren i Leaderboard.tsx */
+  mode: string,
   limit?: number,
 ): BoardState {
   const [fetched, setFetched] = useState<Fetched | null>(null)
-  const key = `${regionId}:${categoryId}:${limit ?? 'all'}`
+  const key = `${regionId}:${categoryId}:${mode}:${limit ?? 'all'}`
 
   const local = useMemo(() => {
     const all = getEntries()
     const filtered = all.filter(
       (e) =>
         (regionId === 'all' || e.regionId === regionId) &&
-        (categoryId === 'all' || e.categoryId === categoryId),
+        (categoryId === 'all' || e.categoryId === categoryId) &&
+        (mode === 'all' || e.mode === mode),
     )
     return limit ? filtered.slice(0, limit) : filtered
-  }, [regionId, categoryId, limit])
+  }, [regionId, categoryId, mode, limit])
 
   useEffect(() => {
     if (scope !== 'global') return
     let alive = true
-    fetchGlobalEntries(regionId, categoryId, limit).then((entries) => {
+    fetchGlobalEntries(regionId, categoryId, mode, limit).then((entries) => {
       if (alive) setFetched({ key, entries })
     })
     return () => {
       alive = false
     }
-  }, [scope, regionId, categoryId, limit, key])
+  }, [scope, regionId, categoryId, mode, limit, key])
 
   if (scope === 'local') return { entries: local, loading: false, offline: false }
 

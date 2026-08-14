@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { regions, getRegion } from '../../game/regions'
+import { MODES } from '../../game/types'
+import { MODE_MULTIPLIER } from '../../game/scoring'
 import { LeaderboardRow } from './LeaderboardRow'
 import { useBoard, type BoardScope } from './useBoard'
 import { Icon } from '../Icon'
@@ -16,7 +18,8 @@ export function Leaderboard({ regionId }: Props) {
   const [scope, setScope] = useState<BoardScope>('global')
   const [region, setRegion] = useState<string>(regionId)
   const [filter, setFilter] = useState<string>('all')
-  const { entries, loading, offline } = useBoard(scope, region, filter)
+  const [mode, setMode] = useState<string>('all')
+  const { entries, loading, offline } = useBoard(scope, region, filter, mode)
   const categories = getRegion(region)?.categories ?? []
 
   return (
@@ -79,6 +82,31 @@ export function Leaderboard({ regionId }: Props) {
           </Chip>
         ))}
       </nav>
+
+      {/*
+        Modus-filter.
+        Modusane er ikkje like mykje verdt — å skrive namnet gjev halvannan
+        gong det å klikke — så ei blanda tavle rangerer ikkje like øvingar mot
+        kvarandre. «Alle» er framleis der for den som vil sjå heile lista, men
+        multiplikatoren står på kvar knapp så det er tydeleg kva som skil dei.
+      */}
+      <nav aria-label={t('leaderboard.mode')} className="mb-4 flex flex-wrap gap-2">
+        <Chip active={mode === 'all'} onClick={() => setMode('all')}>
+          {t('leaderboard.all')}
+        </Chip>
+        {MODES.map((m) => (
+          <Chip key={m} active={mode === m} onClick={() => setMode(m)}>
+            {t(`mode.${m}.title`)}{' '}
+            <span className="numeric opacity-70">×{MODE_MULTIPLIER[m]}</span>
+          </Chip>
+        ))}
+      </nav>
+
+      {mode === 'all' && (
+        <p className="mb-3 text-sm" style={{ color: 'var(--text-subtle)' }}>
+          {t('leaderboard.mixedModes')}
+        </p>
+      )}
 
       {offline && (
         <p className="mb-3 text-sm" style={{ color: 'var(--text-subtle)' }}>

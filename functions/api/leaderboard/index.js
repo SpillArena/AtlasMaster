@@ -1,7 +1,7 @@
 /**
  * Global ledertavle for AtlasMaster (Cloudflare Pages Function + D1).
  *
- * GET  /api/leaderboard?region=norway&category=fylker&limit=25
+ * GET  /api/leaderboard?region=norway&category=fylker&mode=click&limit=25
  * POST /api/leaderboard — send inn et resultat
  *
  * Poengsummen regnes ut i nettleseren, så den kan ikke stoles blindt på.
@@ -27,9 +27,21 @@ const REGION_CATEGORIES = {
 const MODES = new Set(['click', 'choice', 'type'])
 const PACES = new Set(['relaxed', 'normal', 'blitz'])
 
+/*
+ * Poengtaket, som speiler src/game/scoring.ts.
+ *
+ * Denne funksjonen kjører i Cloudflare-runtime og kan ikke importere
+ * TypeScript fra klienten, så konstantene står her også. `SCORING_VERSION` er
+ * det som holder de to i lås: endres reglene på klienten uten at tallet her
+ * følger etter, havner nye resultater i databasen med feil versjon, og det
+ * synes.
+ */
+const SCORING_VERSION = 2
 /** Må speile PACE_META i src/game/types.ts. */
 const PACE_MULTIPLIER = { relaxed: 0.8, normal: 1, blitz: 1.4 }
-/** Grunnpoeng + fartsbonus, ganget med maks combo (×2). */
+/** Må speile MODE_MULTIPLIER i src/game/scoring.ts. */
+const MODE_MULTIPLIER = { choice: 0.8, click: 1, type: 1.5 }
+/** BASE_POINTS + FAST_BONUS, ganget med maks combo (×2). */
 const MAX_POINTS_PER_TARGET = (100 + 60) * 2
 
 const json = (data, status = 200) =>
@@ -54,10 +66,18 @@ const SELECT_COLUMNS = `
     total,
     mistakes,
     best_streak AS bestStreak,
-    elapsed_ms AS elapsedMs`
+    elapsed_ms AS elapsedMs,
+    scoring_version AS scoringVersion`
 
-/** Én oppføring per spiller per region+kategori+modus — den beste. */
-async function fetchTop(db, region, category, limit) {
+/**
+ * Én oppføring per spiller per region+kategori+modus — den beste.
+ *
+ * `mode` er et eget filter og ikke bare en gruppering: modusene er ikke like
+ * mye verdt lenger, så en skriverunde og en klikkerunde i samme kategori er
+ * to ulike øvelser. Uten filteret ville skrivemodus ha tatt hele toppen av
+ * enhver blandet tavle på multiplikatoren alene.
+ */
+async function fetchTop(db, region, category, mode, limit) {
   const filters = []
   const binds = []
   if (region) {
@@ -67,6 +87,10 @@ async function fetchTop(db, region, category, limit) {
   if (category) {
     filters.push('category = ?')
     binds.push(category)
+  }
+  if (mode) {
+    filters.push('mode = ?')
+    binds.push(mode)
   }
   const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
   binds.push(limit)
@@ -115,7 +139,9 @@ function parseEntry(raw) {
   if (!Number.isInteger(elapsedMs) || elapsedMs < 0 || elapsedMs > 6 * 60 * 60 * 1000)
     return { error: 'Invalid duration' }
 
-  const ceiling = Math.ceil(total * MAX_POINTS_PER_TARGET * PACE_MULTIPLIER[pace])
+  const ceiling = Math.ceil(
+    total * MAX_POINTS_PER_TARGET * MODE_MULTIPLIER[mode] * PACE_MULTIPLIER[pace],
+  )
   if (!Number.isFinite(score) || score < 0 || score > ceiling) return { error: 'Invalid score' }
 
   return {
@@ -133,6 +159,9 @@ function parseEntry(raw) {
       mistakes,
       bestStreak,
       elapsedMs,
+      // settes av serveren, ikke av klienten: hvilke regler en poengsum er
+      // regnet etter er ikke noe innsenderen skal få bestemme
+      scoringVersion: SCORING_VERSION,
     },
   }
 }
@@ -148,10 +177,12 @@ export async function onRequestGet(context) {
     region && categoryParam && REGION_CATEGORIES[region].has(categoryParam)
       ? categoryParam
       : null
+  const modeParam = url.searchParams.get('mode')
+  const mode = MODES.has(modeParam) ? modeParam : null
   const limit = Math.min(Number(url.searchParams.get('limit')) || DEFAULT_LIMIT, MAX_LIMIT)
 
   try {
-    return json({ entries: await fetchTop(env.DB, region, category, limit) })
+    return json({ entries: await fetchTop(env.DB, region, category, mode, limit) })
   } catch (error) {
     return json({ error: 'Failed to load leaderboard', details: String(error) }, 500)
   }
@@ -175,8 +206,8 @@ export async function onRequestPost(context) {
     await env.DB.prepare(
       `INSERT INTO leaderboard_entries
         (id, timestamp, username, category, region, mode, pace, score,
-         correct_count, total, mistakes, best_streak, elapsed_ms)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         correct_count, total, mistakes, best_streak, elapsed_ms, scoring_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         entry.id,
@@ -192,11 +223,12 @@ export async function onRequestPost(context) {
         entry.mistakes,
         entry.bestStreak,
         entry.elapsedMs,
+        entry.scoringVersion,
       )
       .run()
 
     return json(
-      { entry, entries: await fetchTop(env.DB, entry.region, null, DEFAULT_LIMIT) },
+      { entry, entries: await fetchTop(env.DB, entry.region, null, entry.mode, DEFAULT_LIMIT) },
       201,
     )
   } catch (error) {
