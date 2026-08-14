@@ -32,6 +32,25 @@
 
     --map-idle: #0d152626;
     --map-idle-hover: #f1376e4d;
+
+    /*
+     * Kartfargane — same lesing som eit atlas: hav rundt, land oppå.
+     * `--ocean` er flata rett rundt kysten, `--ocean-deep` djupet ute i
+     * kanten av lerretet, så kartet ser ut til å ligge midt i eit hav.
+     */
+    --ocean: #bcd9ee;
+    --ocean-deep: #8bb6d6;
+    /* kontinentalsokkelen: tre band som lysnar inn mot kysten */
+    --shelf-1: #d3e7f4;
+    --shelf-2: #c2dbef;
+    --shelf-3: #aecfe8;
+    --coast: #5d94bb;
+    --graticule: #0d152614;
+
+    /* landflata, og administrative grenser i ei nøytral, mørkare tone */
+    --map-land: #dfe7c8;
+    --map-border: #57657a;
+
     --glow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
@@ -60,6 +79,18 @@
 
     --map-idle: #ffffff1f;
     --map-idle-hover: #f1376e59;
+
+    --ocean: #0b2038;
+    --ocean-deep: #04101f;
+    --shelf-1: #143b5e;
+    --shelf-2: #102c4a;
+    --shelf-3: #0d2540;
+    --coast: #4d7ba6;
+    --graticule: #ffffff12;
+
+    --map-land: #24352a;
+    --map-border: #93a8bd;
+
     --glow: 0 0 32px rgba(61, 245, 168, 0.25);
   }
 

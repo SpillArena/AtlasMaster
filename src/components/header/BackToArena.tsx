@@ -67,7 +67,15 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
         style={pillStyle}
       >
         <Arrow />
-        <img src={logo} alt="" aria-hidden="true" className="h-4 w-auto object-contain" />
+        {/* width/height held av plassen før fila er lasta — elles hoppar headeren */}
+        <img
+          src={logo}
+          alt=""
+          aria-hidden="true"
+          width={96}
+          height={96}
+          className="h-4 w-auto object-contain"
+        />
         <span className="hidden text-sm sm:inline">Spillarena</span>
       </a>
     )
