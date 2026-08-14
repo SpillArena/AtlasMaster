@@ -23,6 +23,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { geoArea, geoBounds } from 'd3-geo'
+import { flagCoverage } from '../src/game/flags.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -91,6 +92,23 @@ for (const c of CASES) {
     console.error(`  ! utsnittet er utanfor det regionen skal ha`)
     failed = true
   }
+}
+
+/*
+ * Flaggdekninga i Europa.
+ *
+ * Ikkje ein feil — flagget er med vilje eit tillegg, og landa vi ikkje kan
+ * teikne truverdig står utan. Men talet skal vere synleg, så ingen trur
+ * dekninga er full, og så det er lett å sjå kva som er att.
+ */
+{
+  const fc = JSON.parse(readFileSync(resolve(root, 'src/data/europe/countries.json'), 'utf8'))
+  const byId = new Map(fc.features.map((f) => [String(f.properties.id), f.properties.name]))
+  const { drawn, missing } = flagCoverage([...byId.keys()])
+  console.log(
+    `\nflagg     ${drawn.length}/${byId.size} land teikna` +
+      (missing.length ? `\n  utan:   ${missing.map((id) => byId.get(id)).join(', ')}` : ''),
+  )
 }
 
 if (failed) process.exitCode = 1

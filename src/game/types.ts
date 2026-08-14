@@ -51,6 +51,14 @@ export interface Category {
   color: string
   /** tailwind-gradient for flisa (holdes hel for Tailwind JIT) */
   gradient: string
+  /**
+   * Vis flagget til stedet ved siden av navnet.
+   *
+   * Bare meningsfullt for kategorier der en feature *er* et land — et fylke
+   * og en fjelltopp har ikke flagg. Se game/flags.ts for hvorfor flagget
+   * alltid er et tillegg og aldri det eneste holdepunktet.
+   */
+  flags?: boolean
 }
 
 /**

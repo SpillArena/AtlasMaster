@@ -2,6 +2,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import type { Mode } from '../../game/types'
+import { FlagBadge } from './FlagBadge'
 
 interface Choice {
   id: string
@@ -22,6 +23,8 @@ interface Props {
    * og ned for kvart bomskot.
    */
   revealId: string | null
+  /** vis landflagg ved siden av navnene — se game/flags.ts */
+  flags: boolean
   onChoose: (id: string) => void
   onType: (text: string) => void
   onSkip: () => void
@@ -39,6 +42,7 @@ export const GameHUD = memo(function GameHUD({
   choices,
   targetKey,
   revealId,
+  flags,
   onChoose,
   onType,
   onSkip,
@@ -61,9 +65,15 @@ export const GameHUD = memo(function GameHUD({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-              className="font-display mt-0.5 text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
+              className="font-display mt-0.5 flex items-center gap-2.5 text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
               style={{ color: revealing ? 'var(--info)' : 'var(--text)' }}
             >
+              {/*
+                Flagget står ved sida av namnet, ikkje i staden for det. Det
+                er ei ekstra kopling å hengje kunnskapen på — og for dei
+                landa vi ikkje kan teikne truverdig, står namnet åleine.
+              */}
+              {flags && <FlagBadge featureId={targetKey} className="h-6 w-9 sm:h-8 sm:w-12" />}
               {targetName}
             </motion.div>
           </div>
@@ -77,6 +87,7 @@ export const GameHUD = memo(function GameHUD({
                 choices={choices}
                 targetKey={targetKey}
                 revealId={revealId}
+                flags={flags}
                 onChoose={onChoose}
               />
             ) : revealing ? (
@@ -136,11 +147,14 @@ function ChoiceButtons({
   choices,
   targetKey,
   revealId,
+  flags,
   onChoose,
 }: {
   choices: Choice[]
   targetKey: string
   revealId: string | null
+  /** vis landflagg ved siden av navnene — se game/flags.ts */
+  flags: boolean
   onChoose: (id: string) => void
 }) {
   // tastene 1–4 svarer også — raskere enn å sikte med musa
@@ -185,6 +199,7 @@ function ChoiceButtons({
             >
               {i + 1}
             </span>
+            {flags && <FlagBadge featureId={c.id} />}
             <span className="min-w-0 truncate">{c.name}</span>
           </motion.button>
         </li>

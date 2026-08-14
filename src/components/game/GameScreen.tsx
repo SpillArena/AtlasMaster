@@ -49,6 +49,8 @@ interface Loaded {
   features: QuizFeature[]
   geom: GeomKind
   projection: ProjectionSpec
+  /** viser kategorien landflagg ved siden av navnene? */
+  flags: boolean
 }
 
 export function GameScreen({
@@ -78,6 +80,7 @@ export function GameScreen({
           features: toQuizFeatures(data, lang),
           geom: cat.geom,
           projection: region.projection,
+          flags: cat.flags ?? false,
         })
     })
     return () => {
@@ -130,7 +133,7 @@ function Game({
   onLeaderboard: () => void
   onRunRecorded: () => void
 }) {
-  const { data, base, features, geom, projection } = loaded
+  const { data, base, features, geom, projection, flags } = loaded
   const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
     useQuizEngine(features, mode, pace)
@@ -341,6 +344,12 @@ function Game({
           choices={choices}
           targetKey={target?.id ?? ''}
           revealId={state.reveal?.id ?? null}
+          /*
+           * Ikkje i skrivemodus. Der står landet allereie markert på kartet,
+           * og eit flagg ved sida av ville vore fasiten for alle som kan
+           * flagg — oppgåva er å hugse namnet, ikkje å kjenne att flagget.
+           */
+          flags={flags && mode !== 'type'}
           onChoose={guess}
           onType={type}
           onSkip={skip}

@@ -78,6 +78,7 @@ const europeCategories: Category[] = [
     color: '#8b5cf6',
     gradient: 'from-violet-600 via-[#4c1d95] to-[#1e1035]',
     load: europeCountries,
+    flags: true,
   },
   {
     id: 'capitals',
