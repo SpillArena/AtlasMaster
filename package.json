@@ -14,7 +14,8 @@
     "icons": "node scripts/build-icons.mjs",
     "check:sql": "node --experimental-sqlite scripts/check-leaderboard-sql.mjs",
     "check:geo": "node --experimental-strip-types --import ./scripts/lib/ts-register.mjs scripts/check-geo.mjs",
-    "check:engine": "node --experimental-strip-types --import ./scripts/lib/ts-register.mjs scripts/check-engine.mjs"
+    "check:engine": "node --experimental-strip-types --import ./scripts/lib/ts-register.mjs scripts/check-engine.mjs",
+    "bench:map": "node scripts/bench-map.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

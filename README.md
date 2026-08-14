@@ -71,14 +71,29 @@ ei runde skal aldri gå tapt fordi skya ikkje svara.
 npm run data:europe    # byggjer Europa-omrisset på nytt frå Natural Earth
 npm run data:asia      # land, hovudstader, elvar og toppar i Asia
 npm run data:usa       # delstatar, byar, elvar og toppar i USA
+npm run check:geo      # utsnitt, ringretning og merkedekning
+npm run check:engine   # spelreglane, køyrde direkte mot reduseraren
 npm run check:sql      # verifiserer migrasjonar + spørjingar mot SQLite
+npm run bench:map      # kva kartlaget kostar per region
 ```
 
-Datascripta krev `npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3`.
+Datascripta krev
+`npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3 topojson-server@3 topojson-simplify@3`.
 `data:asia` og `data:usa` hentar i tillegg Natural Earth-datasett over nettet
 første gongen, og cachar dei i `node_modules/.cache/atlasmaster/`.
 Resultatet er sjekka inn, så scripta treng berre køyrast når stadlistene eller
 oppløysinga skal endrast.
+
+**Rekkjefølgja er ikkje valfri.** Byggjarane skriv rådata; dei to stega etter
+gjer dei spelbare, og begge er eingongsoperasjonar som ikkje toler å køyrast
+to gonger på same fila:
+
+```bash
+node scripts/build-europe-countries.mjs   # eller kva som er endra
+node scripts/optimise-geo.mjs             # kuttar koordinatpresisjonen
+node scripts/simplify-geo.mjs             # forenklar topologisk
+npm run check:geo                         # og så sjekk at det heldt
+```
 
 Geometrien kjem utanfrå; namna gjer han ikkje. Kvar byggjar held si eiga liste
 over norske og engelske namn, og hentar berre koordinatar frå kjeldene.
@@ -91,6 +106,13 @@ npx wrangler d1 migrations apply atlasmaster-leaderboard --remote
 
 `0002_add_region.sql` legg til `region` med `DEFAULT 'norway'`, så alle rader
 frå før regionane blir liggande att som norske runder.
+
+`0003_add_scoring_version.sql` legg til `scoring_version` med `DEFAULT 1`.
+Modusane er ikkje like mykje verdt lenger — sjå `MODE_MULTIPLIER` i
+`src/game/scoring.ts` — så eldre skriverunder ligg systematisk lågare enn nye
+innanfor same modus. Ingen rad blir rørt eller rekna om; kolonna er der for at
+dei skal kunne skiljast. Tavla filtrerer dessutan på modus, så ei skriverunde
+og ei klikkerunde aldri blir rangerte mot kvarandre.
 
 > Databasen heiter `atlasmaster-leaderboard`. D1 kan ikkje døypast om, så
 > omdøypinga frå `norgesmester-leaderboard` vart gjord som ny database pluss
