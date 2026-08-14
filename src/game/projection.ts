@@ -60,7 +60,25 @@ export function makePath(projection: GeoProjection): GeoPath {
  * frimerke midt på skjermen. Vi projiserer difor inn i eit kvadrat, måler
  * kva plass forma faktisk tok, og let lerretet følgje det.
  */
+/**
+ * Målinga går gjennom heile datasettet to gonger — éin gong for `fitExtent`
+ * og éin for `bounds` — og eit kontinent er titusenvis av punkt. Svaret er
+ * likevel det same kvar gong for eit gitt datasett og ei gitt projeksjon, så
+ * det blir hugsa. Ein `WeakMap` held ikkje datasettet i live: droppar spelet
+ * regionen, forsvinn målinga med han.
+ */
+const aspectCache = new WeakMap<FeatureCollection, Map<string, number>>()
+
 export function naturalAspect(spec: ProjectionSpec, data: FeatureCollection): number {
+  const key = JSON.stringify(spec)
+  let perSpec = aspectCache.get(data)
+  if (!perSpec) {
+    perSpec = new Map()
+    aspectCache.set(data, perSpec)
+  }
+  const cached = perSpec.get(key)
+  if (cached !== undefined) return cached
+
   const probe = fromSpec(spec).fitExtent(
     [
       [0, 0],
@@ -71,6 +89,7 @@ export function naturalAspect(spec: ProjectionSpec, data: FeatureCollection): nu
   const [[x0, y0], [x1, y1]] = geoPath(probe).bounds(data)
   const width = x1 - x0
   const height = y1 - y0
-  if (!(width > 0) || !(height > 0)) return 1
-  return width / height
+  const aspect = width > 0 && height > 0 ? width / height : 1
+  perSpec.set(key, aspect)
+  return aspect
 }

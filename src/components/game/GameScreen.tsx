@@ -275,10 +275,16 @@ function Game({
           disabled={state.phase === 'finished'}
         />
 
+        {/*
+          Resultatflata låg med `backdrop-filter` over kartet. Konfettien over
+          henne rører seg, og kvar ramme tvinga då nettlesaren til å sløre
+          heile kartutsnittet på nytt. Ei nesten ugjennomsiktig flate gjev same
+          lesing utan den kostnaden.
+        */}
         {state.phase === 'finished' && (
           <div
-            className="absolute inset-0 backdrop-blur-sm"
-            style={{ background: 'color-mix(in srgb, var(--bg) 88%, transparent)' }}
+            className="absolute inset-0"
+            style={{ background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
           >
             <ResultScreen
               total={state.total}
