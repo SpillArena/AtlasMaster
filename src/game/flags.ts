@@ -25,8 +25,21 @@
  * namnet og aldri det einaste haldepunktet: `flagFor` gjev null, og
  * `FlagBadge` teiknar ingenting.
  *
- * Nøklane er ISO 3166-1 numerisk, same id som features i
- * src/data/europe/countries.json ber.
+ * KVA MED FYLKESVÅPEN OG DELSTATSFLAGG. Delstatsflagga er fri gjengiving, men
+ * berre eit fåtal av dei er geometri: dei fleste ber eit segl med tekst,
+ * figurar og årstal, og eit segl kan ikkje skildrast i nokre få tal. Dei sju
+ * som *kan* teiknast står her; resten står utan, på same vilkår som dei
+ * europeiske.
+ *
+ * Dei norske fylkesvåpna er ikkje her, og det er eit rettsleg val og ikkje
+ * eit teknisk. Offentlege våpen i Noreg er verna: bruk krev løyve frå
+ * fylkeskommunen som eig våpenet, og eit spel er ikkje unnateke. Å teikne dei
+ * på nytt gjer dei ikkje frie — det er motivet som er verna, ikkje fila. Vi
+ * hentar dei difor korkje frå ein tredjepart eller frå eiga hand.
+ *
+ * Nøklane er den same id-en som features i datasettet ber: ISO 3166-1
+ * numerisk for landa, FIPS for delstatane. Dei to overlappar — «40» er både
+ * Østerrike og Oklahoma — så oppslaget går alltid gjennom eit sett.
  */
 
 /** Band på tvers eller på langs, med valfri vekt per band. */
@@ -76,6 +89,14 @@ export interface CroatiaFlag {
   kind: 'croatia'
 }
 
+/**
+ * Delstatsflagg med kvar si eiga form. Kvart av dei er eit oppsett som ikkje
+ * går att nokon annan stad, så dei ber berre namnet sitt.
+ */
+export interface StateFlag {
+  kind: 'texas' | 'alabama' | 'alaska' | 'hawaii' | 'colorado' | 'arizona' | 'newMexico'
+}
+
 export type FlagSpec =
   | BandsFlag
   | NordicFlag
@@ -84,6 +105,7 @@ export type FlagSpec =
   | WedgeFlag
   | UnionFlag
   | CroatiaFlag
+  | StateFlag
 
 const bands = (dir: 'h' | 'v', colors: string[], weights?: number[]): BandsFlag => ({
   kind: 'bands',
@@ -99,7 +121,7 @@ const nordic = (field: string, cross: string, inner?: string): NordicFlag => ({
   inner,
 })
 
-const FLAGS: Record<string, FlagSpec> = {
+const EUROPE_FLAGS: Record<string, FlagSpec> = {
   // --- vassrette band ---
   40: bands('h', ['#ed2939', '#ffffff', '#ed2939']), // Østerrike
   100: bands('h', ['#ffffff', '#00966e', '#d62612']), // Bulgaria
@@ -140,19 +162,54 @@ const FLAGS: Record<string, FlagSpec> = {
 }
 
 /**
- * Flagget til eit land, eller null når vi ikkje har eit truverdig eitt.
+ * Dei sju delstatsflagga som er rein geometri. Nøkkelen er FIPS-koden.
  *
- * Null er eit fullgodt svar. Kallaren teiknar ingenting og går vidare — eit
- * manglande flagg skal aldri kunne stoppe eit svar.
+ * Dei 43 andre ber eit segl, ein figur eller ei tekstlinje. Maryland sitt
+ * kors bottony, Californias bjørn, Wyomings bison og alt som har «The Great
+ * Seal of the State of …» skrive rundt kanten høyrer til ei anna sorts
+ * ressurs enn denne fila.
  */
-export function flagFor(featureId: string): FlagSpec | null {
-  return FLAGS[featureId] ?? null
+const US_STATE_FLAGS: Record<string, FlagSpec> = {
+  '01': { kind: 'alabama' },
+  '02': { kind: 'alaska' },
+  '04': { kind: 'arizona' },
+  '08': { kind: 'colorado' },
+  15: { kind: 'hawaii' },
+  35: { kind: 'newMexico' },
+  48: { kind: 'texas' },
 }
 
-/** Kor mange av landa i eit datasett vi faktisk kan teikne. Brukt av testar. */
-export function flagCoverage(ids: string[]): { drawn: string[]; missing: string[] } {
+/**
+ * Kva sett eit merke skal slåast opp i.
+ *
+ * Id-ane frå to datasett kan vere like utan å tyde det same, så settet er
+ * ikkje ein bekvemmelegheit — det er det som gjer oppslaget eintydig.
+ */
+export type EmblemSet = 'europe' | 'usStates'
+
+const SETS: Record<EmblemSet, Record<string, FlagSpec>> = {
+  europe: EUROPE_FLAGS,
+  usStates: US_STATE_FLAGS,
+}
+
+/**
+ * Merket til eit sted, eller null når vi ikkje har eit truverdig eitt.
+ *
+ * Null er eit fullgodt svar. Kallaren teiknar ingenting og går vidare — eit
+ * manglande merke skal aldri kunne stoppe eit svar.
+ */
+export function flagFor(set: EmblemSet, featureId: string): FlagSpec | null {
+  return SETS[set][featureId] ?? null
+}
+
+/** Kor mange av stadene i eit datasett vi faktisk kan teikne. Brukt av testar. */
+export function flagCoverage(
+  set: EmblemSet,
+  ids: string[],
+): { drawn: string[]; missing: string[] } {
+  const table = SETS[set]
   const drawn: string[] = []
   const missing: string[] = []
-  for (const id of ids) (FLAGS[id] ? drawn : missing).push(id)
+  for (const id of ids) (table[id] ? drawn : missing).push(id)
   return { drawn, missing }
 }

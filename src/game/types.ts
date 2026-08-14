@@ -1,4 +1,5 @@
 import type { Geometry, FeatureCollection } from 'geojson'
+import type { EmblemSet } from './flags'
 import type { IconName } from '../components/Icon'
 
 /** Ett spillbart geografi-objekt (fylke, land, by, ...). */
@@ -52,13 +53,14 @@ export interface Category {
   /** tailwind-gradient for flisa (holdes hel for Tailwind JIT) */
   gradient: string
   /**
-   * Vis flagget til stedet ved siden av navnet.
+   * Merkesettet stedene i kategorien har flagg eller våpen i.
    *
-   * Bare meningsfullt for kategorier der en feature *er* et land — et fylke
-   * og en fjelltopp har ikke flagg. Se game/flags.ts for hvorfor flagget
-   * alltid er et tillegg og aldri det eneste holdepunktet.
+   * Bare meningsfullt der en feature *er* et land eller en delstat — en
+   * fjelltopp har ikke flagg. Settet, og ikke bare en av/på-bryter, fordi
+   * id-ene fra to datasett kan være like uten å bety det samme: «40» er både
+   * Østerrike og Oklahoma. Se game/flags.ts.
    */
-  flags?: boolean
+  emblems?: EmblemSet
 }
 
 /**

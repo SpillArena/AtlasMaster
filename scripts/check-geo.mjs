@@ -101,14 +101,18 @@ for (const c of CASES) {
  * teikne truverdig står utan. Men talet skal vere synleg, så ingen trur
  * dekninga er full, og så det er lett å sjå kva som er att.
  */
-{
-  const fc = JSON.parse(readFileSync(resolve(root, 'src/data/europe/countries.json'), 'utf8'))
+console.log('')
+for (const [set, file, what] of [
+  ['europe', 'src/data/europe/countries.json', 'land'],
+  ['usStates', 'src/data/usa/states.json', 'delstatar'],
+]) {
+  const fc = JSON.parse(readFileSync(resolve(root, file), 'utf8'))
   const byId = new Map(fc.features.map((f) => [String(f.properties.id), f.properties.name]))
-  const { drawn, missing } = flagCoverage([...byId.keys()])
-  console.log(
-    `\nflagg     ${drawn.length}/${byId.size} land teikna` +
-      (missing.length ? `\n  utan:   ${missing.map((id) => byId.get(id)).join(', ')}` : ''),
-  )
+  const { drawn, missing } = flagCoverage(set, [...byId.keys()])
+  console.log(`merke     ${drawn.length}/${byId.size} ${what} teikna`)
+  if (missing.length) {
+    console.log(`  utan:   ${missing.map((id) => byId.get(id)).join(', ')}`)
+  }
 }
 
 if (failed) process.exitCode = 1

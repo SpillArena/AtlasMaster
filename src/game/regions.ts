@@ -78,7 +78,7 @@ const europeCategories: Category[] = [
     color: '#8b5cf6',
     gradient: 'from-violet-600 via-[#4c1d95] to-[#1e1035]',
     load: europeCountries,
-    flags: true,
+    emblems: 'europe',
   },
   {
     id: 'capitals',
@@ -169,6 +169,7 @@ const usaCategories: Category[] = [
     color: '#3b82f6',
     gradient: 'from-blue-600 via-[#1e3a8a] to-[#0b1533]',
     load: usStates,
+    emblems: 'usStates',
   },
   {
     id: 'usCities',

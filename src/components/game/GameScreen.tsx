@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FeatureCollection } from 'geojson'
+import type { EmblemSet } from '../../game/flags'
 import { getCategory, getRegion } from '../../game/regions'
 import {
   PACE_META,
@@ -49,8 +50,8 @@ interface Loaded {
   features: QuizFeature[]
   geom: GeomKind
   projection: ProjectionSpec
-  /** viser kategorien landflagg ved siden av navnene? */
-  flags: boolean
+  /** merkesettet kategorien viser ved siden av navnene, om noen */
+  emblems: EmblemSet | null
 }
 
 export function GameScreen({
@@ -80,7 +81,7 @@ export function GameScreen({
           features: toQuizFeatures(data, lang),
           geom: cat.geom,
           projection: region.projection,
-          flags: cat.flags ?? false,
+          emblems: cat.emblems ?? null,
         })
     })
     return () => {
@@ -133,7 +134,7 @@ function Game({
   onLeaderboard: () => void
   onRunRecorded: () => void
 }) {
-  const { data, base, features, geom, projection, flags } = loaded
+  const { data, base, features, geom, projection, emblems } = loaded
   const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
     useQuizEngine(features, mode, pace)
@@ -349,7 +350,7 @@ function Game({
            * og eit flagg ved sida av ville vore fasiten for alle som kan
            * flagg — oppgåva er å hugse namnet, ikkje å kjenne att flagget.
            */
-          flags={flags && mode !== 'type'}
+          emblems={mode === 'type' ? null : emblems}
           onChoose={guess}
           onType={type}
           onSkip={skip}
