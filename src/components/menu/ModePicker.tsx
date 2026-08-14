@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { MODES, type Category, type Mode } from '../../game/types'
+import { MODE_MULTIPLIER } from '../../game/scoring'
 import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { ModeDemo } from './ModeDemo'
@@ -103,7 +104,7 @@ export function ModePicker({ regionId, category, onPick }: Props) {
                     {t(`mode.${mode}.desc`)}
                   </span>
 
-                  <span className="mt-0.5 flex items-center gap-2">
+                  <span className="mt-0.5 flex flex-wrap items-center gap-2">
                     <span className="stat-label">{t('mode.difficulty')}</span>
                     <span aria-hidden className="flex gap-1">
                       {[1, 2, 3].map((step) => (
@@ -118,6 +119,21 @@ export function ModePicker({ regionId, category, onPick }: Props) {
                     </span>
                     <span className="sr-only">
                       {t('mode.difficultyLevel', { level: difficulty })}
+                    </span>
+
+                    {/*
+                      Vanskegrad utan verdi er berre ei åtvaring. Multiplikatoren
+                      seier kva den ekstra vanskegraden faktisk er verdt, med
+                      same tal som poengmodulen reknar med.
+                    */}
+                    <span
+                      className="numeric rounded-full px-2 py-0.5 text-[0.625rem] font-bold"
+                      style={{ background: 'var(--map-idle)', color: 'var(--gold)' }}
+                    >
+                      ×{MODE_MULTIPLIER[mode]}
+                    </span>
+                    <span className="sr-only">
+                      {t('mode.worth', { multiplier: MODE_MULTIPLIER[mode] })}
                     </span>
                   </span>
                 </span>

@@ -14,6 +14,7 @@ import {
 import { useQuizEngine } from '../../game/useQuizEngine'
 import { addEntry, getName } from '../../game/leaderboard'
 import { recordRun, type RunResult } from '../../game/progress'
+import { SCORING_VERSION } from '../../game/scoring'
 import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
@@ -33,6 +34,14 @@ interface Props {
   /** varsler at en runde er lagret, så headeren kan lese nivået på nytt */
   onRunRecorded: () => void
 }
+
+/**
+ * Kor lenge det rette svaret står framme etter eit bomskot, i millisekund.
+ *
+ * Lang nok til at auget rekk å finne staden på kartet og knyte namnet til
+ * han; kort nok til at ei runde på femti stader ikkje blir ei venteliste.
+ */
+const REVEAL_MS = 1200
 
 interface Loaded {
   data: FeatureCollection
@@ -123,11 +132,8 @@ function Game({
 }) {
   const { data, base, features, geom, projection } = loaded
   const { consent } = useCookieConsent()
-  const { state, target, done, guess, type, skip, giveUp, timeout, restart } = useQuizEngine(
-    features,
-    mode,
-    pace,
-  )
+  const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
+    useQuizEngine(features, mode, pace)
 
   // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
   const fitData = base ?? data
@@ -167,6 +173,17 @@ function Game({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
 
+  /*
+   * Etter eit bomskot står det rette svaret framme ei lita stund før køen går
+   * vidare. Motoren kan ikkje halde ei klokke sjølv — ein reduserar veit ikkje
+   * kva tid det er — så pausen ligg her.
+   */
+  useEffect(() => {
+    if (state.phase !== 'reveal') return
+    const id = window.setTimeout(resume, REVEAL_MS)
+    return () => window.clearTimeout(id)
+  }, [state.phase, state.reveal?.n, resume])
+
   // lagre resultat til ledertavle og profil én gang når runden er ferdig
   const savedRef = useRef(false)
   useEffect(() => {
@@ -188,6 +205,7 @@ function Game({
       elapsedMs,
       bestStreak: state.bestStreak,
       pace: state.pace,
+      scoringVersion: SCORING_VERSION,
     })
 
     // den globale tavla får resultatet bare når spilleren har sagt ja —
@@ -218,6 +236,24 @@ function Game({
     setRun(null)
     restart()
   }
+
+  /*
+   * Fasiten på slutten: kva som rauk, og kor mange forsøk det kosta.
+   *
+   * Eit sted hamnar her både når det blei bomma på og seinare teke, og når
+   * spelaren gav opp — det er stadene runden avdekte som ikkje sat, og dei er
+   * det einaste ein spelar faktisk kan gjere noko med til neste gong.
+   */
+  const missed = useMemo(
+    () =>
+      state.missed.map((id) => ({
+        id,
+        name: features.find((f) => f.id === id)?.name ?? id,
+        attempts: state.attempts[id] ?? 0,
+        solved: state.status[id] === 'correct',
+      })),
+    [state.missed, state.attempts, state.status, features],
+  )
 
   // stabil referanse, elles ville HUD-en teikna seg på nytt for kvart klokketikk
   const choices = useMemo(
@@ -260,11 +296,12 @@ function Game({
           geom={geom}
           status={state.status}
           flashId={state.flash?.id ?? null}
-          highlightId={isClick ? null : target?.id ?? null}
+          revealId={state.reveal?.id ?? null}
+          highlightId={isClick ? null : (target?.id ?? null)}
           award={state.award}
           interactive={isClick}
           onPick={guess}
-          disabled={state.phase === 'finished'}
+          disabled={state.phase !== 'playing'}
         />
 
         {/*
@@ -284,6 +321,8 @@ function Game({
               mistakes={state.mistakes}
               bestStreak={state.bestStreak}
               score={state.points}
+              mode={mode}
+              missed={missed}
               elapsedMs={(state.finishedAt ?? state.startedAt) - state.startedAt}
               run={run}
               onRetry={handleRestart}
@@ -295,12 +334,13 @@ function Game({
       </div>
 
       {/* spill-kontroller nederst (tommelvennlig) */}
-      {state.phase === 'playing' && (
+      {state.phase !== 'finished' && (
         <GameHUD
           mode={mode}
           targetName={target?.name ?? ''}
           choices={choices}
           targetKey={target?.id ?? ''}
+          revealId={state.reveal?.id ?? null}
           onChoose={guess}
           onType={type}
           onSkip={skip}

@@ -74,6 +74,8 @@ interface Props {
   status: Record<string, 'correct' | 'revealed'>
   /** sist feilklikkede id (rød) */
   flashId: string | null
+  /** det rette svaret, vist etter eit bomskot (blå) */
+  revealId?: string | null
   /** mål som skal markeres (choice/type) — pulserer */
   highlightId?: string | null
   /** siste poengutdeling — gir ring og «+120» der treffet skjedde */
@@ -97,6 +99,7 @@ export const MapCanvas = memo(function MapCanvas({
   geom,
   status,
   flashId,
+  revealId,
   highlightId,
   award,
   interactive = true,
@@ -330,6 +333,7 @@ export const MapCanvas = memo(function MapCanvas({
               isLine={geom === 'line'}
               status={status}
               flashId={flashId}
+              revealId={revealId ?? null}
               highlightId={highlightId ?? null}
               live={interactive && !disabled}
               onPick={onPick}
@@ -341,6 +345,7 @@ export const MapCanvas = memo(function MapCanvas({
               points={points}
               status={status}
               flashId={flashId}
+              revealId={revealId ?? null}
               highlightId={highlightId ?? null}
               live={interactive && !disabled}
               k={k}
@@ -398,10 +403,15 @@ function stateOf(
   id: string,
   status: Record<string, 'correct' | 'revealed'>,
   flashId: string | null,
+  revealId: string | null,
   highlightId: string | null,
 ): ShapeState {
   const resolved = status[id]
   if (resolved) return resolved
+  // fasiten kjem før bomskotet: i skrive- og flervalgsmodus er det same id-en
+  // som både blei svart feil og er det rette svaret, og då er det fasiten som
+  // skal lyse
+  if (revealId === id) return 'revealed'
   if (flashId === id) return 'wrong'
   if (highlightId === id) return 'target'
   return 'idle'
@@ -420,6 +430,7 @@ const ShapeLayer = memo(function ShapeLayer({
   isLine,
   status,
   flashId,
+  revealId,
   highlightId,
   live,
   onPick,
@@ -428,16 +439,26 @@ const ShapeLayer = memo(function ShapeLayer({
   isLine: boolean
   status: Record<string, 'correct' | 'revealed'>
   flashId: string | null
+  revealId: string | null
   highlightId: string | null
   live: boolean
   onPick: (id: string) => void
 }) {
+  /*
+   * Andre skanse mot klikk på eit sted som alt er svart.
+   *
+   * Første er `pointer-events: none` på bana sjølv, og den held for musa. Men
+   * hendinga blir fanga her oppe på gruppa, og eit `data-id` kan i prinsippet
+   * kome frå eit element som blei teikna i mellomtida. Motoren har den
+   * tredje og siste skansen; ingen av dei er dyre, og eit løyst fylke skal
+   * aldri kunne koste poeng.
+   */
   const handleClick = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
       const id = (event.target as Element).getAttribute?.('data-id')
-      if (id) onPick(id)
+      if (id && !status[id]) onPick(id)
     },
-    [onPick],
+    [status, onPick],
   )
 
   return (
@@ -474,7 +495,7 @@ const ShapeLayer = memo(function ShapeLayer({
           id={id}
           d={d}
           isLine={isLine}
-          state={stateOf(id, status, flashId, highlightId)}
+          state={stateOf(id, status, flashId, revealId, highlightId)}
           live={live}
         />
       ))}
@@ -537,6 +558,7 @@ const PointLayer = memo(function PointLayer({
   points,
   status,
   flashId,
+  revealId,
   highlightId,
   live,
   k,
@@ -546,24 +568,26 @@ const PointLayer = memo(function PointLayer({
   points: { id: string; x: number; y: number; gap: number }[]
   status: Record<string, 'correct' | 'revealed'>
   flashId: string | null
+  revealId: string | null
   highlightId: string | null
   live: boolean
   k: number
   unitsPerPx: number
   onPick: (id: string) => void
 }) {
+  // same tre skansane som i ShapeLayer — sjå kommentaren der
   const handleClick = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
       const id = (event.target as Element).getAttribute?.('data-id')
-      if (id) onPick(id)
+      if (id && !status[id]) onPick(id)
     },
-    [onPick],
+    [status, onPick],
   )
 
   return (
     <g onClick={live ? handleClick : undefined}>
       {points.map(({ id, x, y, gap }) => {
-        const state = stateOf(id, status, flashId, highlightId)
+        const state = stateOf(id, status, flashId, revealId, highlightId)
         const r = (state === 'target' ? 6 : 5) / k
         // treffflata veks aldri forbi halve naboavstanden, og krympar med
         // zoomen slik at ho held same storleik på skjermen

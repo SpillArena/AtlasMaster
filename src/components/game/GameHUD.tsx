@@ -15,6 +15,13 @@ interface Props {
   choices: Choice[]
   /** nøkkel som endres per nytt mål — nullstiller skrive-input */
   targetKey: string
+  /**
+   * Id-en til det rette svaret medan det blir avslørt etter eit bomskot.
+   * null resten av tida. HUD-en held forma si i staden for å byte innhald:
+   * ei rad knappar som forsvinn og kjem tilbake ville dratt heile flata opp
+   * og ned for kvart bomskot.
+   */
+  revealId: string | null
   onChoose: (id: string) => void
   onType: (text: string) => void
   onSkip: () => void
@@ -31,19 +38,23 @@ export const GameHUD = memo(function GameHUD({
   targetName,
   choices,
   targetKey,
+  revealId,
   onChoose,
   onType,
   onSkip,
   onGiveUp,
 }: Props) {
   const { t } = useTranslation()
+  const revealing = revealId !== null
 
   return (
     <footer className="shrink-0 px-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
       <div className="panel mx-auto flex max-w-6xl flex-col gap-3 rounded-2xl px-3 py-3 sm:px-4">
         {mode === 'click' ? (
           <div>
-            <div className="stat-label">{t('hud.findThis')}</div>
+            <div className="stat-label" style={revealing ? { color: 'var(--info)' } : undefined}>
+              {revealing ? t('hud.correctAnswer') : t('hud.findThis')}
+            </div>
             <motion.div
               // nytt mål = ny nøkkel = navnet slår inn på nytt
               key={targetKey}
@@ -51,16 +62,25 @@ export const GameHUD = memo(function GameHUD({
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
               className="font-display mt-0.5 text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
-              style={{ color: 'var(--text)' }}
+              style={{ color: revealing ? 'var(--info)' : 'var(--text)' }}
             >
               {targetName}
             </motion.div>
           </div>
         ) : (
           <div>
-            <div className="stat-label mb-2">{t('hud.whatIsThis')}</div>
+            <div className="stat-label mb-2" style={revealing ? { color: 'var(--info)' } : undefined}>
+              {revealing ? t('hud.correctAnswer') : t('hud.whatIsThis')}
+            </div>
             {mode === 'choice' ? (
-              <ChoiceButtons choices={choices} targetKey={targetKey} onChoose={onChoose} />
+              <ChoiceButtons
+                choices={choices}
+                targetKey={targetKey}
+                revealId={revealId}
+                onChoose={onChoose}
+              />
+            ) : revealing ? (
+              <RevealedName name={targetName} />
             ) : (
               // ny nøkkel per mål monterer feltet på nytt, så teksten nullstilles
               <TypeInput key={targetKey} onType={onType} />
@@ -72,7 +92,8 @@ export const GameHUD = memo(function GameHUD({
         <div className="flex items-center justify-center gap-2 text-sm">
           <button
             onClick={onSkip}
-            className="rounded-lg px-4 py-2 font-semibold transition-colors hover:text-[var(--text)]"
+            disabled={revealing}
+            className="rounded-lg px-4 py-2 font-semibold transition-colors hover:text-[var(--text)] disabled:opacity-40"
             style={{ color: 'var(--text-subtle)' }}
           >
             {t('hud.skip')}
@@ -82,7 +103,8 @@ export const GameHUD = memo(function GameHUD({
           </span>
           <button
             onClick={onGiveUp}
-            className="rounded-lg px-4 py-2 font-semibold transition-colors"
+            disabled={revealing}
+            className="rounded-lg px-4 py-2 font-semibold transition-colors disabled:opacity-40"
             style={{ color: 'var(--danger)' }}
           >
             {t('hud.giveUp')}
@@ -93,17 +115,37 @@ export const GameHUD = memo(function GameHUD({
   )
 })
 
+/**
+ * Fasitnamnet i skrivemodus, i staden for tekstfeltet.
+ *
+ * Same høgd og same kant som feltet det byter ut — flata under kartet skal
+ * ikkje hoppe fordi du bomma.
+ */
+function RevealedName({ name }: { name: string }) {
+  return (
+    <div
+      className="rounded-xl border-2 px-4 py-3 text-base font-bold"
+      style={{ borderColor: 'var(--info)', background: 'var(--surface)', color: 'var(--info)' }}
+    >
+      {name}
+    </div>
+  )
+}
+
 function ChoiceButtons({
   choices,
   targetKey,
+  revealId,
   onChoose,
 }: {
   choices: Choice[]
   targetKey: string
+  revealId: string | null
   onChoose: (id: string) => void
 }) {
   // tastene 1–4 svarer også — raskere enn å sikte med musa
   useEffect(() => {
+    if (revealId) return
     function handleKey(event: KeyboardEvent) {
       const index = Number(event.key) - 1
       if (Number.isNaN(index) || index < 0 || index >= choices.length) return
@@ -113,10 +155,14 @@ function ChoiceButtons({
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [choices, onChoose])
+  }, [choices, revealId, onChoose])
 
   return (
-    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    <ul
+      className={`grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 ${
+        revealId ? 'pointer-events-none' : ''
+      }`}
+    >
       {choices.map((c, i) => (
         <li key={`${targetKey}-${c.id}`}>
           <motion.button
@@ -127,9 +173,9 @@ function ChoiceButtons({
             whileTap={{ scale: 0.97 }}
             className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left text-base font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-lg"
             style={{
-              borderColor: 'var(--border)',
+              borderColor: revealId === c.id ? 'var(--info)' : 'var(--border)',
               background: 'var(--surface)',
-              color: 'var(--text)',
+              color: revealId === c.id ? 'var(--info)' : 'var(--text)',
             }}
           >
             <span
