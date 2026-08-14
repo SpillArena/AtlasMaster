@@ -11,6 +11,7 @@
     "data:europe": "node scripts/build-europe-countries.mjs",
     "data:asia": "node scripts/build-asia.mjs",
     "data:usa": "node scripts/build-usa.mjs",
+    "icons": "node scripts/build-icons.mjs",
     "check:sql": "node --experimental-sqlite scripts/check-leaderboard-sql.mjs"
   },
   "dependencies": {
