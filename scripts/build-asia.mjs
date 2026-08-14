@@ -7,18 +7,20 @@
  * Resultatet er sjekka inn. Kjør på nytt berre når lista over land, hovudstader,
  * elver eller fjell skal endrast.
  *
- * RUSSLAND ER IKKJE MED. Det er eit medvite val, same valet som
- * `build-europe-countries.mjs` tok for Europa: geometrien strekk seg frå 20°Ø
+ * RUSSLAND BLIR KUTTA, IKKJE UTELATE. Heile geometrien strekk seg frå 20°Ø
  * til over datolinja, og `fitExtent` ville zooma ut til heile den nordlege
- * halvkula for å få henne med. Resten av Asia hadde blitt uspelbart lite.
- * Russland høyrer heime i eit eige nordleg kart, ikkje som ein flekk som et
- * opp to kontinent.
+ * halvkula for å få henne med — resten av Asia hadde blitt uspelbart lite.
+ * Landet blir difor klipt geometrisk mot ein eigen boks, slik det òg blir i
+ * Europa-kartet, så det er svarbart i begge regionar utan å ete opp nokon av
+ * dei. Sjå RUSSIA_BOX under.
  */
 
 import { resolve } from 'node:path'
 import { feature } from 'topojson-client'
+import rewind from '@mapbox/geojson-rewind'
 import {
   ROOT,
+  clipGeometryToBox,
   clipLineToBoxes,
   clipPolygonToBox,
   dropRepeats,
@@ -71,9 +73,28 @@ const COUNTRIES = new Map([
   [682, ['Saudi-Arabia', 'Saudi Arabia']], [704, ['Vietnam', 'Vietnam']],
   [760, ['Syria', 'Syria']], [762, ['Tadsjikistan', 'Tajikistan']],
   [764, ['Thailand', 'Thailand']], [784, ['Emiratene', 'United Arab Emirates']],
+  [643, ['Russland', 'Russia']],
   [792, ['Tyrkia', 'Turkey']], [795, ['Turkmenistan', 'Turkmenistan']],
   [860, ['Usbekistan', 'Uzbekistan']], [887, ['Jemen', 'Yemen']],
 ])
+
+const RUSSIA = 643
+
+/**
+ * Russland sitt eige utsnitt.
+ *
+ * Nordgrensa er valt, ikkje funne: heile Sibir går til 77°N, og tek vi det
+ * med, veks utsnittet frå 67 til 89 breiddegrader og alt frå Java til Japan
+ * krympar med ein fjerdedel for eit land som uansett berre treng å vere
+ * treffbart. 58°N gjev eit belte frå Kaukasus og Volga i vest, over
+ * Vest-Sibir og Bajkal, til Amur i aust — større flate enn Mongolia, og under
+ * fem prosent ekstra utsnitt.
+ *
+ * Austgrensa 150°Ø er den same som resten av regionen. Ho er òg det som held
+ * datolinja unna: Tsjuktsjarhalvøya og Kamtsjatka ligg aust for henne og fell
+ * bort i klippinga, i staden for å bli eit smett tvers over kartet.
+ */
+const RUSSIA_BOX = { minLon: 25, maxLon: 150, minLat: 40, maxLat: 58 }
 
 /** ISO-3 landkode → [id, norsk namn, engelsk namn] for hovudstaden. */
 const CAPITALS = new Map([
@@ -159,7 +180,10 @@ async function buildCountries() {
     if (!COUNTRIES.has(code)) continue
     missing.delete(code)
     const [name, nameEn] = COUNTRIES.get(code)
-    const clipped = clipPolygonToBox(f.geometry, BOX)
+    const clipped =
+      code === RUSSIA
+        ? clipGeometryToBox(f.geometry, RUSSIA_BOX)
+        : clipPolygonToBox(f.geometry, BOX)
     if (!clipped) {
       console.warn(`  ! ${name} fall utanfor Asia-boksen — hoppa over`)
       continue
@@ -174,7 +198,16 @@ async function buildCountries() {
   }
 
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
-  writeCollection(resolve(OUT, 'countries.json'), features)
+  /*
+   * d3-geo les eit polygon sfærisk: kva side av ringen som er «inne» følgjer
+   * av kva veg han går. Ein ytterring som går feil veg blir teikna som resten
+   * av kloden. Klippinga held orienteringa, men samlinga blir normalisert til
+   * med klokka rundt ytterringen uansett — den konvensjonen d3 reknar med.
+   */
+  writeCollection(
+    resolve(OUT, 'countries.json'),
+    rewind({ type: 'FeatureCollection', features }, true).features,
+  )
   if (missing.size > 0) {
     console.warn(
       `  ! fanst ikkje i datasettet: ${[...missing].map((c) => COUNTRIES.get(c)[0]).join(', ')}`,

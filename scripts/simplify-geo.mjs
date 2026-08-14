@@ -75,6 +75,54 @@ function area(geometry) {
 const count = (c) => (typeof c[0] === 'number' ? 1 : c.reduce((n, x) => n + count(x), 0))
 const points = (fc) => fc.features.reduce((n, f) => n + count(f.geometry.coordinates), 0)
 
+/**
+ * Kor lang ein akseparallell kant får vere før han blir delt opp, i grader.
+ * Bulen veks med kvadratet av lengda; to grader held han under ein
+ * hundredels grad.
+ */
+const EDGE_STEP = 2
+
+/**
+ * Legg punkt tilbake langs lange, akseparallelle kantar.
+ *
+ * Nokre kantar i datasetta er streker nokon har trekt, ikkje kystlinjer:
+ * Russland er kutta langs 58. breiddegrad og 150. lengdegrad for å få plass i
+ * Asia-kartet. Forenklinga fjernar nettopp slike punkt først — dei ligg på
+ * rekkje og bidreg med null areal — og då står det att éin kant frå 25°Ø til
+ * 150°Ø. d3-geo teiknar den kanten som ein storsirkel, og buen mellom
+ * endepunkta bular tretten breiddegrader nordover: kartet zoomar ut til
+ * Polhavet for eit land som skulle stoppe ved Bajkal.
+ *
+ * Ein kant langs ein meridian er derimot allereie ein storsirkel, og treng
+ * ingenting. Berre dei som ligg på ein breiddegrad blir delte.
+ */
+function densifyParallels(fc) {
+  let added = 0
+  const walk = (node) => {
+    if (typeof node[0][0] !== 'number') return node.map(walk)
+    const out = []
+    for (let i = 0; i < node.length - 1; i++) {
+      const a = node[i]
+      const b = node[i + 1]
+      out.push(a)
+      const span = Math.abs(b[0] - a[0])
+      if (a[1] !== b[1] || span <= EDGE_STEP) continue
+      const steps = Math.ceil(span / EDGE_STEP)
+      for (let s = 1; s < steps; s++) {
+        out.push([a[0] + ((b[0] - a[0]) * s) / steps, a[1]])
+        added++
+      }
+    }
+    out.push(node[node.length - 1])
+    return out
+  }
+
+  for (const f of fc.features) {
+    f.geometry = { ...f.geometry, coordinates: walk(f.geometry.coordinates) }
+  }
+  return added
+}
+
 let failed = false
 
 /** Forenklar éin gong på eitt nivå, og seier frå kva som eventuelt røk. */
@@ -119,12 +167,14 @@ for (const file of FILES) {
     continue
   }
 
+  const restored = densifyParallels(chosen.out)
   const json = JSON.stringify(chosen.out)
   const note = rejected.length ? `  [${rejected.join('; ')}]` : ''
+  const edges = restored ? `  +${restored} punkt langs klipte breiddegradar` : ''
   console.log(
     `${file.padEnd(32)} keep ${chosen.keep}  ` +
       `${(raw.length / 1024).toFixed(0)} → ${(json.length / 1024).toFixed(0)} kB  ` +
-      `(${points(src)} → ${points(chosen.out)} punkt)${note}`,
+      `(${points(src)} → ${points(chosen.out)} punkt)${note}${edges}`,
   )
   if (!check) writeFileSync(path, json)
 }

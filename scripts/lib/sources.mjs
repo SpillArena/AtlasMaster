@@ -131,6 +131,137 @@ export function clipPolygonToBox(geometry, box, extraTest = () => true) {
 }
 
 /**
+ * Rullar ut lengdegradane så ringen blir samanhengande over datolinja.
+ *
+ * Russland sin ytterring går austover frå 20°Ø heilt til Tsjuktsjarhalvøya,
+ * og der skiftar koordinatane brått frå 179 til −179. For ein klippealgoritme
+ * som reknar rett fram i lengd/breidd er det eit sprang tvers over heile
+ * kloden, og han lagar skjeringspunkt langs ein kant som ikkje finst. Ved å
+ * legge til ±360 der spranget skjer, blir Tsjuktsjarhalvøya liggjande på
+ * 180–190 i staden, langt utanfor kvar einaste europeisk eller asiatisk boks,
+ * og fell reint bort i klippinga.
+ */
+function unwrapRing(ring) {
+  const out = [[...ring[0]]]
+  for (let i = 1; i < ring.length; i++) {
+    const prevLon = out[i - 1][0]
+    let lon = ring[i][0]
+    while (lon - prevLon > 180) lon -= 360
+    while (lon - prevLon < -180) lon += 360
+    out.push([lon, ring[i][1]])
+  }
+  return out
+}
+
+/**
+ * Deler opp dei lange strekka klippinga sjølv har laga.
+ *
+ * d3-geo teiknar kvar kant i eit polygon som ein storsirkel. Ei rett linje
+ * langs 72. breiddegrad frå 26°Ø til 46°Ø er ikkje ein storsirkel — buen
+ * mellom endepunkta bular nesten tre grader lenger nord, og då dreg kartet
+ * med seg tre grader ekstra utsnitt som ingen skal sjå.
+ *
+ * Berre kantar som ligg *på* boksen blir delte. Ei lang, rett landegrense i
+ * kjeldedataa er ei ekte geodetisk linje og skal teiknast som ein storsirkel;
+ * å tette henne med punkt ville berre gjort fila større. Bulen veks med
+ * kvadratet av lengda, så tre grader mellom punkta held han under ein
+ * tidels tusendel av utsnittet.
+ */
+function densifyBoxEdges(ring, box, maxStep) {
+  const onEdge = ([lon, lat]) =>
+    lon === box.minLon || lon === box.maxLon || lat === box.minLat || lat === box.maxLat
+  const out = []
+  for (let i = 0; i < ring.length - 1; i++) {
+    const a = ring[i]
+    const b = ring[i + 1]
+    out.push(a)
+    if (!onEdge(a) || !onEdge(b)) continue
+    const steps = Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) / maxStep)
+    for (let s = 1; s < steps; s++) {
+      out.push([a[0] + ((b[0] - a[0]) * s) / steps, a[1] + ((b[1] - a[1]) * s) / steps])
+    }
+  }
+  out.push(ring[ring.length - 1])
+  return out
+}
+
+/**
+ * Klipper éin ring mot ein boks — Sutherland–Hodgman, ei halvflate om gongen.
+ *
+ * Returnerer null om ringen ligg heilt utanfor. Orienteringa til ringen
+ * overlever klippinga: algoritmen går gjennom punkta i same rekkjefølgje og
+ * legg berre til skjeringspunkt der kanten kryssar.
+ */
+function clipRing(ring, box) {
+  const crossX = (a, b, x) => [x, a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0])]
+  const crossY = (a, b, y) => [a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]), y]
+  const edges = [
+    { inside: (p) => p[0] >= box.minLon, cut: (a, b) => crossX(a, b, box.minLon) },
+    { inside: (p) => p[0] <= box.maxLon, cut: (a, b) => crossX(a, b, box.maxLon) },
+    { inside: (p) => p[1] >= box.minLat, cut: (a, b) => crossY(a, b, box.minLat) },
+    { inside: (p) => p[1] <= box.maxLat, cut: (a, b) => crossY(a, b, box.maxLat) },
+  ]
+
+  // ringen blir opna medan vi jobbar, og lukka att til slutt
+  let out = ring.slice(0, -1)
+  for (const edge of edges) {
+    const input = out
+    out = []
+    for (let i = 0; i < input.length; i++) {
+      const cur = input[i]
+      const prev = input[(i + input.length - 1) % input.length]
+      const curIn = edge.inside(cur)
+      const prevIn = edge.inside(prev)
+      if (curIn) {
+        if (!prevIn) out.push(edge.cut(prev, cur))
+        out.push(cur)
+      } else if (prevIn) {
+        out.push(edge.cut(prev, cur))
+      }
+    }
+    if (out.length === 0) return null
+  }
+  return out.length >= 3 ? [...out, [...out[0]]] : null
+}
+
+/**
+ * Klipper eit polygon mot ein boks — geometrisk, ikkje ring for ring.
+ *
+ * `clipPolygonToBox` over avgjer per ring: heile Sibir er inne eller heilt
+ * ute. Det held for øyer og oversjøiske område, men ikkje for eit land som
+ * ligg i to regionar. Russland høyrer heime i både Europa og Asia, og må
+ * difor kunne kuttast tvers gjennom.
+ *
+ * Å kutte i staden for å utelate er òg det som held datolinja unna: den
+ * russiske ytterringen strekk seg forbi 180°, og eit polygon som kryssar
+ * antimeridianen blir eit smett tvers over kartet i ei kvar projeksjon.
+ * Boksen stoppar geometrien lenge før ho kjem dit.
+ */
+export function clipGeometryToBox(geometry, box, maxStep = 3) {
+  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
+  const cut = (ring) => {
+    const clipped = clipRing(unwrapRing(ring), box)
+    return clipped && densifyBoxEdges(clipped, box, maxStep)
+  }
+  const kept = []
+  for (const polygon of polygons) {
+    // ytterringen først: forsvinn han, har hola inga flate å ligge i
+    const outer = cut(polygon[0])
+    if (!outer) continue
+    const rings = [outer]
+    for (const hole of polygon.slice(1)) {
+      const clipped = cut(hole)
+      if (clipped) rings.push(clipped)
+    }
+    kept.push(rings)
+  }
+  if (kept.length === 0) return null
+  return kept.length === 1
+    ? { type: 'Polygon', coordinates: kept[0] }
+    : { type: 'MultiPolygon', coordinates: kept }
+}
+
+/**
  * Klipper ei linje mot ei eller fleire boksar, og deler henne der ho går ut.
  *
  * Ei elv som Columbia startar i Canada. Tek vi berre bort punkta utanfor,
