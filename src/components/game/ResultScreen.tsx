@@ -5,7 +5,19 @@ import { Icon, type IconName } from '../Icon'
 import { RANK_COLOR, hitRate, rankFor } from '../../game/rank'
 import { levelProgress, type RunResult } from '../../game/progress'
 import { useGameSettings } from '../../contexts/useGameSettings'
+import { MODE_MULTIPLIER } from '../../game/scoring'
+import type { Mode } from '../../game/types'
 import { ScoreTicker } from './ScoreTicker'
+
+/** Ett sted runden avdekte at ikke satt. */
+export interface MissedItem {
+  id: string
+  name: string
+  /** antall bomskudd på nettopp dette stedet */
+  attempts: number
+  /** true om spilleren tok det til slutt, false om det ble avslørt */
+  solved: boolean
+}
 
 interface Props {
   total: number
@@ -14,6 +26,10 @@ interface Props {
   mistakes: number
   bestStreak: number
   score: number
+  /** modusen runden ble spilt i — styrer poengmultiplikatoren som vises */
+  mode: Mode
+  /** stedene som rauk underveis, i den rekkefølgen de rauk */
+  missed: MissedItem[]
   elapsedMs: number
   /** hva runden gjorde med profilen — null til den er lagret */
   run: RunResult | null
@@ -52,6 +68,8 @@ export function ResultScreen({
   mistakes,
   bestStreak,
   score,
+  mode,
+  missed,
   elapsedMs,
   run,
   onRetry,
@@ -144,6 +162,11 @@ export function ResultScreen({
               className="numeric text-5xl font-bold leading-none sm:text-7xl"
             />
           </span>
+          {/* kva modusen var verdt — same tal som stod på modusvalet */}
+          <span className="mt-1 text-xs font-bold" style={{ color: 'var(--text-subtle)' }}>
+            {t(`mode.${mode}.title`)} ·{' '}
+            <span className="numeric">×{MODE_MULTIPLIER[mode]}</span>
+          </span>
         </motion.div>
 
         {/* statistikk */}
@@ -168,6 +191,44 @@ export function ResultScreen({
           />
           <Stat icon="x" tone="var(--danger)" label={t('result.mistakes')} value={String(mistakes)} />
         </motion.dl>
+
+        {/*
+          Stedene som rauk.
+          Runden sier ikke bare hvor godt det gikk, den sier hva du skal øve
+          på: navnene som kostet forsøk, i den rekkefølgen de rauk. Et sted
+          som ble tatt til slutt står dempet, ett som aldri satt står i rødt.
+        */}
+        {missed.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="w-full max-w-md text-left"
+          >
+            <h3 className="stat-label mb-1.5">
+              {t('result.missedTitle', { count: missed.length })}
+            </h3>
+            <ul className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
+              {missed.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-bold"
+                  style={{
+                    borderColor: 'var(--border)',
+                    color: m.solved ? 'var(--text-muted)' : 'var(--danger)',
+                  }}
+                >
+                  {m.name}
+                  {m.attempts > 1 && (
+                    <span className="numeric" style={{ color: 'var(--text-subtle)' }}>
+                      ×{m.attempts}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
 
         {/* nivå og XP — viser at runden telte for noe utover tavla */}
         {run && (

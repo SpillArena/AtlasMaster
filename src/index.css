@@ -169,6 +169,79 @@
 }
 
 /*
+ * Kartanimasjonane.
+ *
+ * Alt som rører seg oppå kartet ligg her og ikkje i JavaScript. Eit
+ * animasjonsbibliotek reknar ut nye verdiar på hovudtråden seksti gonger i
+ * sekundet; ein CSS-keyframe blir gjeven til kompositoren og kostar
+ * hovudtråden ingenting — og hovudtråden er nettopp den som skal rasterisere
+ * kartet i same augeblink.
+ */
+
+/* ringen som slår ut der treffet skjedde */
+@keyframes award-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(11);
+    opacity: 0;
+  }
+}
+
+.award-ring {
+  /* skalering om sitt eige sentrum, ikkje om lerretshjørnet */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: award-ring 0.7s ease-out forwards;
+}
+
+/* poengsummen som stig opp frå treffet */
+@keyframes award-points {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-46px);
+    opacity: 0;
+  }
+}
+
+.award-points {
+  animation: award-points 1.1s ease-out forwards;
+}
+
+/*
+ * Nikket kartflata får ved bomskot. Låg i framer-motion før — ei
+ * JS-animasjon som flytta heile kartlaget tolv rammer på rad, og tvinga fram
+ * ei ny rasterisering av kvar av dei.
+ */
+@keyframes map-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+.map-nudge {
+  animation: map-nudge 0.2s ease-in-out;
+}
+
+/*
  * Redusert bevegelse: settes av operativsystemet eller av bryteren i
  * innstillinger. Rister, konfetti og pulsering forsvinner — layout og
  * fargeskift blir igjen, så spillet fortsatt gir tilbakemelding.

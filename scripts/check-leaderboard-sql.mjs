@@ -4,8 +4,10 @@
  *   node --experimental-sqlite scripts/check-leaderboard-sql.mjs
  *
  * D1 er SQLite, så migrasjonane og spørjingane kan verifiserast lokalt utan
- * å røre produksjonsdatabasen. Testen bryr seg om éin ting spesielt: at rader
- * som fanst FØR regionane blir liggande att som norske runder etter 0002.
+ * å røre produksjonsdatabasen. Testen bryr seg om to ting spesielt: at rader
+ * som fanst FØR regionane blir liggande att som norske runder etter 0002, og
+ * at rader som fanst før modusane fekk kvar sin verdi blir merkte som
+ * poengversjon 1 etter 0003 — ikkje sletta, ikkje omrekna, berre merkte.
  */
 
 import { DatabaseSync } from 'node:sqlite'
@@ -60,13 +62,23 @@ db.prepare(`
   'new-1', '2026-02-01T00:00:00Z', 'Kari', 'countries', 'europe', 'click', 'normal', 5000, 39, 39, 0, 39, 120000,
 )
 
+// --- 0003: legg til poengversjon ---
+runSql('0003_add_scoring_version.sql')
+
+check(
+  'rader frå før modusverdiane blir merkte som versjon 1',
+  db.prepare('SELECT scoring_version AS v, COUNT(*) AS n FROM leaderboard_entries GROUP BY v').all(),
+  [{ v: 1, n: 3 }],
+)
+
 const SELECT_COLUMNS = `
     id, timestamp, username, category, region, mode, pace, score,
     correct_count AS correctCount, total, mistakes,
-    best_streak AS bestStreak, elapsed_ms AS elapsedMs`
+    best_streak AS bestStreak, elapsed_ms AS elapsedMs,
+    scoring_version AS scoringVersion`
 
 /** Same spørjing som Pages-funksjonen byggjer. */
-function fetchTop(region, category, limit) {
+function fetchTop(region, category, mode, limit) {
   const filters = []
   const binds = []
   if (region) {
@@ -76,6 +88,10 @@ function fetchTop(region, category, limit) {
   if (category) {
     filters.push('category = ?')
     binds.push(category)
+  }
+  if (mode) {
+    filters.push('mode = ?')
+    binds.push(mode)
   }
   const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
   binds.push(limit)
@@ -94,25 +110,25 @@ function fetchTop(region, category, limit) {
 
 check(
   'Noreg-tavla viser berre norske runder',
-  fetchTop('norway', null, 25).map((r) => r.category).sort(),
+  fetchTop('norway', null, null, 25).map((r) => r.category).sort(),
   ['fjell', 'fylker'],
 )
 
 check(
   'Europa-tavla viser berre europeiske runder',
-  fetchTop('europe', null, 25).map((r) => r.category),
+  fetchTop('europe', null, null, 25).map((r) => r.category),
   ['countries'],
 )
 
 check(
   'region + kategori filtrerer til éi rad',
-  fetchTop('norway', 'fylker', 25).map((r) => r.id),
+  fetchTop('norway', 'fylker', null, 25).map((r) => r.id),
   ['old-1'],
 )
 
 check(
   'same spelar kan toppe begge regionar utan kollisjon',
-  fetchTop(null, null, 25).filter((r) => r.username === 'Kari').map((r) => r.region).sort(),
+  fetchTop(null, null, null, 25).filter((r) => r.username === 'Kari').map((r) => r.region).sort(),
   ['europe', 'norway'],
 )
 
@@ -127,8 +143,40 @@ db.prepare(`
 
 check(
   'berre spelaren sitt beste resultat blir vist',
-  fetchTop('europe', 'countries', 25).map((r) => r.score),
+  fetchTop('europe', 'countries', null, 25).map((r) => r.score),
   [5000],
+)
+
+/*
+ * Ei skriverunde i same kategori. Poenga er rekna etter dei nye reglane, der
+ * skrivemodus er verdt halvannan gong ei klikkerunde, så ho legg seg over
+ * klikkeresultatet på ei blanda tavle. Filteret er det som gjer at dei to
+ * ikkje blir rangerte mot kvarandre.
+ */
+db.prepare(`
+  INSERT INTO leaderboard_entries
+    (id, timestamp, username, category, region, mode, pace, score,
+     correct_count, total, mistakes, best_streak, elapsed_ms, scoring_version)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+  'new-3', '2026-03-01T00:00:00Z', 'Ola', 'countries', 'europe', 'type', 'normal', 7500, 39, 39, 0, 39, 200000, 2,
+)
+
+check(
+  'modusfilteret held skriverunder utanfor klikketavla',
+  fetchTop('europe', 'countries', 'click', 25).map((r) => r.id),
+  ['new-1'],
+)
+
+check(
+  'skriverunda har si eiga tavle',
+  fetchTop('europe', 'countries', 'type', 25).map((r) => r.id),
+  ['new-3'],
+)
+
+check(
+  'nye rader ber den nye poengversjonen',
+  fetchTop('europe', 'countries', 'type', 25).map((r) => r.scoringVersion),
+  [2],
 )
 
 console.log(failures === 0 ? '\nAlle sjekkar gjekk gjennom.' : `\n${failures} sjekk(ar) feila.`)

@@ -92,18 +92,20 @@
     "scope": "Velg tavle",
     "loading": "Henter ledertavla …",
     "offline": "Fikk ikke kontakt med den globale tavla — viser resultatene fra denne enheten.",
-    "region": "Velg region"
+    "region": "Velg region",
+    "mode": "Velg spillmodus",
+    "mixedModes": "Modusene er ikke like mye verdt — velg én for en rettferdig sammenligning."
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
     "storbyer": "Finn Norges største byer",
     "elver": "Lær Norges største elver",
     "fjell": "Lær Norges høyeste fjelltopper",
-    "countries": "Lær alle de 39 landene",
+    "countries": "Lær alle de 40 landene",
     "capitals": "Finn Europas hovedsteder",
     "rivers": "Lær Europas store elver",
     "peaks": "Lær Europas høyeste topper",
-    "asiaCountries": "Lær alle de 44 landene",
+    "asiaCountries": "Lær alle de 45 landene",
     "asiaCapitals": "Finn Asias hovedsteder",
     "asiaRivers": "Lær Asias store elver",
     "asiaPeaks": "Lær Asias høyeste topper",
@@ -143,7 +145,8 @@
       "desc": "Et sted markeres — skriv inn navnet."
     },
     "difficulty": "Vanskelighet",
-    "difficultyLevel": "Vanskelighet {{level}} av 3"
+    "difficultyLevel": "Vanskelighet {{level}} av 3",
+    "worth": "Verdt ×{{multiplier}} poeng"
   },
   "game": {
     "loading": "Laster kart …"
@@ -159,7 +162,9 @@
     "streak": "{{count}} på rad",
     "correct": "Riktig",
     "mistakesLabel": "Feil",
-    "done": "Fremdrift"
+    "done": "Fremdrift",
+    "remaining": "{{left}} av {{total}} igjen",
+    "correctAnswer": "Rett svar"
   },
   "result": {
     "title": "Ferdig!",
@@ -179,7 +184,10 @@
       "B": "Bra jobba",
       "C": "Nesten der",
       "D": "Prøv en runde til"
-    }
+    },
+    "missedTitle_one": "1 sted du bør øve på",
+    "missedTitle_other": "{{count}} steder du bør øve på",
+    "missedTitle": "{{count}} steder du bør øve på"
   },
   "meta": {
     "title": "AtlasMaster — kartspillet om verden",

@@ -19,7 +19,7 @@ interface Props {
  */
 export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
   const { t } = useTranslation()
-  const { entries, loading, offline } = useBoard('global', regionId, 'all', limit)
+  const { entries, loading, offline } = useBoard('global', regionId, 'all', 'all', limit)
 
   return (
     <motion.section
