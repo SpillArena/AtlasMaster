@@ -11,14 +11,7 @@
   "theme_color": "#05070f",
   "categories": ["games", "education"],
   "icons": [
-    { "src": "/atlasmaster/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "/atlasmaster/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/atlasmaster/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    {
-      "src": "/atlasmaster/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "/atlasmaster/logo.png", "sizes": "any", "type": "image/png" },
+    { "src": "/atlasmaster/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

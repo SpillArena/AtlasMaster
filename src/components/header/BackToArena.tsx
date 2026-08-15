@@ -82,7 +82,12 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
   }
 
   return (
-    <button onClick={onBack} aria-label={t('mode.back')} className={pillClass} style={pillStyle}>
+    <button
+      onClick={onBack}
+      aria-label={t('mode.back')}
+      className="group flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-bold tracking-tight transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[var(--border-hover)]"
+      style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+    >
       <Arrow />
       <span className="text-sm">{t('mode.back')}</span>
     </button>

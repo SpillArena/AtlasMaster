@@ -81,6 +81,7 @@ function App() {
           atRoot={atRoot}
           inGame={inGame}
           onBack={goBack}
+          onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
           onEditName={() => setEditingName(true)}
           profileVersion={profileVersion}
