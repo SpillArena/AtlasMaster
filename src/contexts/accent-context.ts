@@ -1,6 +1,7 @@
 import { createContext } from 'react'
 
 export type AccentColor =
+  | 'brass'
   | 'atlasblue'
   | 'atlasmaster'
   | 'indigo'
@@ -24,32 +25,31 @@ export interface AccentDefinition {
 }
 
 /**
- * `atlasmaster` er spillets egen farge; resten er standardpaletten fra malen.
- *
- * Fargen het `norsk`, så `atlas`, fram til navneendringene. Verdien er den
- * samme hele veien, så en lagret `norsk` eller `atlas` faller bare tilbake til
- * standarden — som er nettopp denne fargen. Ingen spiller ser en endring.
+ * `brass` er feltbok-standarden etter redesignet — messing på alda papir.
+ * Resten er retuna til å sitje i same verda (litt dempa, jordnære), så
+ * fargeveljaren held seg heil. Ein lagra eldre verdi (`norsk`, `atlas`,
+ * `atlasblue`) fell berre tilbake til standarden.
  */
 export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
-  // «Modern Atlas»-primærfargen: appens standard etter redesignet
-  atlasblue: { label: 'Atlas Blue', light: '#2563eb', dark: '#3b82f6' },
-  atlasmaster: { label: 'AtlasMaster', light: '#f1376e', dark: '#ff4f86' },
-  indigo: { label: 'Indigo', light: '#6366f1', dark: '#818cf8' },
-  blue: { label: 'Blue', light: '#2563eb', dark: '#60a5fa' },
-  sky: { label: 'Sky', light: '#0284c7', dark: '#38bdf8' },
-  cyan: { label: 'Cyan', light: '#0891b2', dark: '#22d3ee' },
-  teal: { label: 'Teal', light: '#0d9488', dark: '#2dd4bf' },
-  emerald: { label: 'Emerald', light: '#059669', dark: '#34d399' },
-  lime: { label: 'Lime', light: '#65a30d', dark: '#a3e635' },
-  amber: { label: 'Amber', light: '#d97706', dark: '#fbbf24' },
-  orange: { label: 'Orange', light: '#ea580c', dark: '#fb923c' },
-  rose: { label: 'Rose', light: '#e11d48', dark: '#fb7185' },
-  pink: { label: 'Pink', light: '#db2777', dark: '#f472b6' },
-  fuchsia: { label: 'Fuchsia', light: '#c026d3', dark: '#e879f9' },
-  violet: { label: 'Violet', light: '#7c3aed', dark: '#a78bfa' },
+  brass: { label: 'Messing', light: '#a9772f', dark: '#ce9e52' },
+  atlasblue: { label: 'Kompassblå', light: '#365c7a', dark: '#7fa8c4' },
+  atlasmaster: { label: 'Signalraud', light: '#ae3b2c', dark: '#cf5b4c' },
+  indigo: { label: 'Blekk', light: '#3f3a63', dark: '#8985b8' },
+  blue: { label: 'Djuphav', light: '#2e5c74', dark: '#5f9fbd' },
+  sky: { label: 'Himmel', light: '#3d7a94', dark: '#79c0d8' },
+  cyan: { label: 'Lagune', light: '#2f7d7a', dark: '#57c3bd' },
+  teal: { label: 'Grønsjø', light: '#3a6f63', dark: '#63b39f' },
+  emerald: { label: 'Feltgrøn', light: '#4f7a4a', dark: '#6fa968' },
+  lime: { label: 'Mose', light: '#6a7d2f', dark: '#a6b955' },
+  amber: { label: 'Rav', light: '#b07a1f', dark: '#e0aa4c' },
+  orange: { label: 'Lakksegl', light: '#c06b2e', dark: '#d98e4b' },
+  rose: { label: 'Terrakotta', light: '#b0503f', dark: '#d47c6a' },
+  pink: { label: 'Korall', light: '#bf5566', dark: '#e08a97' },
+  fuchsia: { label: 'Vin', light: '#8a3f5c', dark: '#bd7893' },
+  violet: { label: 'Plomme', light: '#6d4a7a', dark: '#a586b3' },
 }
 
-export const DEFAULT_ACCENT: AccentColor = 'atlasblue'
+export const DEFAULT_ACCENT: AccentColor = 'brass'
 
 export interface AccentContextValue {
   accent: AccentColor

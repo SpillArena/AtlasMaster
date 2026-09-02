@@ -27,22 +27,22 @@
     "relaxedDesc": "Take your time. Points count 20% less.",
     "normalDesc": "The standard run. Full points.",
     "blitzDesc": "Everything you land is worth 40% more.",
-    "title": "Choose your pace",
-    "start": "Start round",
+    "title": "Set the pace",
+    "start": "Begin expedition",
     "seconds": "{{count}} seconds per place",
     "noClock": "No clock",
     "beat": "Your best here: {{score}}"
   },
   "cookieConsent": {
     "section": "Privacy",
-    "message": "AtlasMaster stores your name, scores and settings on your own device. Accept, and your results are also sent to the global leaderboard.",
+    "message": "AtlasMaster stores your name, scores and settings on your own device. Accept, and the game also sends your results to the global leaderboard.",
     "accept": "Accept",
     "decline": "Decline",
     "manage": "Change cookie preferences",
     "showDetails": "Show what's stored",
     "hideDetails": "Hide details",
     "statusAccepted": "The game remembers you on this device, and your results reach the global leaderboard.",
-    "statusDeclined": "Nothing is stored and nothing is sent. Your name, scores and choices disappear when you close the tab.",
+    "statusDeclined": "The game stores nothing and sends nothing. Your name, scores and choices disappear when you close the tab.",
     "statusUndecided": "You haven't chosen yet. The game stores and sends nothing until you do.",
     "clear": "Delete everything stored",
     "clearConfirm": "This deletes your name, leaderboard, level and settings. It can't be undone.",
@@ -58,7 +58,7 @@
       },
       "scores": {
         "title": "Results",
-        "desc": "The leaderboard and personal bests — and the results sent to the global board."
+        "desc": "The leaderboard, your personal bests, and the results sent to the global board."
       }
     }
   },
@@ -75,9 +75,10 @@
     "backToArena": "Back to Arena"
   },
   "namePrompt": {
+    "eyebrow": "Sign the logbook",
     "title": "What's your name?",
     "editTitle": "Change name",
-    "desc": "Your name shows up on the leaderboard.",
+    "desc": "Your name appears on the leaderboard.",
     "confirm": "Start game",
     "save": "Save",
     "cancel": "Cancel"
@@ -85,16 +86,16 @@
   "leaderboard": {
     "title": "Leaderboard",
     "all": "All",
-    "empty": "No results yet — play a round!",
+    "empty": "No results yet. Play a round.",
     "seeAll": "See full board",
     "global": "Global",
     "local": "This device",
     "scope": "Choose board",
     "loading": "Loading the leaderboard …",
-    "offline": "Couldn't reach the global board — showing results from this device.",
+    "offline": "Couldn't reach the global board. Showing results from this device.",
     "region": "Choose region",
     "mode": "Choose game mode",
-    "mixedModes": "The modes aren't worth the same — pick one for a fair comparison."
+    "mixedModes": "The modes aren't worth the same. Pick one to compare fairly."
   },
   "tile": {
     "fylker": "Learn all 15 counties",
@@ -134,15 +135,15 @@
     "back": "Back",
     "click": {
       "title": "Click the map",
-      "desc": "You get a name — click the right spot on the map."
+      "desc": "You get a name. Click the right spot on the map."
     },
     "choice": {
       "title": "Multiple choice",
-      "desc": "A place is highlighted — pick the right name of four."
+      "desc": "One place lights up. Pick its name from four."
     },
     "type": {
       "title": "Type the name",
-      "desc": "A place is highlighted — type its name."
+      "desc": "One place lights up. Type its name."
     },
     "difficulty": "Difficulty",
     "difficultyLevel": "Difficulty {{level}} of 3",
@@ -153,7 +154,7 @@
   },
   "hud": {
     "findThis": "Find on the map",
-    "whatIsThis": "What is the highlighted place called?",
+    "whatIsThis": "Name the place that lights up",
     "typePlaceholder": "Type the name …",
     "submit": "Answer",
     "skip": "Skip",
@@ -196,13 +197,13 @@
   "giveUp": {
     "action": "Give up",
     "title": "Give up this round?",
-    "body": "The points from this round are lost and the result won't reach the leaderboard.",
+    "body": "You lose this round's points and the result won't reach the leaderboard.",
     "confirm": "Give up",
     "cancel": "Keep playing"
   },
   "footer": {
     "label": "Footer",
-    "tagline": "AtlasMaster is a map game about geography — one region at a time, built for Spillarena.",
+    "tagline": "A geography map game, one region at a time. Built for Spillarena.",
     "github": "View on GitHub",
     "madeBy": "Made by",
     "updated": "Last updated: {{month}} {{year}}"
@@ -214,6 +215,7 @@
     "asia": "Asia",
     "usa": "USA",
     "count": "{{count}} categories",
+    "plate": "Plate {{n}}",
     "back": "Change region"
   }
 }

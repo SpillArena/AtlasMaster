@@ -29,10 +29,10 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-5 px-4 py-6">
       <div className="text-center">
-        <p className="stat-label mb-1">
+        <p className="eyebrow">
           {t(category.labelKey)} · {t(`mode.${mode}.title`)}
         </p>
-        <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
           {t('pace.title')}
         </h2>
       </div>
@@ -58,18 +58,18 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
                 // med ein gong, ikkje duve seg ferdig
                 transition={{ delay: i * 0.03, type: 'spring', stiffness: 260, damping: 24 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex h-full w-full flex-col items-start gap-1 rounded-2xl border-2 p-4 text-left transition-all ${
-                  selected ? 'shadow-lg' : 'hover:-translate-y-[1px]'
+                className={`plate flex h-full w-full flex-col items-start gap-1 p-4 text-left transition-all ${
+                  selected ? '' : 'hover:-translate-y-[1px]'
                 }`}
                 style={{
-                  borderColor: selected ? 'var(--accent)' : 'var(--border)',
-                  background: selected
-                    ? 'color-mix(in srgb, var(--accent) 12%, var(--surface))'
-                    : 'var(--surface)',
+                  borderColor: selected ? 'var(--brass)' : 'var(--border)',
+                  boxShadow: selected
+                    ? '0 0 0 2px var(--brass), var(--shadow-card)'
+                    : undefined,
                 }}
               >
                 <span className="flex w-full items-center justify-between">
-                  <span className="font-display text-lg font-extrabold tracking-tight">
+                  <span className="font-display text-lg font-semibold tracking-[-0.005em]">
                     {t(`pace.${value}`)}
                   </span>
                   <span
@@ -101,7 +101,7 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
         <Button
           size="lg"
           onClick={() => onStart(pace)}
-          className="w-full max-w-sm font-extrabold uppercase tracking-[0.12em]"
+          className="w-full max-w-sm font-semibold"
         >
           {t('pace.start')}
         </Button>

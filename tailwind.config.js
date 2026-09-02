@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // brødtekst: systemfonten — laster umiddelbart, leses overalt
+        // brødtekst: humanistisk sans, roleg og lesbar
         sans: [
-          'Inter',
+          '"Instrument Sans"',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -17,10 +17,10 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        // display: titler og kategorinavn — bred, litt sær, spillets ansikt
-        display: ['"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        // hud: alle tall — poeng, combo, klokke. Tabulær, som en resultattavle
-        hud: ['"Space Grotesk"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        // display: titlar, region- og kategorinamn — Fraunces, høg kontrast, feltbok-ånd
+        display: ['"Fraunces"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
+        // hud: alle tal — poeng, combo, klokke. Ledger-mono, tabulær
+        hud: ['"Spline Sans Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
         accent: 'var(--accent)',
@@ -68,11 +68,24 @@ export default {
           '0%, 100%': { opacity: '0.35' },
           '50%': { opacity: '0.9' },
         },
+        // lakkseglet blir pressa ned
+        'stamp-press': {
+          '0%': { transform: 'scale(2.1) rotate(-14deg)', opacity: '0' },
+          '60%': { transform: 'scale(0.94) rotate(-7deg)', opacity: '1' },
+          '100%': { transform: 'scale(1) rotate(-6deg)', opacity: '1' },
+        },
+        // signalbluss som stig
+        'flare-rise': {
+          '0%': { transform: 'translateY(6px) scale(0.9)', opacity: '0' },
+          '100%': { transform: 'translateY(-2px) scale(1)', opacity: '1' },
+        },
       },
       animation: {
         'combo-pop': 'combo-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
         sheen: 'sheen 0.9s ease-out',
         breathe: 'breathe 2.4s ease-in-out infinite',
+        'stamp-press': 'stamp-press 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'flare-rise': 'flare-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

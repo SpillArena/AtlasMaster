@@ -36,11 +36,11 @@ export function ConfirmDialog({
         initial={{ opacity: 0, y: 16, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-        className="panel w-full max-w-sm rounded-2xl p-6"
+        className="cartouche w-full max-w-sm p-6"
         style={{ color: 'var(--text)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="confirm-title" className="font-display mb-1 text-xl font-extrabold tracking-tight">
+        <h2 id="confirm-title" className="font-display mb-1 text-2xl font-semibold tracking-[-0.005em]">
           {title}
         </h2>
         <p id="confirm-body" className="text-sm" style={{ color: 'var(--text-subtle)' }}>

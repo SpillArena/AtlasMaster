@@ -13,19 +13,23 @@ interface Props {
   onGiveUp: () => void
 }
 
+/* Bagasjelapp i messing: navigasjon ut av feltboka. */
 const pillClass =
-  'group flex h-11 shrink-0 items-center gap-2 rounded-full border border-white/15 px-4 font-extrabold tracking-tight text-white shadow-[0_12px_30px_rgba(171,72,196,0.32)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_16px_36px_rgba(226,76,181,0.38)]'
+  'group flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-bold tracking-tight text-[var(--color-surface)] transition-all duration-200 ease-out hover:-translate-y-[1px]'
 
 const pillStyle = {
-  background: 'linear-gradient(135deg, #9B40D6 0%, #C94DBD 52%, #E24CB5 100%)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12)',
+  background: 'var(--brass)',
+  borderColor: 'color-mix(in srgb, var(--ink) 30%, transparent)',
+  boxShadow:
+    'inset 0 0 0 1.5px color-mix(in srgb, var(--color-surface) 30%, transparent), 0 2px 0 color-mix(in srgb, var(--ink) 40%, transparent)',
 }
 
 /** Rødt for «gi opp» — knappen kaster runden, og skal ikke se ut som navigasjon. */
 const dangerStyle = {
-  background:
-    'linear-gradient(135deg, var(--color-error) 0%, color-mix(in srgb, var(--color-error) 82%, #000) 100%)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12)',
+  background: 'var(--color-error)',
+  borderColor: 'color-mix(in srgb, var(--ink) 30%, transparent)',
+  boxShadow:
+    'inset 0 0 0 1.5px color-mix(in srgb, var(--color-surface) 28%, transparent), 0 2px 0 color-mix(in srgb, var(--ink) 40%, transparent)',
 }
 
 const Arrow = () => (

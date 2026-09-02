@@ -4,8 +4,8 @@ import type { Entry } from '../../game/leaderboard'
 import { hitRate } from '../../game/rank'
 import { Icon } from '../Icon'
 
-/** Farge på plasseringen — gull, sølv, bronse, så dempet. */
-const RANK_TONE = ['var(--gold)', '#c0c6d4', '#c47b3d']
+/** Farge på plasseringen — gull, tinn, kopar, så dempet. */
+const RANK_TONE = ['var(--gold)', '#9a9686', '#b06a3a']
 
 function fmtTime(ms: number): string {
   const s = Math.round(ms / 1000)
@@ -30,7 +30,7 @@ export function LeaderboardRow({ entry, place, variant = 'full' }: Props) {
 
   return (
     <div
-      className={`flex items-center gap-3 ${compact ? 'px-1 py-1.5' : 'panel rounded-xl p-3'}`}
+      className={`flex items-center gap-3 ${compact ? 'px-1 py-2' : 'plate p-3'}`}
       style={
         !compact && tone
           ? { borderColor: `color-mix(in srgb, ${tone} 45%, transparent)` }

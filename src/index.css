@@ -4,42 +4,41 @@
 
 @layer base {
   /*
-   * «Modern Atlas» — designtokens.
+   * «Field Logbook» — designtokens.
    *
-   * Palettene under er sanninga for heile appen. Alt anna (Tailwind-fargar,
-   * komponentar, kartlaga) peikar hit; ingen komponent skal skrive ein hex.
-   * Namna med `--color-`-prefiks er handoff-kontrakten. Dei eldre namna
-   * (`--bg`, `--surface`, …) ligg att som alias, så eksisterande komponentar
-   * arvar den nye paletten utan å bli skrivne om.
+   * Hele appen er en oppslått feltbok: eldet papir, blekk og messing. Palettene
+   * under er sannheten; komponenter peker hit og skriver ingen hex. Navnene med
+   * `--color-`-prefiks er handoff-kontrakten, de eldre (`--bg`, `--surface`, …)
+   * ligger igjen som alias så eksisterende komponenter arver den nye paletten.
    */
   :root {
-    /* --- handoff-tokens, lys modus --- */
-    --color-surface: #f7f7f5;
-    --color-surface-elevated: #ffffff;
+    /* --- handoff-tokens, lys modus: «eldet papir» --- */
+    --color-surface: #ede4d1;
+    --color-surface-elevated: #f5eedd;
 
-    --color-land: #e8e6df;
-    --color-water: #c9d6df;
-    --color-grid: #bfc6cd;
+    --color-land: #dfd3b6;
+    --color-water: #9fb4ae;
+    --color-grid: #c3b48f;
 
-    --color-primary: #2563eb;
-    --color-success: #16a34a;
-    --color-error: #dc2626;
-    --color-accent-warm: #f59e0b;
+    --color-primary: #a9772f; /* messing */
+    --color-success: #4f7a4a; /* feltgrønt */
+    --color-error: #ae3b2c; /* signalraudt */
+    --color-accent-warm: #c06b2e; /* lakksegl */
 
-    --color-text-primary: #0f172a;
-    --color-text-secondary: #475569;
-    --color-border: #e5e7eb;
+    --color-text-primary: #211f17;
+    --color-text-secondary: #5a5443;
+    --color-border: #cbbe9c;
 
-    /* glasspanel over kartet */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-blur: 10px;
+    /* vellum: flaten som ligger over kartet — varm, lite sløring */
+    --glass-bg: rgba(245, 238, 221, 0.82);
+    --glass-border: rgba(120, 96, 48, 0.22);
+    --glass-blur: 6px;
 
     /* --- typografi --- */
-    --font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --text-h1-size: 32px;
+    --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --text-h1-size: 34px;
     --text-h1-line: 40px;
-    --text-h2-size: 24px;
+    --text-h2-size: 25px;
     --text-h2-line: 32px;
     --text-body-size: 16px;
     --text-body-line: 24px;
@@ -49,99 +48,109 @@
     --text-caption-line: 16px;
 
     /* --- form og rytme --- */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
     --radius-pill: 999px;
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
-    --shadow-panel: 0 8px 24px rgba(15, 23, 42, 0.08);
-    --duration-in: 180ms;
-    --duration-out: 130ms;
+    --shadow-card: 0 1px 2px rgba(50, 38, 16, 0.12);
+    --shadow-panel: 0 10px 30px rgba(46, 34, 12, 0.16);
+    --duration-in: 200ms;
+    --duration-out: 140ms;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* --- alias: appens eldre tokennamn --- */
     --accent-base: var(--color-primary);
     --accent: var(--accent-base);
     --bg: var(--color-surface);
-    --bg-deep: #ecebe6;
+    --bg-deep: #e3d7be;
     --text: var(--color-text-primary);
     --text-muted: var(--color-text-secondary);
-    --text-subtle: #64748b;
+    --text-subtle: #7c7358;
     --border: var(--color-border);
-    --border-hover: color-mix(in srgb, var(--accent) 45%, transparent);
-    --surface: rgba(255, 255, 255, 0.78);
+    --border-hover: color-mix(in srgb, var(--accent) 55%, transparent);
+    --surface: rgba(245, 238, 221, 0.72);
     --surface-card: var(--color-surface-elevated);
-    --nav-bg: rgba(247, 247, 245, 0.88);
-    /* panel = flatene som ligg over kartet: lette, ikkje rammer */
+    --nav-bg: rgba(237, 228, 209, 0.9);
     --panel: var(--glass-bg);
     --panel-edge: var(--glass-border);
 
     /* spillsemantikk */
     --success: var(--color-success);
     --danger: var(--color-error);
-    --info: var(--color-primary);
+    --info: #365c7a; /* kompassblå */
     --gold: var(--color-accent-warm);
 
-    --map-idle: rgba(15, 23, 42, 0.08);
-    --map-idle-hover: color-mix(in srgb, var(--accent) 28%, transparent);
+    --map-idle: rgba(33, 31, 23, 0.09);
+    --map-idle-hover: color-mix(in srgb, var(--accent) 26%, transparent);
 
-    /*
-     * Kartfargane. Havet er `--color-water`, sokkelen tre band som lysnar inn
-     * mot kysten, landet `--color-land`. Rutenettet er `--color-grid`.
-     */
+    /* kartfargene — havet er `--color-water`, sokkelen tre lysere band inn mot
+       kysten, landet `--color-land`, rutenettet `--color-grid` */
     --ocean: var(--color-water);
-    --ocean-deep: #b3c3ce;
-    --shelf-1: #dbe4ea;
-    --shelf-2: #d0dce4;
-    --shelf-3: #c3d2dc;
-    --coast: #8fa3b0;
-    --graticule: color-mix(in srgb, var(--color-grid) 55%, transparent);
+    --ocean-deep: #8ba39c;
+    --shelf-1: #b9c6bd;
+    --shelf-2: #aab9b0;
+    --shelf-3: #9caea3;
+    --coast: #6b5e3f;
+    --graticule: color-mix(in srgb, var(--color-grid) 60%, transparent);
 
     --map-land: var(--color-land);
-    --map-border: #9aa3ad;
+    --map-border: #7a6b47;
+
+    /* blekk til de håndtegnede lagene */
+    --ink: #211f17;
+    --ink-soft: color-mix(in srgb, var(--ink) 55%, transparent);
+    --brass: var(--color-primary);
+    --paper-grain: rgba(70, 52, 20, 0.05);
+    --stitch: color-mix(in srgb, var(--color-primary) 40%, transparent);
 
     --glow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
-  /* Mørk modus — same tokens, snudd. */
+  /* Mørk modus — «lampelyst kartbord». Samme tokens, snudd. */
   .dark {
-    --color-surface: #111318;
-    --color-surface-elevated: #1b1f27;
+    --color-surface: #15140f;
+    --color-surface-elevated: #1e1c15;
 
-    --color-land: #2a2f38;
-    --color-water: #1f2630;
-    --color-grid: #2e3744;
+    --color-land: #2a271d;
+    --color-water: #232a28;
+    --color-grid: #3a3426;
 
-    --color-primary: #3b82f6;
-    --color-success: #22c55e;
-    --color-error: #ef4444;
-    --color-accent-warm: #f59e0b;
+    --color-primary: #ce9e52;
+    --color-success: #6fa968;
+    --color-error: #cf5b4c;
+    --color-accent-warm: #d98e4b;
 
-    --color-text-primary: #e5e7eb;
-    --color-text-secondary: #9ca3af;
-    --color-border: #2b313c;
+    --color-text-primary: #ebe2cd;
+    --color-text-secondary: #9a9077;
+    --color-border: #38321f;
 
-    --glass-bg: rgba(15, 23, 42, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(30, 28, 21, 0.72);
+    --glass-border: rgba(206, 158, 82, 0.2);
 
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.5);
 
-    --bg-deep: #0b0d12;
-    --text-subtle: #7c8695;
-    --surface: rgba(27, 31, 39, 0.72);
-    --nav-bg: rgba(17, 19, 24, 0.88);
+    --bg-deep: #0f0e0a;
+    --text-subtle: #8a8068;
+    --surface: rgba(30, 28, 21, 0.7);
+    --nav-bg: rgba(21, 20, 15, 0.9);
 
-    --map-idle: rgba(255, 255, 255, 0.1);
+    --info: #7fa8c4;
 
-    --ocean-deep: #171d25;
-    --shelf-1: #27303c;
-    --shelf-2: #222a35;
-    --shelf-3: #1c232d;
-    --coast: #46566a;
-    --map-border: #6b7787;
+    --ocean-deep: #1b211f;
+    --shelf-1: #2b322f;
+    --shelf-2: #262c2a;
+    --shelf-3: #212725;
+    --coast: #b79a63;
+    --map-border: #b79a63;
 
-    --glow: 0 0 32px rgba(59, 130, 246, 0.25);
+    --map-idle: rgba(235, 226, 205, 0.1);
+
+    --ink: #ebe2cd;
+    --paper-grain: rgba(0, 0, 0, 0.22);
+    --stitch: color-mix(in srgb, var(--color-primary) 45%, transparent);
+
+    --glow: 0 0 32px rgba(206, 158, 82, 0.22);
   }
 
   html {
@@ -149,7 +158,6 @@
     font-family: var(--font-family);
   }
 
-  /* native skjema-elementer arver appens font */
   button,
   input,
   select,
@@ -157,23 +165,22 @@
     font-family: inherit;
   }
 
-  /* synlig fokus-ring for tastatur/switch-navigasjon på alle enheter */
+  /* synlig fokusring for tastatur-/switch-navigasjon på alle enheter */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 3px;
   }
 
   ::selection {
     background: var(--accent);
-    color: #fff;
+    color: var(--color-surface);
   }
 }
 
 @layer components {
   /*
-   * Panelet er spillets gjennomgående flate: HUD, kort, menyer. Kanten er
-   * lysere øverst enn nederst, så flatene ser opplyste ut ovenfra.
+   * Vellum-panelet: HUD, menyer, faktabokser. Ligger lett over kartet, varm tone.
    */
   .panel {
     background: var(--glass-bg);
@@ -183,11 +190,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur));
   }
 
-  /*
-   * Kort: den opake flata. Brukast der innhaldet skal lesast som eit ark og
-   * ikkje som eit lag over kartet — glass kostar ei ny sløring per frame, og
-   * skal berre ligge på panela som faktisk flyt over kartflata.
-   */
+  /* Kort: den opake flaten — et ark, billig å tegne. */
   .card {
     background: var(--color-surface-elevated);
     border: 1px solid var(--color-border);
@@ -195,18 +198,101 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Tekststilar frå handoff-en. */
+  /*
+   * Platen: et kartblad i feltboka. Papir, urolig kant, en tynn hjørnelinje
+   * inne i rammen som på en gravert plate. Brukes av region- og kategorivalgene.
+   */
+  .plate {
+    position: relative;
+    background:
+      radial-gradient(120% 140% at 15% 0%, color-mix(in srgb, var(--color-surface-elevated) 92%, #fff), transparent 60%),
+      var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card), inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 60%, transparent);
+  }
+  .plate::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid color-mix(in srgb, var(--brass) 30%, transparent);
+    border-radius: calc(var(--radius-md) - 4px);
+    pointer-events: none;
+  }
+
+  /*
+   * Kartusjen: rammen rundt banner og dialoger. En stiplet «sømlinje» inne i
+   * kanten, som et sydd lerret.
+   */
+  .cartouche {
+    position: relative;
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+  .cartouche::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1px dashed var(--stitch);
+    border-radius: calc(var(--radius-lg) - 3px);
+    pointer-events: none;
+  }
+
+  /*
+   * Stempelet: en blekk-/lakkring. Rangbokstaven og rekordene sitter inni.
+   */
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 3px solid currentColor;
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, currentColor 25%, transparent),
+      0 1px 0 color-mix(in srgb, var(--ink) 20%, transparent);
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  /* Ledger-rad: en linjert linje som i en skipslogg. */
+  .ledger {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  }
+
+  /* Bagasjelapp: pillen som bærer navigasjon. */
+  .tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0 0.9rem;
+  }
+
+  /* Papirkorn — legg på store flater som skal kjennes trykt. */
+  .grain {
+    background-image: radial-gradient(var(--paper-grain) 1px, transparent 1.2px);
+    background-size: 4px 4px;
+  }
+
+  /* Tekststiler fra handoff-en. */
   .text-h1 {
+    font-family: 'Fraunces', Georgia, serif;
     font-size: var(--text-h1-size);
     line-height: var(--text-h1-line);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   .text-h2 {
+    font-family: 'Fraunces', Georgia, serif;
     font-size: var(--text-h2-size);
     line-height: var(--text-h2-line);
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.005em;
   }
   .text-body {
     font-size: var(--text-body-size);
@@ -224,16 +310,25 @@
     font-weight: 400;
   }
 
-  /* Store tall: poeng, combo, klokke. Alltid tabulære så de ikke hopper. */
+  /* Store tall: poeng, combo, klokke — ledger-mono, alltid tabulære. */
   .numeric {
     font-family: theme('fontFamily.hud');
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+  }
+
+  /* Feltnotat-kicker over en skjermtittel — Fraunces i kursiv, ikke sperret caps. */
+  .eyebrow {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: var(--text-subtle);
   }
 
   /* Etikett over et tall — liten, sperret, dempet. */
   .stat-label {
-    @apply text-[0.625rem] font-bold uppercase tracking-[0.2em];
+    @apply text-[0.625rem] font-bold uppercase tracking-[0.18em];
     color: var(--text-subtle);
   }
 }
@@ -249,7 +344,7 @@
     position: absolute;
     inset: 0 auto 0 0;
     width: 45%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 248, 230, 0.3), transparent);
     transform: translateX(-120%) skewX(-18deg);
     pointer-events: none;
   }
@@ -259,14 +354,87 @@
 }
 
 /*
- * Kartanimasjonane.
- *
- * Alt som rører seg oppå kartet ligg her og ikkje i JavaScript. Eit
- * animasjonsbibliotek reknar ut nye verdiar på hovudtråden seksti gonger i
- * sekundet; ein CSS-keyframe blir gjeven til kompositoren og kostar
- * hovudtråden ingenting — og hovudtråden er nettopp den som skal rasterisere
- * kartet i same augeblink.
+ * Animasjonene. Alt som rører seg oppå kartet ligger her, ikke i JavaScript:
+ * en CSS-keyframe blir gitt til kompositoren og koster hovedtråden ingenting.
  */
+
+/* blekket som blir tegnet på: kysten strekker seg opp */
+@keyframes draw-on {
+  from {
+    stroke-dashoffset: var(--draw-len, 4000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-on {
+  stroke-dasharray: var(--draw-len, 4000);
+  animation: draw-on 2.4s var(--ease-out) forwards;
+}
+
+/* kompassrosen driver sakte rundt */
+@keyframes compass-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.compass-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: compass-spin 120s linear infinite;
+}
+
+/* papiret driver umerkelig */
+@keyframes paper-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1.5%, -1%, 0) scale(1.03);
+  }
+}
+.paper-drift {
+  animation: paper-drift 26s ease-in-out infinite;
+}
+
+/* stempelet blir presset ned */
+@keyframes stamp-press {
+  0% {
+    transform: scale(2.1) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.94) rotate(-7deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-6deg);
+    opacity: 1;
+  }
+}
+.stamp-press {
+  animation: stamp-press 0.5s var(--ease-out) both;
+}
+
+/* signalbluss som stiger */
+@keyframes flare-rise {
+  0% {
+    transform: translateY(6px) scale(0.9);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
+    opacity: 1;
+  }
+}
+.flare-rise {
+  animation: flare-rise 0.3s var(--ease-out) both;
+}
 
 /* ringen som slår ut der treffet skjedde */
 @keyframes award-ring {
@@ -279,16 +447,13 @@
     opacity: 0;
   }
 }
-
 .award-ring {
-  /* skalering om sitt eige sentrum, ikkje om lerretshjørnet */
   transform-box: fill-box;
   transform-origin: center;
-  /* to pulsar på 0,7 s — ringen slår ut, kjem att, og er ferdig */
   animation: award-ring 0.35s ease-out 2 forwards;
 }
 
-/* poengsummen som stig opp frå treffet */
+/* poengsummen som stiger opp fra treffet */
 @keyframes award-points {
   0% {
     transform: translateY(0);
@@ -305,15 +470,11 @@
     opacity: 0;
   }
 }
-
 .award-points {
   animation: award-points 1.1s ease-out forwards;
 }
 
-/*
- * Panel som opnar seg: fade inn og eit lite løft. 180 ms — nok til å lesast
- * som ei rørsle, for kort til å stå i vegen for neste klikk.
- */
+/* panel som åpner seg: fade inn og et lite løft */
 @keyframes panel-in {
   from {
     opacity: 0;
@@ -324,15 +485,11 @@
     transform: translateY(0);
   }
 }
-
 .panel-in {
   animation: panel-in var(--duration-in) var(--ease-out) both;
 }
 
-/*
- * Bomskot: HUD-en ristar, ikkje kartet. Kartet er hovudpersonen og skal stå
- * stille; tilbakemeldinga høyrer heime i panelet der svaret blei gjeve.
- */
+/* bomskudd: HUD-en rister, ikke kartet */
 @keyframes feedback-shake {
   0%,
   100% {
@@ -348,8 +505,6 @@
     transform: translateX(-3px);
   }
 }
-
-/* raudt blink i kanten av same panel */
 @keyframes feedback-flash {
   0%,
   100% {
@@ -359,7 +514,6 @@
     border-color: var(--color-error);
   }
 }
-
 .feedback-shake {
   animation:
     feedback-shake 0.28s ease-in-out,
@@ -367,9 +521,8 @@
 }
 
 /*
- * Redusert bevegelse: settes av operativsystemet eller av bryteren i
- * innstillinger. Rister, konfetti og pulsering forsvinner — layout og
- * fargeskift blir igjen, så spillet fortsatt gir tilbakemelding.
+ * Redusert bevegelse: rist, konfetti, drift og pulsering forsvinner — layout
+ * og fargeskift blir igjen, så spillet fortsatt gir tilbakemelding.
  */
 .reduce-motion *,
 .reduce-motion *::before,
@@ -383,10 +536,11 @@
 .reduce-motion .sheen-host:hover::after {
   animation: none;
 }
-
-/* ristinga er rein rørsle og har ingen lesing utan seg sjølv — bort med henne */
 .reduce-motion .feedback-shake {
   animation: none;
+}
+.reduce-motion .draw-on {
+  stroke-dasharray: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -397,5 +551,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  .draw-on {
+    stroke-dasharray: none;
   }
 }

@@ -6,7 +6,7 @@ import { MODE_MULTIPLIER } from '../../game/scoring'
 import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { ModeDemo } from './ModeDemo'
-import { Icon } from '../Icon'
+import { Icon, type IconName } from '../Icon'
 
 interface Props {
   regionId: string
@@ -14,17 +14,24 @@ interface Props {
   onPick: (mode: Mode) => void
 }
 
-/** Hvor krevende modusen er å svare i — 1–3 fylte staver. */
+/** Hvor krevende modusen er å svare i — 1–3 fylte pips. */
 const DIFFICULTY: Record<Mode, number> = {
   choice: 1,
   click: 2,
   type: 3,
 }
 
+/** Instrumentet du svarer med i hver modus. */
+const INSTRUMENT: Record<Mode, IconName> = {
+  choice: 'cards',
+  click: 'dividers',
+  type: 'pen',
+}
+
 /**
- * Modusvalget er et valg av kontroll, ikke av innhold — derfor rader med en
- * levende demo av hvordan du svarer, i stedet for enda et rutenett av fliser
- * som ligner kategorivalget rett før.
+ * Modusvalget er et valg av verktøy, ikke av innhold — derfor en reol med tre
+ * instrumenter. Hver rad viser instrumentet, en levende demo av hvordan du
+ * svarer, vanskegrad som blekk-pips, og hva runden er verdt.
  */
 export function ModePicker({ regionId, category, onPick }: Props) {
   const { t } = useTranslation()
@@ -46,13 +53,13 @@ export function ModePicker({ regionId, category, onPick }: Props) {
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
       <div>
-        <p className="stat-label mb-1">{t(category.labelKey)}</p>
-        <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+        <p className="eyebrow">{t(category.labelKey)}</p>
+        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
           {t('mode.subtitle')}
         </h2>
       </div>
 
-      <ul className="flex flex-col gap-2.5">
+      <ul className="flex flex-col gap-3">
         {MODES.map((mode, i) => {
           const best = bestFor(regionId, category.id, mode)
           const difficulty = DIFFICULTY[mode]
@@ -68,28 +75,38 @@ export function ModePicker({ regionId, category, onPick }: Props) {
                 transition={{ delay: i * 0.07, type: 'spring', stiffness: 140, damping: 18 }}
                 whileHover={{ x: 4 }}
                 whileTap={{ scale: 0.99 }}
-                className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border p-3 text-left transition-colors hover:border-[var(--accent)] sm:gap-5 sm:p-4"
-                style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+                className="plate group relative flex w-full items-center gap-4 overflow-hidden p-3 text-left sm:gap-5 sm:p-4"
               >
-                {/* aksentstripe i kanten — vokser når raden er aktiv */}
+                {/* messingstripe i kanten — vokser når raden er aktiv */}
                 <span
                   aria-hidden
                   className="absolute inset-y-0 left-0 w-1 origin-left scale-y-0 transition-transform duration-200 group-hover:scale-y-100 group-focus-visible:scale-y-100"
-                  style={{ background: 'var(--accent)' }}
+                  style={{ background: 'var(--brass)' }}
                 />
 
-                {/* demo av hvordan du svarer i denne modusen */}
-                <span
-                  aria-hidden
-                  className="h-16 w-24 shrink-0 rounded-xl p-1 sm:h-20 sm:w-32"
-                  style={{ background: 'var(--bg-deep)' }}
-                >
-                  <ModeDemo mode={mode} />
+                {/* instrument + demo */}
+                <span className="flex shrink-0 flex-col items-center gap-1.5">
+                  <span
+                    className="stamp h-10 w-10"
+                    style={{ color: 'var(--brass)' }}
+                  >
+                    <Icon name={INSTRUMENT[mode]} className="h-5 w-5" />
+                  </span>
+                  <span
+                    aria-hidden
+                    className="h-12 w-20 rounded-md p-1 sm:h-14 sm:w-28"
+                    style={{ background: 'var(--bg-deep)' }}
+                  >
+                    <ModeDemo mode={mode} />
+                  </span>
                 </span>
 
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="flex items-center gap-2">
-                    <span className="font-display text-lg font-extrabold tracking-[-0.02em] sm:text-xl">
+                    <span
+                      className="font-display text-lg font-semibold tracking-[-0.005em] sm:text-xl"
+                      style={{ color: 'var(--text)' }}
+                    >
                       {t(`mode.${mode}.title`)}
                     </span>
                     <kbd
@@ -110,9 +127,9 @@ export function ModePicker({ regionId, category, onPick }: Props) {
                       {[1, 2, 3].map((step) => (
                         <span
                           key={step}
-                          className="h-1.5 w-4 rounded-full"
+                          className="h-2 w-2 rounded-full"
                           style={{
-                            background: step <= difficulty ? 'var(--accent)' : 'var(--map-idle)',
+                            background: step <= difficulty ? 'var(--brass)' : 'var(--map-idle)',
                           }}
                         />
                       ))}
@@ -121,14 +138,12 @@ export function ModePicker({ regionId, category, onPick }: Props) {
                       {t('mode.difficultyLevel', { level: difficulty })}
                     </span>
 
-                    {/*
-                      Vanskegrad utan verdi er berre ei åtvaring. Multiplikatoren
-                      seier kva den ekstra vanskegraden faktisk er verdt, med
-                      same tal som poengmodulen reknar med.
-                    */}
                     <span
                       className="numeric rounded-full px-2 py-0.5 text-[0.625rem] font-bold"
-                      style={{ background: 'var(--map-idle)', color: 'var(--gold)' }}
+                      style={{
+                        background: 'color-mix(in srgb, var(--brass) 14%, transparent)',
+                        color: 'var(--brass)',
+                      }}
                     >
                       ×{MODE_MULTIPLIER[mode]}
                     </span>
@@ -140,15 +155,11 @@ export function ModePicker({ regionId, category, onPick }: Props) {
 
                 <span className="flex shrink-0 flex-col items-end gap-1">
                   {best > 0 && (
-                    <span className="flex items-center gap-1">
-                      <Icon
-                        name="trophy"
-                        className="h-3.5 w-3.5"
-                        style={{ color: 'var(--gold)' }}
-                      />
-                      <span className="numeric text-sm font-bold" style={{ color: 'var(--gold)' }}>
-                        {best}
-                      </span>
+                    <span
+                      className="stamp h-8 w-8 text-[0.5625rem] font-bold"
+                      style={{ color: 'var(--gold)' }}
+                    >
+                      <span className="numeric">{best}</span>
                     </span>
                   )}
                   <span

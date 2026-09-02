@@ -1,13 +1,22 @@
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   /*
-   * `glass` er flata som flyt over kartet — halvgjennomsiktig og sløra.
-   * `solid` er arket: opakt, billig å teikne. Standarden er arket, fordi
-   * sløring kostar ei ny utrekning per frame og skal vere eit val.
+   * `vellum` flyter over kartet — halvgjennomsiktig og lett sløret. `plate` er
+   * et kartblad: opakt papir med hjørnelinje. `cartouche` er den sydde rammen
+   * til banner og dialoger. `solid` er det nakne arket. Standarden er `solid`,
+   * fordi sløring koster en utregning per frame og skal være et valg.
    */
-  surface?: 'solid' | 'glass'
-  /** fade inn og eit lite løft når kortet blir montert */
+  surface?: 'solid' | 'glass' | 'vellum' | 'plate' | 'cartouche'
+  /** fade inn og et lite løft når kortet blir montert */
   animate?: boolean
   as?: 'div' | 'section' | 'article'
+}
+
+const SURFACE: Record<NonNullable<Props['surface']>, string> = {
+  solid: 'card',
+  glass: 'panel rounded-atlas-lg',
+  vellum: 'panel rounded-atlas-lg',
+  plate: 'plate',
+  cartouche: 'cartouche',
 }
 
 export function Card({
@@ -17,6 +26,7 @@ export function Card({
   className = '',
   ...rest
 }: Props) {
-  const base = surface === 'glass' ? 'panel rounded-atlas-lg' : 'card'
-  return <Tag className={`${base} ${animate ? 'panel-in' : ''} ${className}`} {...rest} />
+  return (
+    <Tag className={`${SURFACE[surface]} ${animate ? 'panel-in' : ''} ${className}`} {...rest} />
+  )
 }

@@ -29,7 +29,7 @@ interface Props {
   score: number
   /** modusen runden ble spilt i — styrer poengmultiplikatoren som vises */
   mode: Mode
-  /** stedene som rauk underveis, i den rekkefølgen de rauk */
+  /** stedene som rauk underveis, i den rekkefølgen de røk */
   missed: MissedItem[]
   elapsedMs: number
   /** hva runden gjorde med profilen — null til den er lagret */
@@ -45,7 +45,8 @@ function fmtTime(ms: number): string {
   return `${m}:${String(s % 60).padStart(2, '0')}`
 }
 
-const CONFETTI_COLORS = ['#BA0C2F', '#00205B', '#f59e0b', '#10b981', '#ffffff']
+// papirstas: blekk, messing, lakk, feltgrønt, eldet papir
+const CONFETTI_COLORS = ['#211f17', '#a9772f', '#c06b2e', '#4f7a4a', '#ede4d1']
 
 /**
  * Konfettien er spredt med en fast hash i stedet for Math.random: like
@@ -114,14 +115,13 @@ export function ResultScreen({
           initial={{ scale: 2.2, opacity: 0, rotate: -18 }}
           animate={{ scale: 1, opacity: 1, rotate: -6 }}
           transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-          className="flex h-24 w-24 items-center justify-center rounded-2xl border-4 sm:h-28 sm:w-28"
-          style={{
-            borderColor: RANK_COLOR[rank],
-            color: RANK_COLOR[rank],
-            background: `color-mix(in srgb, ${RANK_COLOR[rank]} 12%, transparent)`,
-          }}
+          className="stamp h-24 w-24 sm:h-28 sm:w-28"
+          style={{ color: RANK_COLOR[rank] }}
         >
-          <span className="font-display text-6xl font-extrabold leading-none sm:text-7xl">
+          <span
+            className="font-display text-6xl font-semibold leading-none sm:text-7xl"
+            style={{ color: RANK_COLOR[rank] }}
+          >
             {rank}
           </span>
         </motion.div>
@@ -163,7 +163,7 @@ export function ResultScreen({
               className="numeric text-5xl font-bold leading-none sm:text-7xl"
             />
           </span>
-          {/* kva modusen var verdt — same tal som stod på modusvalet */}
+          {/* hva modusen var verdt — samme tall som stod på modusvalget */}
           <span className="mt-1 text-xs font-bold" style={{ color: 'var(--text-subtle)' }}>
             {t(`mode.${mode}.title`)} ·{' '}
             <span className="numeric">×{MODE_MULTIPLIER[mode]}</span>
@@ -194,9 +194,9 @@ export function ResultScreen({
         </motion.dl>
 
         {/*
-          Stedene som rauk.
+          Stedene som røk.
           Runden sier ikke bare hvor godt det gikk, den sier hva du skal øve
-          på: navnene som kostet forsøk, i den rekkefølgen de rauk. Et sted
+          på: navnene som kostet forsøk, i den rekkefølgen de røk. Et sted
           som ble tatt til slutt står dempet, ett som aldri satt står i rødt.
         */}
         {missed.length > 0 && (

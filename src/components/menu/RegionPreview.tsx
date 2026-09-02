@@ -9,7 +9,7 @@ interface Props {
   region: Region
 }
 
-/** Regionens omriss i dens egen projeksjon — statisk og ikke-interaktivt. */
+/** Regionens omriss i dens egen projeksjon, tegnet som blekk på platen. */
 export function RegionPreview({ region }: Props) {
   const [paths, setPaths] = useState<string[] | null>(null)
 
@@ -29,16 +29,23 @@ export function RegionPreview({ region }: Props) {
   if (!paths) return null
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="h-full w-full" aria-hidden>
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="h-full w-full"
+      style={{ color: 'var(--coast)' }}
+      aria-hidden
+    >
       {paths.map((d, i) => (
         <path
           key={i}
           d={d}
-          fill="#ffffff"
-          fillOpacity={0.16 + (i % 5) * 0.05}
-          stroke="#ffffff"
-          strokeOpacity={0.45}
-          strokeWidth={0.7}
+          fill="currentColor"
+          fillOpacity={0.08 + (i % 5) * 0.03}
+          stroke="currentColor"
+          strokeOpacity={0.7}
+          strokeWidth={0.8}
+          strokeLinejoin="round"
         />
       ))}
     </svg>

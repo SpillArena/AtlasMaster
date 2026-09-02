@@ -62,9 +62,17 @@ export function MapPreview({ category, projection: spec }: Props) {
       className="h-full w-full"
       aria-hidden
     >
-      {/* dempet bakgrunns-omriss */}
+      {/* dempet bakgrunns-omriss — blekk på platen */}
       {r.basePaths.map((d, i) => (
-        <path key={`b-${i}`} d={d} fill="#ffffff" fillOpacity={0.18} stroke="#ffffff" strokeOpacity={0.25} strokeWidth={0.6} />
+        <path
+          key={`b-${i}`}
+          d={d}
+          fill="var(--coast)"
+          fillOpacity={0.1}
+          stroke="var(--coast)"
+          strokeOpacity={0.4}
+          strokeWidth={0.7}
+        />
       ))}
 
       {/* uthevede linjer (elver/rivers) */}
@@ -89,17 +97,24 @@ export function MapPreview({ category, projection: spec }: Props) {
             key={`f-${i}`}
             d={d}
             fill={category.color}
-            fillOpacity={0.55 + (i % 4) * 0.1}
-            stroke="#ffffff"
+            fillOpacity={0.5 + (i % 4) * 0.1}
+            stroke="var(--color-surface-elevated)"
             strokeWidth={0.8}
           />
         ))}
 
-      {/* uthevede punkter (byer/topper) — glødende prikker */}
+      {/* uthevede punkter (byer/topper) — nålestikk */}
       {r.points.map((p, i) => (
         <g key={`p-${i}`}>
-          <circle cx={p.x} cy={p.y} r={14} fill={category.color} fillOpacity={0.25} />
-          <circle cx={p.x} cy={p.y} r={6} fill={category.color} stroke="#ffffff" strokeWidth={1.5} />
+          <circle cx={p.x} cy={p.y} r={14} fill={category.color} fillOpacity={0.22} />
+          <circle
+            cx={p.x}
+            cy={p.y}
+            r={6}
+            fill={category.color}
+            stroke="var(--color-surface-elevated)"
+            strokeWidth={1.5}
+          />
         </g>
       ))}
     </svg>
