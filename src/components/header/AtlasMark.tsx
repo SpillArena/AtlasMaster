@@ -3,30 +3,35 @@ interface Props {
 }
 
 /**
- * Merket: ein globus med meridian og to breiddegrader. Erstattar det norske
- * flagget som stod her då spelet berre dekte Noreg — eit flagg kan ikkje
- * representere eit spel som skal ta eit kontinent om gangen.
- *
- * Teikna i `currentColor` og aksentfarge, så det følgjer tema og aksentval
- * i staden for å låse seg til eit fast fargesett.
+ * Merket: en kompassrose. Erstatter globusen (og før den det norske flagget)
+ * — feltbokas eget tegn. Tegnet i `currentColor` og aksentfarge, så det
+ * følger tema og aksentvalg i stedet for å låse seg til et fast fargesett.
  */
 export function AtlasMark({ className }: Props) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      role="img"
-      aria-label="AtlasMaster"
-      fill="none"
-    >
-      <circle cx="12" cy="12" r="9.25" stroke="var(--accent)" strokeWidth="1.6" />
-      {/* meridian — ellipsa som gjer sirkelen til ein klode */}
-      <ellipse cx="12" cy="12" rx="4.1" ry="9.25" stroke="currentColor" strokeWidth="1.3" opacity="0.75" />
-      {/* to breiddegrader, litt bøygde slik at kloden får djupn */}
-      <path d="M3.4 8.6h17.2" stroke="currentColor" strokeWidth="1.3" opacity="0.75" strokeLinecap="round" />
-      <path d="M3.4 15.4h17.2" stroke="currentColor" strokeWidth="1.3" opacity="0.75" strokeLinecap="round" />
-      {/* nåla — spelet handlar om å treffe éin stad */}
-      <circle cx="15.1" cy="8.6" r="2.05" fill="var(--accent)" stroke="none" />
+    <svg viewBox="0 0 24 24" className={className} role="img" aria-label="AtlasMaster" fill="none">
+      <circle cx="12" cy="12" r="9.3" stroke="var(--accent)" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="6.6" stroke="currentColor" strokeWidth="0.9" opacity="0.55" />
+      {/* fire lange armar (N/E/S/W) og fire korte diagonalar */}
+      <path
+        d="M12 2.4 13.4 12 12 21.6 10.6 12Z"
+        fill="var(--accent)"
+        stroke="none"
+      />
+      <path
+        d="M2.4 12 12 10.6 21.6 12 12 13.4Z"
+        fill="currentColor"
+        opacity="0.7"
+        stroke="none"
+      />
+      <path
+        d="M5.6 5.6 12 12 5.6 18.4 M18.4 5.6 12 12 18.4 18.4"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        opacity="0.5"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="1.5" fill="var(--accent)" stroke="none" />
     </svg>
   )
 }

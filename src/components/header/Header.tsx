@@ -26,9 +26,9 @@ interface Props {
  * dashbordet, ikke bak en knapp her oppe.
  *
  * Merket vises bare når ikke på toppnivå: der står det allerede stort i
- * dashbordet, så å gjenta det i baren ville bare vore støy. Alle andre
- * skjermar — kategori, modus, tempo, sjølve runden — har elles ingen
- * AtlasMaster-identitet i det heile, berre ein generisk tilbake-knapp.
+ * dashbordet, så å gjenta det i baren ville bare vært støy. Alle andre
+ * skjermer — kategori, modus, tempo, selve runden — har ellers ingen
+ * AtlasMaster-identitet i det hele, bare en generisk tilbake-knapp.
  */
 export function Header({
   atRoot,
@@ -42,8 +42,16 @@ export function Header({
   const { t } = useTranslation()
 
   return (
-    <header className="sticky top-0 z-40 shrink-0">
-      <div className="mx-auto max-w-6xl px-2.5 py-2.5 sm:px-4 sm:py-3">
+    <header
+      className="sticky top-0 z-40 shrink-0 border-b"
+      style={{
+        background: 'var(--nav-bg)',
+        borderColor: 'color-mix(in srgb, var(--brass) 45%, transparent)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+      }}
+    >
+      <div className="mx-auto max-w-6xl px-2.5 py-2 sm:px-4 sm:py-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {!atRoot && (

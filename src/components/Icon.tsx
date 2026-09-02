@@ -20,6 +20,13 @@ export type IconName =
   | 'user'
   | 'river'
   | 'mountain'
+  | 'compass'
+  | 'pen'
+  | 'dividers'
+  | 'cards'
+  | 'pin'
+  | 'anchor'
+  | 'seal'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   map: (
@@ -138,6 +145,54 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </>
+  ),
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" />
+    </>
+  ),
+  pen: (
+    <>
+      <path d="M12 19l7-7 3 3-7 7-3-3z" />
+      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+      <path d="M2 2l7.586 7.586" />
+      <circle cx="11" cy="11" r="2" />
+    </>
+  ),
+  dividers: (
+    <>
+      <circle cx="12" cy="4" r="1.6" />
+      <path d="M12 5.6 6 21" />
+      <path d="m12 5.6 6 15.4" />
+      <path d="M8.5 15h7" />
+    </>
+  ),
+  cards: (
+    <>
+      <rect x="3" y="7" width="12" height="15" rx="2" transform="rotate(-8 9 14.5)" />
+      <rect x="9" y="5" width="12" height="15" rx="2" transform="rotate(8 15 12.5)" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </>
+  ),
+  anchor: (
+    <>
+      <circle cx="12" cy="5" r="2" />
+      <path d="M12 7v14" />
+      <path d="M5 12a7 7 0 0 0 14 0" />
+      <path d="M3 12h4M17 12h4" />
+    </>
+  ),
+  seal: (
+    <>
+      <path d="M12 2.5 14.4 5l3.4-.6-.6 3.4L20.5 12l-3.3 2.6.6 3.4-3.4-.6L12 21.5 9.6 19l-3.4.6.6-3.4L3.5 12l3.3-2.6L6.2 6l3.4.6z" />
+      <circle cx="12" cy="12" r="3.5" />
     </>
   ),
 }

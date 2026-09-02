@@ -30,8 +30,8 @@ export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
       className="panel mx-auto w-full max-w-6xl rounded-2xl p-4"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display flex items-center gap-2 text-lg font-extrabold tracking-[-0.02em]">
-          <Icon name="trophy" className="h-5 w-5" style={{ color: 'var(--gold)' }} />
+        <h2 className="font-display flex items-center gap-2 text-xl font-semibold tracking-[-0.005em]">
+          <Icon name="seal" className="h-5 w-5" style={{ color: 'var(--gold)' }} />
           {t('leaderboard.title')}
           <span className="stat-label">
             {offline ? t('leaderboard.local') : t('leaderboard.global')}

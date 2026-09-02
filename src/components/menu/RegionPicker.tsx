@@ -10,10 +10,12 @@ interface Props {
   onPick: (regionId: string) => void
 }
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
+
 /**
- * Første valg: hvor i verden. Hver flis tegner regionens eget omriss i sin
- * egen projeksjon, så forskjellen mellom et land og et kontinent er synlig
- * før du har trykket på noe.
+ * Første valg: hvilket kartblad. Hver flis er en plate i feltboka — papir med
+ * regionens eget omriss tegnet i blekk, et plate-nummer, regionkoden i
+ * hjørnekartusjen, og et lite lakksegl når du har en rekord der.
  */
 export function RegionPicker({ onPick }: Props) {
   const { t } = useTranslation()
@@ -30,43 +32,72 @@ export function RegionPicker({ onPick }: Props) {
                   playSfx('ui')
                   onPick(region.id)
                 }}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.09, type: 'spring', stiffness: 120 }}
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.975 }}
-                className={`sheen-host group relative flex aspect-[16/10] w-full flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br ${region.gradient} shadow-xl ring-4 ring-white/10 transition-shadow hover:shadow-2xl hover:ring-white/30`}
+                transition={{ delay: i * 0.08, type: 'spring', stiffness: 130, damping: 18 }}
+                whileHover={{ y: -3, rotate: -0.4 }}
+                whileTap={{ scale: 0.98, rotate: 0.6 }}
+                className="plate sheen-host group relative flex aspect-[16/10] w-full flex-col items-center justify-center overflow-hidden p-4 text-left"
               >
-                {/* regionens omriss, dempet og litt overskalert */}
-                <div className="absolute inset-0 scale-105 opacity-90 transition-transform duration-200 group-hover:scale-100">
+                {/* omrisset, som blekk på platen */}
+                <div className="absolute inset-4 opacity-80">
                   <RegionPreview region={region} />
                 </div>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/15" />
+                {/* lys skygging så tittelen leses mot omrisset */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-2/3"
+                  style={{
+                    background:
+                      'linear-gradient(to top, var(--color-surface-elevated) 12%, transparent)',
+                  }}
+                />
+
+                {/* plate-nummer, oppe til venstre */}
+                <span
+                  className="stat-label absolute left-4 top-3"
+                  style={{ color: 'var(--text-subtle)' }}
+                >
+                  {t('region.plate', { n: ROMAN[i] ?? i + 1 })}
+                </span>
+
+                {/* regionkode i hjørnekartusjen */}
+                <span
+                  className="numeric absolute right-3 top-3 rounded border px-1.5 py-0.5 text-[0.6875rem] font-bold"
+                  style={{
+                    borderColor: 'color-mix(in srgb, var(--brass) 45%, transparent)',
+                    color: 'var(--brass)',
+                    background: 'color-mix(in srgb, var(--brass) 10%, transparent)',
+                  }}
+                >
+                  {region.code}
+                </span>
 
                 {best > 0 && (
-                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 backdrop-blur-sm">
-                    <Icon name="trophy" className="h-3 w-3" style={{ color: 'var(--gold)' }} />
-                    <span className="numeric text-xs font-bold" style={{ color: 'var(--gold)' }}>
-                      {best}
-                    </span>
-                  </div>
+                  <span
+                    className="stamp absolute bottom-3 left-3 h-9 w-9 text-[0.625rem] font-bold"
+                    style={{ color: 'var(--gold)' }}
+                  >
+                    <span className="numeric">{best}</span>
+                  </span>
                 )}
 
-                <div className="relative flex flex-col items-center gap-2 px-3 text-center text-white">
+                <span className="relative mt-auto flex flex-col gap-1">
                   <span
-                    className="rounded-lg px-2 py-0.5 font-display text-xs font-extrabold tracking-[0.2em] backdrop-blur-sm"
-                    style={{ background: 'color-mix(in srgb, var(--accent) 75%, transparent)' }}
+                    className="font-display text-3xl font-semibold leading-none tracking-[-0.01em] sm:text-4xl"
+                    style={{ color: 'var(--text)' }}
                   >
-                    {region.code}
-                  </span>
-                  <span className="font-display text-3xl font-extrabold tracking-[-0.03em] drop-shadow-md sm:text-4xl">
                     {t(region.labelKey)}
                   </span>
-                  <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm">
+                  <span
+                    className="flex items-center gap-1.5 text-sm font-medium"
+                    style={{ color: 'var(--text-subtle)' }}
+                  >
+                    <Icon name="compass" className="h-3.5 w-3.5" />
                     {t('region.count', { count: region.categories.length })}
                   </span>
-                </div>
+                </span>
               </motion.button>
             </li>
           )

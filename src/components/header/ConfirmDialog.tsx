@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
+import { Button } from '../ui'
 
 interface Props {
   title: string
@@ -35,11 +36,11 @@ export function ConfirmDialog({
         initial={{ opacity: 0, y: 16, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-        className="panel w-full max-w-sm rounded-2xl p-6"
+        className="cartouche w-full max-w-sm p-6"
         style={{ color: 'var(--text)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="confirm-title" className="font-display mb-1 text-xl font-extrabold tracking-tight">
+        <h2 id="confirm-title" className="font-display mb-1 text-2xl font-semibold tracking-[-0.005em]">
           {title}
         </h2>
         <p id="confirm-body" className="text-sm" style={{ color: 'var(--text-subtle)' }}>
@@ -47,21 +48,12 @@ export function ConfirmDialog({
         </p>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            autoFocus
-            onClick={onCancel}
-            className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors"
-            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
-          >
+          <Button autoFocus variant="secondary" size="sm" onClick={onCancel}>
             {t('giveUp.cancel')}
-          </button>
-          <button
-            onClick={onConfirm}
-            className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
-            style={{ background: danger ? 'var(--danger)' : 'var(--accent)' }}
-          >
+          </Button>
+          <Button variant={danger ? 'danger' : 'primary'} size="sm" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>

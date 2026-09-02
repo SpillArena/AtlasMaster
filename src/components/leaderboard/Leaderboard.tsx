@@ -24,7 +24,7 @@ export function Leaderboard({ regionId }: Props) {
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
-      <h1 className="font-display mb-4 flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+      <h1 className="font-display mb-4 flex items-center gap-2 text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}
       </h1>
@@ -45,7 +45,7 @@ export function Leaderboard({ regionId }: Props) {
             className="rounded-full px-4 py-1.5 text-sm font-bold transition-colors"
             style={
               scope === value
-                ? { background: 'var(--accent)', color: '#fff' }
+                ? { background: 'var(--accent)', color: 'var(--color-surface)' }
                 : { color: 'var(--text-subtle)' }
             }
           >
@@ -153,11 +153,11 @@ function Chip({
     <button
       onClick={onClick}
       className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
-        active ? 'text-white' : 'border hover:bg-[var(--surface-card)]'
+        active ? '' : 'border hover:bg-[var(--surface-card)]'
       }`}
       style={
         active
-          ? { background: 'var(--accent)' }
+          ? { background: 'var(--accent)', color: 'var(--color-surface)' }
           : { borderColor: 'var(--border)', color: 'var(--text-subtle)' }
       }
     >

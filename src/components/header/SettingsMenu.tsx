@@ -237,8 +237,8 @@ export default function SettingsMenu() {
         aria-hidden={!open}
         inert={!open}
         className={`
-          panel absolute right-0 top-[calc(100%+0.6rem)] z-[400] w-[19rem] max-w-[calc(100vw-1.5rem)]
-          max-h-[75vh] overflow-y-auto rounded-2xl
+          cartouche absolute right-0 top-[calc(100%+0.6rem)] z-[400] w-[19rem] max-w-[calc(100vw-1.5rem)]
+          max-h-[75vh] overflow-y-auto
           transition-all duration-200 ease-out origin-top-right motion-reduce:transition-none
           ${
             open
@@ -371,8 +371,8 @@ export default function SettingsMenu() {
                 <button
                   type="button"
                   onClick={accept}
-                  className="flex-1 rounded-xl px-3 py-2 text-xs font-bold text-white transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  style={{ background: 'var(--accent)' }}
+                  className="flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ background: 'var(--accent)', color: 'var(--color-surface)' }}
                 >
                   {t('cookieConsent.accept')}
                 </button>
@@ -408,8 +408,8 @@ export default function SettingsMenu() {
                   <button
                     type="button"
                     onClick={handleClearData}
-                    className="flex-1 rounded-xl px-3 py-2 text-xs font-bold text-white"
-                    style={{ background: 'var(--danger)' }}
+                    className="flex-1 rounded-xl px-3 py-2 text-xs font-bold"
+                    style={{ background: 'var(--danger)', color: 'var(--color-surface)' }}
                   >
                     {t('cookieConsent.clearYes')}
                   </button>

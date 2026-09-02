@@ -27,22 +27,22 @@
     "relaxedDesc": "Ta tiden du trenger. Poengene teller 20 % mindre.",
     "normalDesc": "Standardrunden. Full poengsum.",
     "blitzDesc": "Alt du rekker er verdt 40 % mer.",
-    "title": "Velg tempo",
-    "start": "Start runden",
+    "title": "Sett tempoet",
+    "start": "Sett i gang",
     "seconds": "{{count}} sekunder per sted",
     "noClock": "Ingen klokke",
     "beat": "Din rekord her: {{score}}"
   },
   "cookieConsent": {
     "section": "Personvern",
-    "message": "AtlasMaster lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sendes resultatene dine også til den globale ledertavla.",
+    "message": "AtlasMaster lagrer navn, poeng og innstillinger på din egen enhet. Godtar du, sender spillet også resultatene dine til den globale ledertavla.",
     "accept": "Godta",
     "decline": "Avslå",
     "manage": "Endre cookie-innstillinger",
     "showDetails": "Vis hva som lagres",
     "hideDetails": "Skjul detaljer",
     "statusAccepted": "Spillet husker deg på denne enheten, og resultatene dine havner på den globale ledertavla.",
-    "statusDeclined": "Ingenting lagres og ingenting sendes inn. Navn, poeng og valg forsvinner når du lukker fanen.",
+    "statusDeclined": "Spillet lagrer ingenting og sender ingenting. Navn, poeng og valg forsvinner når du lukker fanen.",
     "statusUndecided": "Du har ikke valgt ennå. Spillet lagrer og sender ingenting før du gjør det.",
     "clear": "Slett alt som er lagret",
     "clearConfirm": "Dette sletter navn, ledertavle, nivå og innstillinger. Kan ikke angres.",
@@ -58,7 +58,7 @@
       },
       "scores": {
         "title": "Resultater",
-        "desc": "Ledertavla og personlige rekorder — og resultatene som sendes til den globale tavla."
+        "desc": "Ledertavla, dine personlige rekorder og resultatene som sendes til den globale tavla."
       }
     }
   },
@@ -75,9 +75,10 @@
     "backToArena": "Tilbake til Arena"
   },
   "namePrompt": {
+    "eyebrow": "Skriv deg inn i loggboka",
     "title": "Hva heter du?",
     "editTitle": "Endre navn",
-    "desc": "Navnet vises på ledertavla.",
+    "desc": "Navnet ditt står på ledertavla.",
     "confirm": "Start spill",
     "save": "Lagre",
     "cancel": "Avbryt"
@@ -85,16 +86,16 @@
   "leaderboard": {
     "title": "Ledertavle",
     "all": "Alle",
-    "empty": "Ingen resultater enda — spill en runde!",
+    "empty": "Ingen resultater enda. Spill en runde.",
     "seeAll": "Se hele tavla",
     "global": "Global",
     "local": "Denne enheten",
     "scope": "Velg tavle",
     "loading": "Henter ledertavla …",
-    "offline": "Fikk ikke kontakt med den globale tavla — viser resultatene fra denne enheten.",
+    "offline": "Fikk ikke kontakt med den globale tavla. Viser resultatene fra denne enheten.",
     "region": "Velg region",
     "mode": "Velg spillmodus",
-    "mixedModes": "Modusene er ikke like mye verdt — velg én for en rettferdig sammenligning."
+    "mixedModes": "Modusene er ikke like mye verdt. Velg én for å sammenligne rettferdig."
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
@@ -134,15 +135,15 @@
     "back": "Tilbake",
     "click": {
       "title": "Klikk på kartet",
-      "desc": "Du får et navn — klikk riktig sted på kartet."
+      "desc": "Du får et navn. Klikk riktig sted på kartet."
     },
     "choice": {
       "title": "Flervalg",
-      "desc": "Et sted markeres — velg riktig navn av fire."
+      "desc": "Ett sted lyser opp. Velg navnet av fire."
     },
     "type": {
       "title": "Skriv navnet",
-      "desc": "Et sted markeres — skriv inn navnet."
+      "desc": "Ett sted lyser opp. Skriv inn navnet."
     },
     "difficulty": "Vanskelighet",
     "difficultyLevel": "Vanskelighet {{level}} av 3",
@@ -153,7 +154,7 @@
   },
   "hud": {
     "findThis": "Finn på kartet",
-    "whatIsThis": "Hva heter stedet som er markert?",
+    "whatIsThis": "Navngi stedet som lyser opp",
     "typePlaceholder": "Skriv navnet …",
     "submit": "Svar",
     "skip": "Hopp over",
@@ -196,13 +197,13 @@
   "giveUp": {
     "action": "Gi opp",
     "title": "Gi opp runden?",
-    "body": "Poengene i denne runden går tapt og resultatet havner ikke på ledertavla.",
+    "body": "Du mister poengene i denne runden, og resultatet havner ikke på ledertavla.",
     "confirm": "Gi opp",
     "cancel": "Fortsett å spille"
   },
   "footer": {
     "label": "Bunntekst",
-    "tagline": "AtlasMaster er et kartspill om geografi — én region om gangen, laget for Spillarena.",
+    "tagline": "Et kartspill om geografi, én region om gangen. Laget for Spillarena.",
     "github": "Se på GitHub",
     "madeBy": "Laget av",
     "updated": "Sist oppdatert: {{month}} {{year}}"
@@ -214,6 +215,7 @@
     "asia": "Asia",
     "usa": "USA",
     "count": "{{count}} kategorier",
+    "plate": "Plate {{n}}",
     "back": "Bytt region"
   }
 }

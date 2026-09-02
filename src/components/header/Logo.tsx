@@ -23,7 +23,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
       >
         <AtlasMark className="h-6 w-6" />
         <span
-          className="font-display text-lg font-extrabold tracking-tight"
+          className="font-display text-xl font-semibold tracking-[-0.005em]"
           style={{ color: 'var(--text)' }}
         >
           {t('menu.title')}
@@ -54,16 +54,11 @@ export function Logo({ onClick, size = 'small' }: Props) {
           }}
         />
         <div
-          className="relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 transition-transform duration-300 group-hover:-translate-y-0.5"
-          style={{
-            borderColor: 'var(--border)',
-            background: 'var(--surface-card)',
-            boxShadow: 'inset 0 1px 0 var(--panel-edge)',
-          }}
+          className="plate relative flex items-center gap-3 px-5 py-3 transition-transform duration-300 group-hover:-translate-y-0.5"
         >
           <AtlasMark className="h-9 w-9 sm:h-12 sm:w-12" />
           <span
-            className="font-display text-3xl font-extrabold leading-none tracking-[-0.045em] sm:text-5xl"
+            className="font-display text-4xl font-semibold leading-none tracking-[-0.01em] sm:text-6xl"
             style={{ color: 'var(--text)' }}
           >
             {t('menu.title')}
@@ -75,8 +70,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="text-xs font-medium sm:text-sm"
-        style={{ color: 'var(--text-subtle)' }}
+        className="eyebrow"
       >
         {t('menu.description')}
       </motion.span>

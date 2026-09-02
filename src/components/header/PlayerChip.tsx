@@ -29,8 +29,8 @@ export function PlayerChip({ onEdit }: Props) {
     >
       <span
         aria-hidden
-        className="numeric flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-        style={{ background: 'var(--accent)' }}
+        className="numeric flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+        style={{ background: 'var(--accent)', color: 'var(--color-surface)' }}
       >
         {initial ?? <Icon name="user" className="h-4 w-4" />}
       </span>

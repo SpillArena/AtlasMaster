@@ -49,18 +49,18 @@ export const GameTopBar = memo(function GameTopBar({
   const pct = total ? Math.round((done / total) * 100) : 0
 
   return (
-    <header className="shrink-0 px-2.5 pt-2 sm:px-4">
-      <div className="panel mx-auto max-w-6xl rounded-2xl px-3 py-2.5 sm:px-4">
+    <header className="shrink-0 px-2.5 pt-0.5 sm:px-4 sm:pt-1">
+      <div className="panel mx-auto max-w-6xl rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2">
         <div className="flex items-end justify-between gap-3">
           <div className="flex min-w-0 flex-col">
             <span className="stat-label">{t('result.score')}</span>
             <ScoreTicker
               value={points}
-              className="numeric text-2xl font-bold leading-none sm:text-3xl"
+              className="numeric text-lg font-bold leading-none sm:text-xl"
             />
           </div>
 
-          <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-col items-end gap-1">
             <ComboMeter streak={streak} />
             <dl className="flex items-center gap-3 text-xs font-bold">
               <div className="flex items-center gap-1" style={{ color: 'var(--success)' }}>
@@ -79,7 +79,7 @@ export const GameTopBar = memo(function GameTopBar({
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-1 flex items-center gap-2">
           {/* «7 igjen» — Seterra sitt tydelegaste enkeltgrep: du veit alltid
               kor langt det er att, ikkje berre kor langt du har komme */}
           <span className="numeric shrink-0 text-xs font-bold" style={{ color: 'var(--text-subtle)' }}>

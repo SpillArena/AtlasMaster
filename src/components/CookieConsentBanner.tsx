@@ -23,11 +23,11 @@ export default function CookieConsentBanner() {
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="fixed inset-x-0 bottom-0 z-[500] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6"
         >
-          <div className="panel w-full max-w-screen-md rounded-2xl p-4">
+          <div className="cartouche w-full max-w-screen-md p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
               <div className="min-w-0">
                 <h2
-                  className="font-display text-sm font-extrabold uppercase tracking-[0.18em]"
+                  className="font-display text-lg font-semibold tracking-[-0.005em]"
                   style={{ color: 'var(--text)' }}
                 >
                   {t('cookieConsent.section')}
@@ -58,8 +58,8 @@ export default function CookieConsentBanner() {
                 <button
                   type="button"
                   onClick={accept}
-                  className="flex-1 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] sm:flex-none"
-                  style={{ background: 'var(--accent)' }}
+                  className="flex-1 rounded-xl px-5 py-2.5 text-sm font-bold transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] sm:flex-none"
+                  style={{ background: 'var(--accent)', color: 'var(--color-surface)' }}
                 >
                   {t('cookieConsent.accept')}
                 </button>
