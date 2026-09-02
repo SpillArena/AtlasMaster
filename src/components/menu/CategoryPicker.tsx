@@ -78,7 +78,7 @@ export function CategoryPicker({ region, onPick }: Props) {
                   >
                     <Icon
                       name={c.icon}
-                      className="h-14 w-14 sm:h-20 sm:w-20 md:h-24 md:w-24"
+                      className="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16"
                     />
                   </motion.span>
                   <span className="font-display text-3xl font-extrabold tracking-[-0.03em] drop-shadow-md sm:text-4xl md:text-5xl">

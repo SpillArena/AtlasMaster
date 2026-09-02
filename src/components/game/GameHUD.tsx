@@ -76,13 +76,14 @@ export const GameHUD = memo(function GameHUD({
   }, [flashKey])
 
   return (
-    <footer className="shrink-0 px-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
+    <footer className="shrink-0 px-2.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 sm:px-4">
       <div
         ref={panelRef}
-        className="panel mx-auto flex max-w-6xl flex-col gap-3 rounded-atlas-lg px-3 py-3 sm:px-4"
+        className={`panel mx-auto flex max-w-6xl rounded-atlas-lg px-3 py-1.5 sm:px-4 sm:py-2 ${mode === 'click' ? 'items-center justify-between gap-2' : 'flex-col gap-1.5'
+          }`}
       >
         {mode === 'click' ? (
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="stat-label" style={revealing ? { color: 'var(--info)' } : undefined}>
               {revealing ? t('hud.correctAnswer') : t('hud.findThis')}
             </div>
@@ -92,7 +93,7 @@ export const GameHUD = memo(function GameHUD({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-              className="font-display mt-0.5 flex items-center gap-2.5 text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
+              className="font-display mt-0.5 flex min-w-0 items-center gap-2 truncate text-lg font-extrabold tracking-[-0.03em] sm:text-2xl"
               style={{ color: revealing ? 'var(--info)' : 'var(--text)' }}
             >
               {/*
@@ -103,12 +104,12 @@ export const GameHUD = memo(function GameHUD({
               {emblems && (
                 <FlagBadge set={emblems} featureId={targetKey} className="h-6 w-9 sm:h-8 sm:w-12" />
               )}
-              {targetName}
+              <span className="truncate">{targetName}</span>
             </motion.div>
           </div>
         ) : (
           <div>
-            <div className="stat-label mb-2" style={revealing ? { color: 'var(--info)' } : undefined}>
+            <div className="stat-label mb-1.5" style={revealing ? { color: 'var(--info)' } : undefined}>
               {revealing ? t('hud.correctAnswer') : t('hud.whatIsThis')}
             </div>
             {mode === 'choice' ? (
@@ -129,8 +130,17 @@ export const GameHUD = memo(function GameHUD({
         )}
 
         {/* sekundære handlinger — tydelig ulike fra svar-alternativene */}
-        <div className="flex items-center justify-center gap-2 text-sm">
-          <Button variant="ghost" size="sm" onClick={onSkip} disabled={revealing}>
+        <div
+          className={`flex shrink-0 items-center gap-1 text-xs ${mode === 'click' ? '' : 'justify-center'
+            }`}
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            className="px-2 py-1 text-xs"
+            onClick={onSkip}
+            disabled={revealing}
+          >
             {t('hud.skip')}
           </Button>
           <span aria-hidden style={{ color: 'var(--border)' }}>
@@ -139,6 +149,7 @@ export const GameHUD = memo(function GameHUD({
           <Button
             variant="ghost"
             size="sm"
+            className="px-2 py-1 text-xs"
             onClick={onGiveUp}
             disabled={revealing}
             style={{ color: 'var(--danger)' }}
@@ -160,7 +171,7 @@ export const GameHUD = memo(function GameHUD({
 function RevealedName({ name }: { name: string }) {
   return (
     <div
-      className="rounded-xl border-2 px-4 py-3 text-base font-bold"
+      className="rounded-xl border-2 px-3 py-2 text-sm font-bold"
       style={{ borderColor: 'var(--info)', background: 'var(--surface)', color: 'var(--info)' }}
     >
       {name}
@@ -198,9 +209,8 @@ function ChoiceButtons({
 
   return (
     <ul
-      className={`grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 ${
-        revealId ? 'pointer-events-none' : ''
-      }`}
+      className={`grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 ${revealId ? 'pointer-events-none' : ''
+        }`}
     >
       {choices.map((c, i) => (
         <li key={`${targetKey}-${c.id}`}>
@@ -210,7 +220,7 @@ function ChoiceButtons({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
-            className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left text-base font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-lg"
+            className="flex w-full items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-base"
             style={{
               borderColor: revealId === c.id ? 'var(--info)' : 'var(--border)',
               background: 'var(--surface)',
@@ -219,7 +229,7 @@ function ChoiceButtons({
           >
             <span
               aria-hidden
-              className="numeric flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+              className="numeric flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
               style={{ background: 'var(--map-idle)', color: 'var(--text-subtle)' }}
             >
               {i + 1}
@@ -255,14 +265,14 @@ function TypeInput({ onType }: { onType: (text: string) => void }) {
         autoComplete="off"
         autoCorrect="off"
         placeholder={t('hud.typePlaceholder')}
-        className="flex-1 rounded-xl border-2 px-4 py-3 text-base outline-none transition-colors focus:border-[var(--accent)]"
+        className="flex-1 rounded-xl border-2 px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
         style={{
           borderColor: 'var(--border)',
           background: 'var(--surface)',
           color: 'var(--text)',
         }}
       />
-      <Button type="submit" size="md" className="px-6 text-base font-bold">
+      <Button type="submit" size="sm" className="px-4 text-sm font-bold">
         {t('hud.submit')}
       </Button>
     </form>
