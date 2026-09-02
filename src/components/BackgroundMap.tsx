@@ -10,9 +10,10 @@ interface Props {
 }
 
 /**
- * Arenaens bakvegg: nordlys som ligger og driver, med den valgte regionens
- * omriss tegnet over. Samme projeksjon som spillkartet, men dempet og uten
- * interaksjon — så «her er du» ligger under hver skjerm.
+ * Arenaens bakvegg: den valgte regionens omriss, tegnet svakt over to rolige
+ * flater i atlasets egne toner — aksenten og havet. Samme projeksjon som
+ * spillkartet, men dempet og uten interaksjon, så «her er du» ligger under
+ * hver skjerm uten å konkurrere med innholdet.
  */
 export function BackgroundMap({ regionId }: Props) {
   const [map, setMap] = useState<{ d: string; w: number } | null>(null)
@@ -35,12 +36,12 @@ export function BackgroundMap({ regionId }: Props) {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* nordlys — to drivende felter, aksentfarget så temaet slår igjennom */}
+      {/* to drivende felter: aksenten og havet, så temaet slår igjennom */}
       <div
         className="absolute -left-1/4 -top-1/3 h-[80vh] w-[80vw] rounded-full blur-3xl animate-breathe"
         style={{
           background:
-            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%)',
+            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%)',
         }}
       />
       <div
@@ -48,7 +49,7 @@ export function BackgroundMap({ regionId }: Props) {
         style={{
           animationDelay: '1.2s',
           background:
-            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--info) 20%, transparent), transparent 70%)',
+            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--color-water) 70%, transparent), transparent 70%)',
         }}
       />
 
@@ -56,9 +57,9 @@ export function BackgroundMap({ regionId }: Props) {
         <svg
           viewBox={`0 0 ${map.w} ${H}`}
           preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 h-full w-full opacity-[0.06] dark:opacity-[0.09]"
+          className="absolute inset-0 h-full w-full opacity-[0.12] dark:opacity-[0.14]"
         >
-          <path d={map.d} fill="none" stroke="var(--text)" strokeWidth={1.4} />
+          <path d={map.d} fill="none" stroke="var(--coast)" strokeWidth={1.4} />
         </svg>
       )}
     </div>

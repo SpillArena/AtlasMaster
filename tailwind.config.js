@@ -7,6 +7,7 @@ export default {
       fontFamily: {
         // brødtekst: systemfonten — laster umiddelbart, leses overalt
         sans: [
+          'Inter',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -34,6 +35,21 @@ export default {
         ink: 'var(--text)',
         'ink-muted': 'var(--text-muted)',
         'ink-subtle': 'var(--text-subtle)',
+        // handoff-tokens under sine eigne namn, for nye komponentar
+        primary: 'var(--color-primary)',
+        land: 'var(--color-land)',
+        water: 'var(--color-water)',
+        grid: 'var(--color-grid)',
+      },
+      // eigne namn, ikkje overstyring av rounded-sm/md/lg: dei står i bruk
+      // over heile appen og skal halde fram med å tyde det dei alltid har.
+      borderRadius: {
+        atlas: 'var(--radius-md)',
+        'atlas-lg': 'var(--radius-lg)',
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        panel: 'var(--shadow-panel)',
       },
       keyframes: {
         // treffer HUD-en når combo stiger

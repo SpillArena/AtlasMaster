@@ -23,7 +23,8 @@ const pillStyle = {
 
 /** Rødt for «gi opp» — knappen kaster runden, og skal ikke se ut som navigasjon. */
 const dangerStyle = {
-  background: 'linear-gradient(135deg, #d4143a 0%, #ba0c2f 100%)',
+  background:
+    'linear-gradient(135deg, var(--color-error) 0%, color-mix(in srgb, var(--color-error) 82%, #000) 100%)',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12)',
 }
 

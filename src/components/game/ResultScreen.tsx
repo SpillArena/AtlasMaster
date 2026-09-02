@@ -8,6 +8,7 @@ import { useGameSettings } from '../../contexts/useGameSettings'
 import { MODE_MULTIPLIER } from '../../game/scoring'
 import type { Mode } from '../../game/types'
 import { ScoreTicker } from './ScoreTicker'
+import { Button } from '../ui'
 
 /** Ett sted runden avdekte at ikke satt. */
 export interface MissedItem {
@@ -271,20 +272,12 @@ export function ResultScreen({
           transition={{ delay: 0.7 }}
           className="flex w-full max-w-md flex-col gap-3 sm:flex-row"
         >
-          <button
-            onClick={onRetry}
-            className="flex-1 rounded-2xl px-6 py-4 text-lg font-bold text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: 'var(--accent)' }}
-          >
+          <Button size="lg" onClick={onRetry} className="flex-1">
             {t('result.retry')}
-          </button>
-          <button
-            onClick={onMenu}
-            className="flex-1 rounded-2xl border-2 px-6 py-4 text-lg font-bold transition-colors hover:bg-[var(--surface-card)]"
-            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
-          >
+          </Button>
+          <Button variant="secondary" size="lg" onClick={onMenu} className="flex-1">
             {t('result.menu')}
-          </button>
+          </Button>
         </motion.div>
 
         <motion.button

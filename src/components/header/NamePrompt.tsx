@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { getName, setName } from '../../game/leaderboard'
 import { Icon } from '../Icon'
+import { Button } from '../ui'
 
 interface Props {
   onConfirm: () => void
@@ -66,21 +67,12 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-subtle)' }}
-          >
+          <Button variant="secondary" size="sm" onClick={onCancel}>
             {t('namePrompt.cancel')}
-          </button>
-          <button
-            onClick={submit}
-            disabled={!trimmed}
-            className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
-            style={{ backgroundColor: 'var(--accent)' }}
-          >
+          </Button>
+          <Button size="sm" onClick={submit} disabled={!trimmed}>
             {t(variant === 'edit' ? 'namePrompt.save' : 'namePrompt.confirm')}
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>
