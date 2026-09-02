@@ -157,22 +157,14 @@ function Game({
   }, [state.award?.n])
 
   /*
-   * Feil svar: buzz og eit nikk i kartflata.
-   *
-   * Nikket er ein CSS-keyframe, ikkje ei JS-animasjon. Klassen må fjernast og
-   * leggjast på att med ein reflow imellom for å starte på nytt — alternativet
-   * er ein ny `key` på flata, og det ville rive ned heile kartet for kvart
-   * bomskot.
+   * Feil svar: buzz, og ristinga skjer i HUD-en (sjå `flashKey` under).
+   * Kartflata nikka her før. Etter «Modern Atlas» står kartet stille — det er
+   * hovudpersonen, og tilbakemeldinga høyrer heime i panelet der svaret blei
+   * gjeve.
    */
-  const nudgeRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!state.flash) return
     playSfx('wrong')
-    const el = nudgeRef.current
-    if (!el) return
-    el.classList.remove('map-nudge')
-    void el.offsetWidth
-    el.classList.add('map-nudge')
     // kjøres for hvert nye bomskot
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
@@ -285,13 +277,8 @@ function Game({
         onTimeout={timeout}
       />
 
-      {/*
-        Kart fyller tilgjengelig høyde; flaten får et lite nikk ved feilsvar.
-        Nikket køyrer gjennom `controls` og ikkje ved å byte `key`: ein ny
-        nøkkel ville rive ned og bygge opp att heile kartet — terreng, zoom og
-        alt — for kvart bomskot.
-      */}
-      <div ref={nudgeRef} className="relative min-h-0 flex-1">
+      {/* Kart fyller tilgjengelig høyde. */}
+      <div className="relative min-h-0 flex-1">
         <MapCanvas
           projectionSpec={projection}
           fitData={fitData}
@@ -355,6 +342,7 @@ function Game({
           onType={type}
           onSkip={skip}
           onGiveUp={giveUp}
+          flashKey={state.flash?.n ?? 0}
         />
       )}
     </section>

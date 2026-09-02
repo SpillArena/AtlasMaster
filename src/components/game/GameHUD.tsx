@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import type { EmblemSet } from '../../game/flags'
 import type { Mode } from '../../game/types'
 import { FlagBadge } from './FlagBadge'
+import { Button } from '../ui'
 
 interface Choice {
   id: string
@@ -30,6 +31,12 @@ interface Props {
   onType: (text: string) => void
   onSkip: () => void
   onGiveUp: () => void
+  /**
+   * Tel opp for kvart bomskot. Ristinga høyrer heime her og ikkje på kartet:
+   * kartet er hovudpersonen og skal stå stille, tilbakemeldinga skjer i
+   * panelet der svaret blei gjeve.
+   */
+  flashKey: number
 }
 
 /**
@@ -48,13 +55,32 @@ export const GameHUD = memo(function GameHUD({
   onType,
   onSkip,
   onGiveUp,
+  flashKey,
 }: Props) {
   const { t } = useTranslation()
   const revealing = revealId !== null
 
+  /*
+   * Klassen må fjernast og leggjast på att med ein reflow imellom for å
+   * starte keyframen på nytt; ein ny `key` ville rive ned heile HUD-en —
+   * inkludert tekstfeltet spelaren står og skriv i — for kvart bomskot.
+   */
+  const panelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!flashKey) return
+    const el = panelRef.current
+    if (!el) return
+    el.classList.remove('feedback-shake')
+    void el.offsetWidth
+    el.classList.add('feedback-shake')
+  }, [flashKey])
+
   return (
     <footer className="shrink-0 px-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
-      <div className="panel mx-auto flex max-w-6xl flex-col gap-3 rounded-2xl px-3 py-3 sm:px-4">
+      <div
+        ref={panelRef}
+        className="panel mx-auto flex max-w-6xl flex-col gap-3 rounded-atlas-lg px-3 py-3 sm:px-4"
+      >
         {mode === 'click' ? (
           <div>
             <div className="stat-label" style={revealing ? { color: 'var(--info)' } : undefined}>
@@ -104,25 +130,21 @@ export const GameHUD = memo(function GameHUD({
 
         {/* sekundære handlinger — tydelig ulike fra svar-alternativene */}
         <div className="flex items-center justify-center gap-2 text-sm">
-          <button
-            onClick={onSkip}
-            disabled={revealing}
-            className="rounded-lg px-4 py-2 font-semibold transition-colors hover:text-[var(--text)] disabled:opacity-40"
-            style={{ color: 'var(--text-subtle)' }}
-          >
+          <Button variant="ghost" size="sm" onClick={onSkip} disabled={revealing}>
             {t('hud.skip')}
-          </button>
+          </Button>
           <span aria-hidden style={{ color: 'var(--border)' }}>
             ·
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onGiveUp}
             disabled={revealing}
-            className="rounded-lg px-4 py-2 font-semibold transition-colors disabled:opacity-40"
             style={{ color: 'var(--danger)' }}
           >
             {t('hud.giveUp')}
-          </button>
+          </Button>
         </div>
       </div>
     </footer>
@@ -240,13 +262,9 @@ function TypeInput({ onType }: { onType: (text: string) => void }) {
           color: 'var(--text)',
         }}
       />
-      <button
-        type="submit"
-        className="rounded-xl px-6 py-3 text-base font-bold text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
-        style={{ background: 'var(--accent)' }}
-      >
+      <Button type="submit" size="md" className="px-6 text-base font-bold">
         {t('hud.submit')}
-      </button>
+      </Button>
     </form>
   )
 }

@@ -5,6 +5,7 @@ import { PACES, PACE_META, type Category, type Mode, type Pace } from '../../gam
 import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { Icon } from '../Icon'
+import { Button } from '../ui'
 
 interface Props {
   regionId: string
@@ -97,14 +98,13 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
       </ul>
 
       <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
+        <Button
+          size="lg"
           onClick={() => onStart(pace)}
-          className="w-full max-w-sm rounded-2xl px-8 py-4 text-lg font-extrabold uppercase tracking-[0.12em] text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          style={{ background: 'var(--accent)' }}
+          className="w-full max-w-sm font-extrabold uppercase tracking-[0.12em]"
         >
           {t('pace.start')}
-        </button>
+        </Button>
         {best > 0 && (
           <p className="text-xs font-bold" style={{ color: 'var(--text-subtle)' }}>
             {t('pace.beat', { score: best })}

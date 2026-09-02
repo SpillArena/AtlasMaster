@@ -4,98 +4,149 @@
 
 @layer base {
   /*
-   * Isbre — lyst tema. Kjølig papir med blått i skyggene, så kartet leser
-   * som snø og hav framfor kontordokument.
+   * «Modern Atlas» — designtokens.
+   *
+   * Palettene under er sanninga for heile appen. Alt anna (Tailwind-fargar,
+   * komponentar, kartlaga) peikar hit; ingen komponent skal skrive ein hex.
+   * Namna med `--color-`-prefiks er handoff-kontrakten. Dei eldre namna
+   * (`--bg`, `--surface`, …) ligg att som alias, så eksisterande komponentar
+   * arvar den nye paletten utan å bli skrivne om.
    */
   :root {
-    --accent-base: #f1376e;
+    /* --- handoff-tokens, lys modus --- */
+    --color-surface: #f7f7f5;
+    --color-surface-elevated: #ffffff;
+
+    --color-land: #e8e6df;
+    --color-water: #c9d6df;
+    --color-grid: #bfc6cd;
+
+    --color-primary: #2563eb;
+    --color-success: #16a34a;
+    --color-error: #dc2626;
+    --color-accent-warm: #f59e0b;
+
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-border: #e5e7eb;
+
+    /* glasspanel over kartet */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-blur: 10px;
+
+    /* --- typografi --- */
+    --font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --text-h1-size: 32px;
+    --text-h1-line: 40px;
+    --text-h2-size: 24px;
+    --text-h2-line: 32px;
+    --text-body-size: 16px;
+    --text-body-line: 24px;
+    --text-small-size: 14px;
+    --text-small-line: 20px;
+    --text-caption-size: 12px;
+    --text-caption-line: 16px;
+
+    /* --- form og rytme --- */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-panel: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --duration-in: 180ms;
+    --duration-out: 130ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* --- alias: appens eldre tokennamn --- */
+    --accent-base: var(--color-primary);
     --accent: var(--accent-base);
-    --bg: #eef2f8;
-    --bg-deep: #dde5f0;
-    --text: #0d1526;
-    --text-muted: #0d1526b8;
-    --text-subtle: #0d152680;
-    --border: #0d15261f;
-    --border-hover: #f1376e66;
-    --surface: #ffffffd6;
-    --surface-card: #fffffff2;
-    --nav-bg: #eef2f8e6;
-    /* panel = HUD-flatene: litt tyngre enn surface, med kant som fanger lys */
-    --panel: #ffffffe6;
-    --panel-edge: #ffffff;
+    --bg: var(--color-surface);
+    --bg-deep: #ecebe6;
+    --text: var(--color-text-primary);
+    --text-muted: var(--color-text-secondary);
+    --text-subtle: #64748b;
+    --border: var(--color-border);
+    --border-hover: color-mix(in srgb, var(--accent) 45%, transparent);
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-card: var(--color-surface-elevated);
+    --nav-bg: rgba(247, 247, 245, 0.88);
+    /* panel = flatene som ligg over kartet: lette, ikkje rammer */
+    --panel: var(--glass-bg);
+    --panel-edge: var(--glass-border);
 
-    /* spillsemantikk — flagget og naturen på kartet */
-    --success: #0e8f5c;
-    --danger: #d4143a;
-    --info: #2f55c8;
-    --gold: #d99106;
+    /* spillsemantikk */
+    --success: var(--color-success);
+    --danger: var(--color-error);
+    --info: var(--color-primary);
+    --gold: var(--color-accent-warm);
 
-    --map-idle: #0d152626;
-    --map-idle-hover: #f1376e4d;
+    --map-idle: rgba(15, 23, 42, 0.08);
+    --map-idle-hover: color-mix(in srgb, var(--accent) 28%, transparent);
 
     /*
-     * Kartfargane — same lesing som eit atlas: hav rundt, land oppå.
-     * `--ocean` er flata rett rundt kysten, `--ocean-deep` djupet ute i
-     * kanten av lerretet, så kartet ser ut til å ligge midt i eit hav.
+     * Kartfargane. Havet er `--color-water`, sokkelen tre band som lysnar inn
+     * mot kysten, landet `--color-land`. Rutenettet er `--color-grid`.
      */
-    --ocean: #bcd9ee;
-    --ocean-deep: #8bb6d6;
-    /* kontinentalsokkelen: tre band som lysnar inn mot kysten */
-    --shelf-1: #d3e7f4;
-    --shelf-2: #c2dbef;
-    --shelf-3: #aecfe8;
-    --coast: #5d94bb;
-    --graticule: #0d152614;
+    --ocean: var(--color-water);
+    --ocean-deep: #b3c3ce;
+    --shelf-1: #dbe4ea;
+    --shelf-2: #d0dce4;
+    --shelf-3: #c3d2dc;
+    --coast: #8fa3b0;
+    --graticule: color-mix(in srgb, var(--color-grid) 55%, transparent);
 
-    /* landflata, og administrative grenser i ei nøytral, mørkare tone */
-    --map-land: #dfe7c8;
-    --map-border: #57657a;
+    --map-land: var(--color-land);
+    --map-border: #9aa3ad;
 
     --glow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
-  /*
-   * Polarnatt — mørkt tema. Nesten svart med blått dypt i bunnen, og
-   * nordlysgrønt som belønningsfarge.
-   */
+  /* Mørk modus — same tokens, snudd. */
   .dark {
-    --bg: #05070f;
-    --bg-deep: #01030a;
-    --text: #f2f6ff;
-    --text-muted: #f2f6ffc4;
-    --text-subtle: #f2f6ff82;
-    --border: #ffffff1f;
-    --border-hover: #f1376e73;
-    --surface: #0d1730a8;
-    --surface-card: #101c3ae0;
-    --nav-bg: #060b18d9;
-    --panel: #0c1631cc;
-    --panel-edge: #ffffff26;
+    --color-surface: #111318;
+    --color-surface-elevated: #1b1f27;
 
-    --success: #3df5a8;
-    --danger: #ff3b5c;
-    --info: #5b8cff;
-    --gold: #ffc53d;
+    --color-land: #2a2f38;
+    --color-water: #1f2630;
+    --color-grid: #2e3744;
 
-    --map-idle: #ffffff1f;
-    --map-idle-hover: #f1376e59;
+    --color-primary: #3b82f6;
+    --color-success: #22c55e;
+    --color-error: #ef4444;
+    --color-accent-warm: #f59e0b;
 
-    --ocean: #0b2038;
-    --ocean-deep: #04101f;
-    --shelf-1: #143b5e;
-    --shelf-2: #102c4a;
-    --shelf-3: #0d2540;
-    --coast: #4d7ba6;
-    --graticule: #ffffff12;
+    --color-text-primary: #e5e7eb;
+    --color-text-secondary: #9ca3af;
+    --color-border: #2b313c;
 
-    --map-land: #24352a;
-    --map-border: #93a8bd;
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
 
-    --glow: 0 0 32px rgba(61, 245, 168, 0.25);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+    --bg-deep: #0b0d12;
+    --text-subtle: #7c8695;
+    --surface: rgba(27, 31, 39, 0.72);
+    --nav-bg: rgba(17, 19, 24, 0.88);
+
+    --map-idle: rgba(255, 255, 255, 0.1);
+
+    --ocean-deep: #171d25;
+    --shelf-1: #27303c;
+    --shelf-2: #222a35;
+    --shelf-3: #1c232d;
+    --coast: #46566a;
+    --map-border: #6b7787;
+
+    --glow: 0 0 32px rgba(59, 130, 246, 0.25);
   }
 
   html {
-    @apply font-sans antialiased;
+    @apply antialiased;
+    font-family: var(--font-family);
   }
 
   /* native skjema-elementer arver appens font */
@@ -125,13 +176,52 @@
    * lysere øverst enn nederst, så flatene ser opplyste ut ovenfra.
    */
   .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow:
-      inset 0 1px 0 var(--panel-edge),
-      0 10px 30px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  /*
+   * Kort: den opake flata. Brukast der innhaldet skal lesast som eit ark og
+   * ikkje som eit lag over kartet — glass kostar ei ny sløring per frame, og
+   * skal berre ligge på panela som faktisk flyt over kartflata.
+   */
+  .card {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Tekststilar frå handoff-en. */
+  .text-h1 {
+    font-size: var(--text-h1-size);
+    line-height: var(--text-h1-line);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .text-h2 {
+    font-size: var(--text-h2-size);
+    line-height: var(--text-h2-line);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .text-body {
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-line);
+    font-weight: 400;
+  }
+  .text-small {
+    font-size: var(--text-small-size);
+    line-height: var(--text-small-line);
+    font-weight: 400;
+  }
+  .text-caption {
+    font-size: var(--text-caption-size);
+    line-height: var(--text-caption-line);
+    font-weight: 400;
   }
 
   /* Store tall: poeng, combo, klokke. Alltid tabulære så de ikke hopper. */
@@ -194,7 +284,8 @@
   /* skalering om sitt eige sentrum, ikkje om lerretshjørnet */
   transform-box: fill-box;
   transform-origin: center;
-  animation: award-ring 0.7s ease-out forwards;
+  /* to pulsar på 0,7 s — ringen slår ut, kjem att, og er ferdig */
+  animation: award-ring 0.35s ease-out 2 forwards;
 }
 
 /* poengsummen som stig opp frå treffet */
@@ -220,25 +311,59 @@
 }
 
 /*
- * Nikket kartflata får ved bomskot. Låg i framer-motion før — ei
- * JS-animasjon som flytta heile kartlaget tolv rammer på rad, og tvinga fram
- * ei ny rasterisering av kvar av dei.
+ * Panel som opnar seg: fade inn og eit lite løft. 180 ms — nok til å lesast
+ * som ei rørsle, for kort til å stå i vegen for neste klikk.
  */
-@keyframes map-nudge {
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-in {
+  animation: panel-in var(--duration-in) var(--ease-out) both;
+}
+
+/*
+ * Bomskot: HUD-en ristar, ikkje kartet. Kartet er hovudpersonen og skal stå
+ * stille; tilbakemeldinga høyrer heime i panelet der svaret blei gjeve.
+ */
+@keyframes feedback-shake {
   0%,
   100% {
     transform: translateX(0);
   }
-  25% {
-    transform: translateX(-3px);
+  20% {
+    transform: translateX(-6px);
   }
-  75% {
-    transform: translateX(3px);
+  45% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-3px);
   }
 }
 
-.map-nudge {
-  animation: map-nudge 0.2s ease-in-out;
+/* raudt blink i kanten av same panel */
+@keyframes feedback-flash {
+  0%,
+  100% {
+    border-color: var(--glass-border);
+  }
+  35% {
+    border-color: var(--color-error);
+  }
+}
+
+.feedback-shake {
+  animation:
+    feedback-shake 0.28s ease-in-out,
+    feedback-flash 0.5s ease-out;
 }
 
 /*
@@ -256,6 +381,11 @@
 }
 
 .reduce-motion .sheen-host:hover::after {
+  animation: none;
+}
+
+/* ristinga er rein rørsle og har ingen lesing utan seg sjølv — bort med henne */
+.reduce-motion .feedback-shake {
   animation: none;
 }
 

@@ -1,6 +1,7 @@
 import { createContext } from 'react'
 
 export type AccentColor =
+  | 'atlasblue'
   | 'atlasmaster'
   | 'indigo'
   | 'blue'
@@ -30,6 +31,8 @@ export interface AccentDefinition {
  * standarden — som er nettopp denne fargen. Ingen spiller ser en endring.
  */
 export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
+  // «Modern Atlas»-primærfargen: appens standard etter redesignet
+  atlasblue: { label: 'Atlas Blue', light: '#2563eb', dark: '#3b82f6' },
   atlasmaster: { label: 'AtlasMaster', light: '#f1376e', dark: '#ff4f86' },
   indigo: { label: 'Indigo', light: '#6366f1', dark: '#818cf8' },
   blue: { label: 'Blue', light: '#2563eb', dark: '#60a5fa' },
@@ -46,7 +49,7 @@ export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
   violet: { label: 'Violet', light: '#7c3aed', dark: '#a78bfa' },
 }
 
-export const DEFAULT_ACCENT: AccentColor = 'atlasmaster'
+export const DEFAULT_ACCENT: AccentColor = 'atlasblue'
 
 export interface AccentContextValue {
   accent: AccentColor
