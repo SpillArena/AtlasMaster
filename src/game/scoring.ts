@@ -45,6 +45,9 @@ export const MODE_MULTIPLIER: Record<Mode, number> = {
   choice: 0.8,
   click: 1,
   type: 1.5,
+  // flaggmodusene: ett av fire alternativer, samme innsats som flervalg
+  flag: 0.8,
+  pick: 0.8,
 }
 
 /**

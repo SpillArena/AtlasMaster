@@ -113,7 +113,9 @@
     "usStates": "Learn all 50 states",
     "usCities": "Find America's biggest cities",
     "usRivers": "Learn America's great rivers",
-    "usPeaks": "Learn America's highest peaks"
+    "usPeaks": "Learn America's highest peaks",
+    "worldCountries": "Learn every country on Earth",
+    "worldFlags": "Match flags to countries worldwide"
   },
   "cat": {
     "subtitle": "Choose what to practise",
@@ -128,7 +130,9 @@
     "rivers": "Rivers",
     "peaks": "Peaks",
     "states": "States",
-    "cities": "Cities"
+    "cities": "Cities",
+    "worldCountries": "Countries",
+    "worldFlags": "Flags"
   },
   "mode": {
     "subtitle": "Choose game mode",
@@ -145,6 +149,14 @@
       "title": "Type the name",
       "desc": "One place lights up. Type its name."
     },
+    "flag": {
+      "title": "Name the flag",
+      "desc": "You see a flag. Pick the country it belongs to."
+    },
+    "pick": {
+      "title": "Find the flag",
+      "desc": "You get a country. Pick its flag from four."
+    },
     "difficulty": "Difficulty",
     "difficultyLevel": "Difficulty {{level}} of 3",
     "worth": "Worth ×{{multiplier}} points"
@@ -155,6 +167,8 @@
   "hud": {
     "findThis": "Find on the map",
     "whatIsThis": "Name the place that lights up",
+    "nameThisFlag": "Which country is this?",
+    "pickTheFlag": "Pick this country's flag",
     "typePlaceholder": "Type the name …",
     "submit": "Answer",
     "skip": "Skip",
@@ -214,6 +228,7 @@
     "europe": "Europe",
     "asia": "Asia",
     "usa": "USA",
+    "world": "World",
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",
     "back": "Change region"

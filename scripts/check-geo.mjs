@@ -63,6 +63,11 @@ const CASES = [
     // Alaska inn i si eiga rute.
     wrapsDateline: true,
   },
+  {
+    region: 'Verden',
+    file: 'src/data/world/countries.json',
+    box: { minLon: -180, maxLon: 180, minLat: -60, maxLat: 84 },
+  },
 ]
 
 let failed = false

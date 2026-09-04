@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { flagFor, type EmblemSet, type FlagSpec } from '../../game/flags'
+import { flagImageFor } from '../../game/worldFlags'
 
 /**
  * Flagget til eit land, teikna som SVG frå skildringa i game/flags.ts.
@@ -22,6 +23,21 @@ export const FlagBadge = memo(function FlagBadge({
   featureId: string
   className?: string
 }) {
+  // Verden bruker et bildesett — de andre settene tegnes fra geometri under.
+  if (set === 'world') {
+    const src = flagImageFor(featureId)
+    if (!src) return null
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        className={`${className} shrink-0 rounded-[2px] object-cover`}
+        style={{ boxShadow: '0 0 0 1px var(--border)' }}
+      />
+    )
+  }
+
   const spec = flagFor(set, featureId)
   if (!spec) return null
 

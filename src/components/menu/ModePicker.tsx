@@ -19,6 +19,8 @@ const DIFFICULTY: Record<Mode, number> = {
   choice: 1,
   click: 2,
   type: 3,
+  flag: 1,
+  pick: 1,
 }
 
 /** Instrumentet du svarer med i hver modus. */
@@ -26,6 +28,8 @@ const INSTRUMENT: Record<Mode, IconName> = {
   choice: 'cards',
   click: 'dividers',
   type: 'pen',
+  flag: 'cards',
+  pick: 'seal',
 }
 
 /**
@@ -36,19 +40,22 @@ const INSTRUMENT: Record<Mode, IconName> = {
 export function ModePicker({ regionId, category, onPick }: Props) {
   const { t } = useTranslation()
 
-  // 1–3 velger modus, samme tall som står på radene
+  // kategorien kan overstyre modussettet — flaggkategorien bruker flag/pick
+  const modeList = category.modes ?? MODES
+
+  // tallene velger modus, samme tall som står på radene
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       const index = Number(event.key) - 1
-      if (Number.isNaN(index) || index < 0 || index >= MODES.length) return
+      if (Number.isNaN(index) || index < 0 || index >= modeList.length) return
       const active = document.activeElement
       if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
       playSfx('ui')
-      onPick(MODES[index])
+      onPick(modeList[index])
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onPick])
+  }, [onPick, modeList])
 
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
@@ -60,7 +67,7 @@ export function ModePicker({ regionId, category, onPick }: Props) {
       </div>
 
       <ul className="flex flex-col gap-3">
-        {MODES.map((mode, i) => {
+        {modeList.map((mode, i) => {
           const best = bestFor(regionId, category.id, mode)
           const difficulty = DIFFICULTY[mode]
           return (

@@ -14,10 +14,25 @@ export interface QuizFeature {
 
 export type GeomKind = 'polygon' | 'point' | 'line'
 
-/** Spillmoduser. click = klikk riktig på kart; choice = velg navn; type = skriv navn. */
-export type Mode = 'click' | 'choice' | 'type'
+/**
+ * Spillmoduser.
+ *
+ * Kartmoduser: click = klikk riktig på kart; choice = velg navn; type = skriv navn.
+ * Flaggmoduser (bare der kategorien har et flaggsett): flag = se flagget, velg
+ * landet; pick = se landet, velg flagget.
+ */
+export type Mode = 'click' | 'choice' | 'type' | 'flag' | 'pick'
 
+/** Standardmodusene — de som gjelder for en vanlig kartkategori. */
 export const MODES: Mode[] = ['click', 'choice', 'type']
+
+/** Flaggmodusene — vises bare for kategorier som setter dem eksplisitt. */
+export const FLAG_MODES: Mode[] = ['flag', 'pick']
+
+/** Moduser som svares med fire alternativer (mål + tre distraktorer). */
+export function usesChoices(mode: Mode): boolean {
+  return mode === 'choice' || mode === 'flag' || mode === 'pick'
+}
 
 /** Tempo — hvor lang tid du har per spørsmål, og hva runden er verdt. */
 export type Pace = 'relaxed' | 'normal' | 'blitz'
@@ -42,6 +57,12 @@ export interface Category {
   /** i18n-nøkkel for visningsnavn */
   labelKey: string
   geom: GeomKind
+  /**
+   * Modusene kategorien tilbyr, om den ikke bruker standardsettet (`MODES`).
+   * Flaggkategorien setter `['flag', 'pick']`; en vanlig kartkategori lar
+   * dette stå tomt og får click/choice/type.
+   */
+  modes?: Mode[]
   /** lazy-lastet datasett (code-split per kategori) */
   load: () => Promise<FeatureCollection>
   /** valgfritt bakgrunns-omriss (f.eks. fylker bak by-punkter) */
