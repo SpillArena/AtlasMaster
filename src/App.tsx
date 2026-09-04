@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MotionConfig } from 'framer-motion'
 import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
-import { CategoryPicker, ModePicker, PacePicker, RegionPicker } from './components/menu'
+import { CategoryPicker, ModePicker, PacePicker, WorldMapPicker } from './components/menu'
 import { GameScreen } from './components/game'
 import { Leaderboard, LeaderboardPanel } from './components/leaderboard'
 import { FooterSection } from './components/footer'
@@ -100,7 +100,7 @@ function App() {
                   <Logo onClick={reset} size="large" />
                 </h1>
               </div>
-              <RegionPicker onPick={setRegionId} />
+              <WorldMapPicker onPick={setRegionId} />
               <LeaderboardPanel
                 key={profileVersion}
                 regionId={DEFAULT_REGION_ID}
