@@ -1,5 +1,5 @@
 import { MAX_ATTEMPTS, REQUEUE_GAP, penaltyForMiss, pointsForHit } from './scoring'
-import type { Mode, Pace, QuizFeature } from './types'
+import { usesChoices, type Mode, type Pace, type QuizFeature } from './types'
 
 /**
  * Spelmotoren, utan React.
@@ -132,7 +132,7 @@ export function init({ features, mode, pace }: InitArg): EngineState {
     pace,
     queue,
     status: {},
-    choices: mode === 'choice' && queue[0] ? genChoices(queue[0], features) : [],
+    choices: usesChoices(mode) && queue[0] ? genChoices(queue[0], features) : [],
     flash: null,
     reveal: null,
     attempts: {},
@@ -182,7 +182,7 @@ function nextQuestion(
   return {
     ...state,
     queue,
-    choices: state.mode === 'choice' && queue[0] ? genChoices(queue[0], features) : [],
+    choices: usesChoices(state.mode) && queue[0] ? genChoices(queue[0], features) : [],
     flash: null,
     reveal: null,
     questionStartedAt: now,

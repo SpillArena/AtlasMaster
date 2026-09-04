@@ -22,9 +22,10 @@ const REGION_CATEGORIES = {
   europe: new Set(['countries', 'capitals', 'rivers', 'peaks']),
   asia: new Set(['asiaCountries', 'asiaCapitals', 'asiaRivers', 'asiaPeaks']),
   usa: new Set(['usStates', 'usCities', 'usRivers', 'usPeaks']),
+  world: new Set(['worldCountries', 'worldFlags']),
 }
 
-const MODES = new Set(['click', 'choice', 'type'])
+const MODES = new Set(['click', 'choice', 'type', 'flag', 'pick'])
 const PACES = new Set(['relaxed', 'normal', 'blitz'])
 
 /*
@@ -40,7 +41,7 @@ const SCORING_VERSION = 2
 /** Må speile PACE_META i src/game/types.ts. */
 const PACE_MULTIPLIER = { relaxed: 0.8, normal: 1, blitz: 1.4 }
 /** Må speile MODE_MULTIPLIER i src/game/scoring.ts. */
-const MODE_MULTIPLIER = { choice: 0.8, click: 1, type: 1.5 }
+const MODE_MULTIPLIER = { choice: 0.8, click: 1, type: 1.5, flag: 0.8, pick: 0.8 }
 /** BASE_POINTS + FAST_BONUS, ganget med maks combo (×2). */
 const MAX_POINTS_PER_TARGET = (100 + 60) * 2
 

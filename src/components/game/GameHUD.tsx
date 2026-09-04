@@ -107,6 +107,64 @@ export const GameHUD = memo(function GameHUD({
               <span className="truncate">{targetName}</span>
             </motion.div>
           </div>
+        ) : mode === 'flag' ? (
+          <div>
+            <div className="stat-label mb-1.5" style={revealing ? { color: 'var(--info)' } : undefined}>
+              {revealing ? t('hud.correctAnswer') : t('hud.nameThisFlag')}
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-center">
+                {emblems && (
+                  <motion.div
+                    key={targetKey}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                  >
+                    <FlagBadge
+                      set={emblems}
+                      featureId={targetKey}
+                      className="h-14 w-[5.25rem] sm:h-16 sm:w-24"
+                    />
+                  </motion.div>
+                )}
+              </div>
+              {revealing ? (
+                <RevealedName name={targetName} />
+              ) : (
+                <ChoiceButtons
+                  choices={choices}
+                  targetKey={targetKey}
+                  revealId={revealId}
+                  emblems={null}
+                  onChoose={onChoose}
+                />
+              )}
+            </div>
+          </div>
+        ) : mode === 'pick' ? (
+          <div>
+            <div className="stat-label mb-1.5" style={revealing ? { color: 'var(--info)' } : undefined}>
+              {revealing ? t('hud.correctAnswer') : t('hud.pickTheFlag')}
+            </div>
+            <motion.div
+              key={targetKey}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+              className="font-display mb-2 text-lg font-extrabold tracking-[-0.03em] sm:text-2xl"
+              style={{ color: revealing ? 'var(--info)' : 'var(--text)' }}
+            >
+              {targetName}
+            </motion.div>
+            <FlagChoiceButtons
+              choices={choices}
+              targetKey={targetKey}
+              revealId={revealId}
+              emblems={emblems}
+              onChoose={onChoose}
+            />
+          </div>
         ) : (
           <div>
             <div className="stat-label mb-1.5" style={revealing ? { color: 'var(--info)' } : undefined}>
@@ -236,6 +294,69 @@ function ChoiceButtons({
             </span>
             {emblems && <FlagBadge set={emblems} featureId={c.id} />}
             <span className="min-w-0 truncate">{c.name}</span>
+          </motion.button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
+ * Fire flagg å velge mellom — samme rolle som `ChoiceButtons`, men ruta er
+ * flagget selv og ikke et navn. Tastene 1–4 svarer også her.
+ */
+function FlagChoiceButtons({
+  choices,
+  targetKey,
+  revealId,
+  emblems,
+  onChoose,
+}: {
+  choices: Choice[]
+  targetKey: string
+  revealId: string | null
+  emblems: EmblemSet | null
+  onChoose: (id: string) => void
+}) {
+  useEffect(() => {
+    if (revealId) return
+    function handleKey(event: KeyboardEvent) {
+      const index = Number(event.key) - 1
+      if (Number.isNaN(index) || index < 0 || index >= choices.length) return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+      onChoose(choices[index].id)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [choices, revealId, onChoose])
+
+  return (
+    <ul className={`grid grid-cols-2 gap-2 sm:grid-cols-4 ${revealId ? 'pointer-events-none' : ''}`}>
+      {choices.map((c, i) => (
+        <li key={`${targetKey}-${c.id}`}>
+          <motion.button
+            onClick={() => onChoose(c.id)}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex w-full flex-col items-center gap-1 rounded-xl border-2 px-2 py-2 transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)]"
+            style={{
+              borderColor: revealId === c.id ? 'var(--info)' : 'var(--border)',
+              background: 'var(--surface)',
+            }}
+          >
+            {emblems && (
+              <FlagBadge set={emblems} featureId={c.id} className="h-10 w-16 sm:h-12 sm:w-[4.5rem]" />
+            )}
+            <span
+              aria-hidden
+              className="numeric text-[0.625rem] font-bold"
+              style={{ color: 'var(--text-subtle)' }}
+            >
+              {i + 1}
+            </span>
           </motion.button>
         </li>
       ))}

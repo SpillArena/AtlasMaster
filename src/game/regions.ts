@@ -18,6 +18,7 @@ const norwayCounties = json(() => import('../data/norway/counties.json'))
 const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
 const usStates = json(() => import('../data/usa/states.json'))
+const worldCountries = json(() => import('../data/world/countries.json'))
 
 /**
  * MERK — kategori-id-ane til Noreg er med vilje norske og uendra
@@ -203,6 +204,38 @@ const usaCategories: Category[] = [
   },
 ]
 
+/**
+ * Verden — hele kloden, med to kategorier bygd på samme landdatasett.
+ *
+ * «Land» er et vanlig kartspill: klikk, flervalg eller skriv. «Flagg» bruker
+ * flaggmodusene i stedet — se flagget og velg landet, eller se landet og velg
+ * flagget — og har derfor `modes` satt eksplisitt. Begge deler `emblems:
+ * 'world'`, bildesettet fra scripts/build-world.mjs.
+ */
+const worldCategories: Category[] = [
+  {
+    id: 'worldCountries',
+    labelKey: 'cat.worldCountries',
+    geom: 'polygon',
+    icon: 'map',
+    color: '#14b8a6',
+    gradient: 'from-teal-600 via-[#134e4a] to-[#0b2b29]',
+    load: worldCountries,
+    emblems: 'world',
+  },
+  {
+    id: 'worldFlags',
+    labelKey: 'cat.worldFlags',
+    geom: 'polygon',
+    icon: 'seal',
+    color: '#eab308',
+    gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+    load: worldCountries,
+    emblems: 'world',
+    modes: ['flag', 'pick'],
+  },
+]
+
 export const regions: Region[] = [
   {
     id: 'norway',
@@ -247,6 +280,17 @@ export const regions: Region[] = [
     projection: { kind: 'albersUsa' },
     outline: usStates,
     categories: usaCategories,
+  },
+  {
+    id: 'world',
+    labelKey: 'region.world',
+    code: 'WLD',
+    gradient: 'from-teal-700 via-[#134e4a] to-[#0b2620]',
+    // Natural Earth 1 — kompromissprojeksjonen laget nettopp for verdenskart:
+    // polene krympes, formene holder seg, og ingenting strekkes ut mot kantene.
+    projection: { kind: 'naturalEarth' },
+    outline: worldCountries,
+    categories: worldCategories,
   },
 ]
 

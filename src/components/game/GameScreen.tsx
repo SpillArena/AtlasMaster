@@ -142,6 +142,9 @@ function Game({
   // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
   const fitData = base ?? data
   const isClick = mode === 'click'
+  // kartet peker ut målet i flervalg og skriv. I flaggmodus ville et opplyst
+  // land vært fasiten, så der står kartet stille som bakgrunn.
+  const highlightTarget = mode === 'choice' || mode === 'type'
   // antall faktisk riktige (oppgitt/«vet ikke» = 'revealed' teller ikke)
   const correctCount = Object.values(state.status).filter((s) => s === 'correct').length
 
@@ -288,7 +291,7 @@ function Game({
           status={state.status}
           flashId={state.flash?.id ?? null}
           revealId={state.reveal?.id ?? null}
-          highlightId={isClick ? null : (target?.id ?? null)}
+          highlightId={highlightTarget ? (target?.id ?? null) : null}
           award={state.award}
           interactive={isClick}
           onPick={guess}

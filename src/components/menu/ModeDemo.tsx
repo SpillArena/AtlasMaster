@@ -145,10 +145,58 @@ function TypeDemo() {
   )
 }
 
+/** Se flagget, velg landet: et flagg over, fire navnestriper under. */
+function FlagDemo() {
+  return (
+    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+      <g>
+        <rect x="34" y="8" width="52" height="24" rx="2" fill="var(--map-idle)" stroke="var(--border)" strokeWidth="1.4" />
+        <rect x="34" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--accent) 55%, transparent)" />
+        <rect x="68.7" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--accent) 25%, transparent)" />
+      </g>
+      {[0, 1].map((i) => (
+        <rect key={i} x={10 + i * 52} y="44" width="48" height="12" rx="6" fill="var(--map-idle)" stroke="var(--border)" strokeWidth="1.3" />
+      ))}
+      {[0, 1].map((i) => (
+        <rect key={`b${i}`} x={10 + i * 52} y="62" width="48" height="12" rx="6"
+          fill={i === 0 ? 'color-mix(in srgb, var(--accent) 22%, transparent)' : 'var(--map-idle)'}
+          stroke={i === 0 ? 'var(--accent)' : 'var(--border)'} strokeWidth="1.3" />
+      ))}
+      <motion.rect x="8" y="60" width="52" height="16" rx="7" fill="none" stroke="var(--accent)" strokeWidth="2"
+        animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }} />
+    </svg>
+  )
+}
+
+/** Se landet, velg flagget: fire flagg-ruter, én rammet inn. */
+function PickDemo() {
+  return (
+    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+      {[0, 1, 2, 3].map((i) => {
+        const x = 12 + (i % 2) * 52
+        const y = 8 + Math.floor(i / 2) * 34
+        const answer = i === 2
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width="44" height="26" rx="2" fill="var(--map-idle)" stroke={answer ? 'var(--accent)' : 'var(--border)'} strokeWidth={answer ? 2 : 1.3} />
+            <rect x={x} y={y} width="44" height={13} fill="color-mix(in srgb, var(--accent) 30%, transparent)" />
+            {answer && (
+              <motion.rect x={x - 2} y={y - 2} width="48" height="30" rx="3" fill="none" stroke="var(--accent)" strokeWidth="2"
+                animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }} />
+            )}
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 const DEMOS: Record<Mode, () => React.JSX.Element> = {
   click: ClickDemo,
   choice: ChoiceDemo,
   type: TypeDemo,
+  flag: FlagDemo,
+  pick: PickDemo,
 }
 
 export function ModeDemo({ mode }: { mode: Mode }) {

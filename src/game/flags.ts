@@ -185,12 +185,16 @@ const US_STATE_FLAGS: Record<string, FlagSpec> = {
  * Id-ane frå to datasett kan vere like utan å tyde det same, så settet er
  * ikkje ein bekvemmelegheit — det er det som gjer oppslaget eintydig.
  */
-export type EmblemSet = 'europe' | 'usStates'
+export type EmblemSet = 'europe' | 'usStates' | 'world'
 
-const SETS: Record<EmblemSet, Record<string, FlagSpec>> = {
+const SETS: Partial<Record<EmblemSet, Record<string, FlagSpec>>> = {
   europe: EUROPE_FLAGS,
   usStates: US_STATE_FLAGS,
 }
+
+// Verdensflaggene er bilder, ikke geometri — se game/worldFlags.ts. Den
+// modulen holdes atskilt fordi den bruker Vites `import.meta.glob`, som ikke
+// finnes når scripts/check-geo.mjs laster denne fila under node.
 
 /**
  * Merket til eit sted, eller null når vi ikkje har eit truverdig eitt.
@@ -199,7 +203,7 @@ const SETS: Record<EmblemSet, Record<string, FlagSpec>> = {
  * manglande merke skal aldri kunne stoppe eit svar.
  */
 export function flagFor(set: EmblemSet, featureId: string): FlagSpec | null {
-  return SETS[set][featureId] ?? null
+  return SETS[set]?.[featureId] ?? null
 }
 
 /** Kor mange av stadene i eit datasett vi faktisk kan teikne. Brukt av testar. */
@@ -207,7 +211,7 @@ export function flagCoverage(
   set: EmblemSet,
   ids: string[],
 ): { drawn: string[]; missing: string[] } {
-  const table = SETS[set]
+  const table = SETS[set] ?? {}
   const drawn: string[] = []
   const missing: string[] = []
   for (const id of ids) (table[id] ? drawn : missing).push(id)
