@@ -1,24 +1,78 @@
 import { readPreference, writePreference } from '../lib/cookieConsent'
-import type { Mode } from './types'
+import type { Mode, Pace } from './types'
+import type { Rank } from './rank'
+import { earnedBadgeIds } from './badges'
 
 /**
- * Spillerprofil: samlet XP (= sum av alle poengsummer), antall runder og
- * personlig rekord per kategori+modus. Brukes til nivåmerket i headeren og
- * «ny rekord»-blinket på resultatskjermen.
+ * Spillerprofil: samlet XP (= sum av alle poengsummer), antall runder,
+ * personlig rekord per kategori+modus, og en liten logg over hva slags runder
+ * det faktisk har vært. Brukes til nivåmerket i headeren, «ny rekord»-blinket
+ * på resultatskjermen, og merkene i profilen.
  */
 
 const STORAGE_KEY = 'progress'
 /** XP for å nå nivå n: 600·(n−1)² — nivå 2 på 600, nivå 5 på 9600. */
 const XP_PER_LEVEL = 600
 
+/**
+ * Hva slags runder det har vært.
+ *
+ * Merkene i profilen spør om ting én poengsum ikke kan svare på — har du spilt
+ * alle regionene, har du hatt en runde uten et eneste bomskudd, hvor lang har
+ * den lengste rekka vært. Alt her er summer og tellinger som bare vokser, så
+ * en profil fra før dette fantes leses inn med nuller og begynner å telle fra
+ * der den står; ingenting går tapt, og ingenting later som det har skjedd.
+ */
+export interface Stats {
+  /** lengste rekke riktige på rad, gjennom alle runder */
+  bestStreak: number
+  /** runder uten et eneste bomskudd */
+  flawless: number
+  /** runder med toppkarakter */
+  topRanks: number
+  totalCorrect: number
+  totalMistakes: number
+  /** spilte runder per region, modus og tempo */
+  byRegion: Record<string, number>
+  byMode: Partial<Record<Mode, number>>
+  byPace: Partial<Record<Pace, number>>
+  /** `${regionId}:${categoryId}` som er spilt minst én gang */
+  categoriesPlayed: string[]
+}
+
 export interface Progress {
   xp: number
   plays: number
   /** `${regionId}:${categoryId}:${mode}` → beste poengsum */
   best: Record<string, number>
+  stats: Stats
 }
 
-const EMPTY: Progress = { xp: 0, plays: 0, best: {} }
+const EMPTY_STATS: Stats = {
+  bestStreak: 0,
+  flawless: 0,
+  topRanks: 0,
+  totalCorrect: 0,
+  totalMistakes: 0,
+  byRegion: {},
+  byMode: {},
+  byPace: {},
+  categoriesPlayed: [],
+}
+
+const EMPTY: Progress = { xp: 0, plays: 0, best: {}, stats: EMPTY_STATS }
+
+/** Fyller ut det en eldre lagret profil ikke hadde. */
+function withStats(raw: Partial<Stats> | undefined): Stats {
+  return {
+    ...EMPTY_STATS,
+    ...raw,
+    byRegion: { ...(raw?.byRegion ?? {}) },
+    byMode: { ...(raw?.byMode ?? {}) },
+    byPace: { ...(raw?.byPace ?? {}) },
+    categoriesPlayed: [...(raw?.categoriesPlayed ?? [])],
+  }
+}
 
 /**
  * Rekordnøklene var `${categoryId}:${mode}` før regionene fantes. Slike
@@ -48,13 +102,14 @@ export function getProgress(): Progress {
         xp: parsed.xp ?? 0,
         plays: parsed.plays ?? 0,
         best: migrateBestKeys(parsed.best ?? {}),
+        stats: withStats(parsed.stats),
       }
       return session
     }
   } catch {
     /* ødelagt profil — start på nytt */
   }
-  session = { ...EMPTY, best: {} }
+  session = { ...EMPTY, best: {}, stats: withStats(undefined) }
   return session
 }
 
@@ -121,15 +176,27 @@ export interface RunResult {
   levelAfter: number
   leveledUp: boolean
   xp: number
+  /** merker som ble låst opp av nettopp denne runden */
+  earned: string[]
+}
+
+/** Alt en fullført runde forteller om seg selv. */
+export interface RunFacts {
+  regionId: string
+  categoryId: string
+  mode: Mode
+  pace: Pace
+  score: number
+  correctCount: number
+  total: number
+  mistakes: number
+  bestStreak: number
+  rank: Rank
 }
 
 /** Registrerer en fullført runde og returnerer hva som endret seg. */
-export function recordRun(
-  regionId: string,
-  categoryId: string,
-  mode: Mode,
-  score: number,
-): RunResult {
+export function recordRun(facts: RunFacts): RunResult {
+  const { regionId, categoryId, mode, pace, score } = facts
   const progress = getProgress()
   const key = bestKey(regionId, categoryId, mode)
   const previousBest = progress.best[key] ?? 0
@@ -137,11 +204,30 @@ export function recordRun(
   const xp = progress.xp + Math.max(0, score)
   const levelAfter = levelFromXp(xp)
 
-  save({
+  const before = progress.stats
+  const categoryKey = `${regionId}:${categoryId}`
+  const stats: Stats = {
+    bestStreak: Math.max(before.bestStreak, facts.bestStreak),
+    // «uten et eneste bomskudd» betyr også at runden faktisk ble fullført
+    flawless: before.flawless + (facts.mistakes === 0 && facts.correctCount === facts.total ? 1 : 0),
+    topRanks: before.topRanks + (facts.rank === 'S' ? 1 : 0),
+    totalCorrect: before.totalCorrect + facts.correctCount,
+    totalMistakes: before.totalMistakes + facts.mistakes,
+    byRegion: { ...before.byRegion, [regionId]: (before.byRegion[regionId] ?? 0) + 1 },
+    byMode: { ...before.byMode, [mode]: (before.byMode[mode] ?? 0) + 1 },
+    byPace: { ...before.byPace, [pace]: (before.byPace[pace] ?? 0) + 1 },
+    categoriesPlayed: before.categoriesPlayed.includes(categoryKey)
+      ? before.categoriesPlayed
+      : [...before.categoriesPlayed, categoryKey],
+  }
+
+  const next: Progress = {
     xp,
     plays: progress.plays + 1,
     best: { ...progress.best, [key]: Math.max(previousBest, score) },
-  })
+    stats,
+  }
+  save(next)
 
   return {
     previousBest,
@@ -150,7 +236,22 @@ export function recordRun(
     levelAfter,
     leveledUp: levelAfter > levelBefore,
     xp,
+    earned: newlyEarned(progress, next),
   }
+}
+
+/**
+ * Merker denne runden låste opp.
+ *
+ * Regnes ut som differansen mellom før og etter, ikke lagret som en liste.
+ * Et merke er en påstand om profilen — «du har spilt alle regionene» — og en
+ * påstand skal utledes av tilstanden, ikke vedlikeholdes ved siden av den, der
+ * de to kan komme i utakt.
+ */
+function newlyEarned(before: Progress, after: Progress): string[] {
+  // importeres her for å bryte en syklus: badges leser Progress
+  const had = new Set(earnedBadgeIds(before))
+  return earnedBadgeIds(after).filter((id) => !had.has(id))
 }
 
 /** Glemmer profilen i minnet — kalles når lagrede data slettes. */

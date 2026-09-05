@@ -5,6 +5,7 @@ import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
 import { CategoryPicker, ModePicker, PacePicker, WorldMapPicker } from './components/menu'
 import { GameScreen } from './components/game'
 import { Leaderboard, LeaderboardPanel } from './components/leaderboard'
+import { ProfilePanel } from './components/profile'
 import { FooterSection } from './components/footer'
 import { BackgroundMap } from './components/BackgroundMap'
 import { useGameSettings } from './contexts/useGameSettings'
@@ -25,6 +26,8 @@ function App() {
   // tempo som venter på at spilleren skriver inn navn
   const [pendingPace, setPendingPace] = useState<Pace | null>(null)
   const [editingName, setEditingName] = useState(false)
+  // profilen: alt spillet vet om deg, som ikke fantes noe sted før
+  const [showProfile, setShowProfile] = useState(false)
   const [confirmGiveUp, setConfirmGiveUp] = useState(false)
   // teller opp når en runde er lagret, så header og ledertavle leses på nytt
   const [profileVersion, setProfileVersion] = useState(0)
@@ -96,7 +99,7 @@ function App() {
           onBack={goBack}
           onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
-          onEditName={() => setEditingName(true)}
+          onEditName={() => setShowProfile(true)}
           profileVersion={profileVersion}
           trail={trail}
         />
@@ -177,6 +180,16 @@ function App() {
               reset()
             }}
             onCancel={() => setConfirmGiveUp(false)}
+          />
+        )}
+
+        {showProfile && (
+          <ProfilePanel
+            onAccount={() => {
+              setShowProfile(false)
+              setEditingName(true)
+            }}
+            onClose={() => setShowProfile(false)}
           />
         )}
 

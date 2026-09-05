@@ -18,6 +18,7 @@ import { recordRun, type RunResult } from '../../game/progress'
 import { SCORING_VERSION } from '../../game/scoring'
 import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
+import { rankFor } from '../../game/rank'
 import type { CloudOutcome } from './ResultScreen'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { MapCanvas } from './MapCanvas'
@@ -239,7 +240,25 @@ function Game({
         else setCloud({ rank: null, problem: result.reason })
       })
     }
-    setRun(recordRun(regionId, categoryId, mode, state.points))
+    setRun(
+      recordRun({
+        regionId,
+        categoryId,
+        mode,
+        pace: state.pace,
+        score: state.points,
+        correctCount,
+        total: state.total,
+        mistakes: state.mistakes,
+        bestStreak: state.bestStreak,
+        rank: rankFor({
+          correctCount,
+          total: state.total,
+          mistakes: state.mistakes,
+          bestStreak: state.bestStreak,
+        }),
+      }),
+    )
     onRunRecorded()
     // kjøres kun ved overgang til 'finished'
     // eslint-disable-next-line react-hooks/exhaustive-deps

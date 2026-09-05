@@ -269,5 +269,99 @@
       "unreachable": "Ikkje noko svar frå tenaren. Du kan framleis spele utan konto.",
       "failed": "Det gjekk ikkje. Prøv igjen."
     }
+  },
+  "profile": {
+    "eyebrow": "Feltbok",
+    "signedIn": "Innlogga — poeng kjem på den globale tavla",
+    "guest": "Speler utan konto — poenga blir verande på denne eininga",
+    "account": "Konto",
+    "stats": "Karriere",
+    "rounds": "Runder",
+    "xp": "XP",
+    "flawless": "Reine runder",
+    "favourite": "Mest spelt",
+    "badges": "Merke",
+    "records": "Personlege rekordar",
+    "noRecords": "Ingenting notert enno. Spel ei runde, så dukkar ho opp her.",
+    "xpToNext": "{{into}} av {{need}} XP til neste nivå",
+    "close": "Lukk"
+  },
+  "badge": {
+    "firstRound": {
+      "title": "Fyrste land i sikte",
+      "desc": "Fullfør den fyrste runda di."
+    },
+    "tenRounds": {
+      "title": "Ti reiser",
+      "desc": "Fullfør ti runder."
+    },
+    "fiftyRounds": {
+      "title": "Femti reiser",
+      "desc": "Fullfør femti runder."
+    },
+    "hundredRounds": {
+      "title": "Hundre reiser",
+      "desc": "Fullfør hundre runder."
+    },
+    "flawless": {
+      "title": "Blankt ark",
+      "desc": "Fullfør ei runde utan eit einaste bomskot."
+    },
+    "tenFlawless": {
+      "title": "Stø hand",
+      "desc": "Ti runder utan eit einaste bomskot."
+    },
+    "topRank": {
+      "title": "Uråkeleg",
+      "desc": "Få toppkarakter på ei runde."
+    },
+    "streakTen": {
+      "title": "Ti på rad",
+      "desc": "Ti rette på rad."
+    },
+    "streakTwentyFive": {
+      "title": "Tjuefem på rad",
+      "desc": "Tjuefem rette på rad."
+    },
+    "streakFifty": {
+      "title": "Femti på rad",
+      "desc": "Femti rette på rad."
+    },
+    "everyRegion": {
+      "title": "Heile atlaset",
+      "desc": "Spel ei runde i kvar region."
+    },
+    "everyCategory": {
+      "title": "Kvar plate",
+      "desc": "Spel kvar einaste kategori i boka."
+    },
+    "worldTraveller": {
+      "title": "Jordomseglar",
+      "desc": "Spel ei runde på verdskartet."
+    },
+    "everyMode": {
+      "title": "Alle fem hender",
+      "desc": "Spel kvar modus minst éin gong."
+    },
+    "typist": {
+      "title": "Pennen",
+      "desc": "Tjuefem runder der du skriv namnet."
+    },
+    "blitz": {
+      "title": "Mot glaset",
+      "desc": "Tjuefem runder i lyntempo."
+    },
+    "flagBearer": {
+      "title": "Flaggberar",
+      "desc": "Spel ei runde i ein flaggmodus."
+    },
+    "levelFive": {
+      "title": "Nivå fem",
+      "desc": "Nå nivå fem."
+    },
+    "levelTen": {
+      "title": "Nivå ti",
+      "desc": "Nå nivå ti."
+    }
   }
 }
