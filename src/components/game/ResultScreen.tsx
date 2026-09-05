@@ -341,8 +341,15 @@ function Stat({
 }) {
   return (
     <div className="panel flex flex-col items-center gap-1 rounded-2xl p-3">
+      {/*
+        `.flare-rise` — signalblusset som stiger — har ligget i index.css siden
+        temaet ble skrevet og har aldri vært brukt av noe. Det hører hjemme
+        akkurat her: tallet kommer opp av ruta i stedet for å stå der ferdig.
+        Ren CSS på transform og opacity, så det er gratis, og
+        `.reduce-motion` slår det av med resten.
+      */}
       <Icon name={icon} className="h-5 w-5" style={{ color: tone }} />
-      <dd className="numeric order-1 m-0 text-xl font-bold">{value}</dd>
+      <dd className="numeric flare-rise order-1 m-0 text-xl font-bold">{value}</dd>
       <dt className="stat-label order-2">{label}</dt>
     </div>
   )

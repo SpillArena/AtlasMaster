@@ -159,6 +159,21 @@ export function WorldMapPicker({ onPick }: Props) {
     return { shapes, labels, height };
   }, [data]);
 
+  /*
+   * Peilinga kompasset skal vise: frå midten av kartet til regionen musa er
+   * over. Nålen har alltid hatt ein overgang som kunne ta henne dit — han
+   * fyrte berre aldri, fordi ingen sende inn ei peiling.
+   */
+  const heading = useMemo(() => {
+    if (!built || !hover) return null;
+    const target = built.labels[hover];
+    if (!target) return null;
+    const dx = target[0] - W / 2;
+    const dy = target[1] - built.height / 2;
+    // atan2(aust, nord): null grader er opp, og vinkelen aukar med klokka
+    return (Math.round((Math.atan2(dx, -dy) * 180) / Math.PI) + 360) % 360;
+  }, [built, hover]);
+
   const pick = (regionId: string) => {
     playSfx("ui");
     onPick(regionId);
@@ -332,6 +347,8 @@ export function WorldMapPicker({ onPick }: Props) {
 
         <PirateCompass
           size={128}
+          heading={heading}
+          label={t("region.title")}
           className="pointer-events-none absolute bottom-4 left-4 z-10 hidden drop-shadow-lg sm:inline-grid"
         />
       </div>

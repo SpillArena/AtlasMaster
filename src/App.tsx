@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MotionConfig } from 'framer-motion'
+import { MotionConfig, motion as fm } from 'framer-motion'
 import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
 import { CategoryPicker, ModePicker, PacePicker, WorldMapPicker } from './components/menu'
 import { GameScreen } from './components/game'
@@ -104,7 +104,22 @@ function App() {
           trail={trail}
         />
 
-        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/*
+          Overgangen mellom skjermene.
+          Region, kategori, modus, tempo og runden byttet før ut innholdet i
+          `main` uten et bilde imellom — fire nesten like skjermer som klippet
+          brått fra en til neste. Nøkkelen er hvor man står, så React bytter ut
+          treet og motion spiller inn det nye; det er `opacity` og `transform`,
+          altså kompositoren, og `MotionConfig` øverst slår det av under
+          «mindre bevegelse» sammen med resten.
+        */}
+        <fm.main
+          key={`${showLeaderboard ? 'board' : (regionId ?? 'root')}:${categoryId ?? ''}:${mode ?? ''}:${pace ?? ''}`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {showLeaderboard ? (
             <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} />
           ) : !region ? (
@@ -156,7 +171,7 @@ function App() {
               onRunRecorded={() => setProfileVersion((v) => v + 1)}
             />
           )}
-        </main>
+        </fm.main>
 
         {pendingPace && (
           <NamePrompt

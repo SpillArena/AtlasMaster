@@ -1,16 +1,34 @@
+/**
+ * Kompasset på landingssiden.
+ *
+ * Det var tegnet ferdig og stod helt stille. Nålen hadde en overgang som
+ * aldri fyrte, fordi ingen sendte inn en `heading`; den hardkodede
+ * aria-etiketten var engelsk i en app som snakker to språk; og hver montering
+ * skrøv en `<style>`-blokk inn i DOM-en på nytt, med farger som ikke visste at
+ * appen har et mørkt tema.
+ *
+ * Nå peker det. `heading` kommer fra regionen musa er over, og nålen svinger
+ * dit med overgangen som alltid har ligget der. Uten en peiling driver den
+ * sakte rundt nord, slik en magnetnål gjør når ingenting drar i den.
+ */
 type PirateCompassProps = {
     size?: number;
     className?: string;
-    heading?: number; // 0-359, where 0 = north
+    /** 0-359, der 0 = nord. `null` = ingenting å peke på, nålen driver. */
+    heading?: number | null;
     showNeedle?: boolean;
+    /** tilgjengelig navn — må komme utenfra, appen snakker to språk */
+    label?: string;
 };
 
 export default function PirateCompass({
     size = 240,
     className = "",
-    heading = 0,
+    heading = null,
     showNeedle = true,
+    label = "Compass",
 }: PirateCompassProps) {
+    const pointing = heading !== null && Number.isFinite(heading);
     const center = 200;
     const roseOuter = 116;
     const roseInner = 74;
@@ -55,9 +73,9 @@ export default function PirateCompass({
 
     return (
         <div
-            className={`pirate-compass ${className}`}
+            className={`pirate-compass relative ${className}`}
             style={{ width: size, height: size }}
-            aria-label="Compass"
+            aria-label={label}
             role="img"
         >
             <svg viewBox="0 0 400 400" className="pirate-compass__svg">
@@ -279,7 +297,15 @@ export default function PirateCompass({
                 </g>
 
                 <g transform="translate(200 200)">
-                    <g transform={`rotate(${heading})`} className="pirate-compass__needleWrap">
+                    {/*
+                      Uten en peiling driver nålen sakte rundt nord — en
+                      magnetnål står aldri helt stille. Med en peiling slår
+                      driften av, og overgangen i stilarket tar nåla dit.
+                    */}
+                    <g
+                        transform={`rotate(${pointing ? heading : 0})`}
+                        className={`pirate-compass__needleWrap${pointing ? "" : " is-adrift"}`}
+                    >
                         {showNeedle && (
                             <>
                                 <path
@@ -340,64 +366,7 @@ export default function PirateCompass({
                     <path d="M236 292 C264 283, 285 265, 299 243" stroke="#5c3514" strokeWidth="1.8" fill="none" />
                 </g>
             </svg>
-
-            <style>{`
-        .pirate-compass {
-          border-radius: 50%;
-          user-select: none;
-          isolation: isolate;
-          filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.35));
-        }
-
-        .pirate-compass__svg {
-          width: 100%;
-          height: 100%;
-          overflow: visible;
-        }
-
-        .pirate-compass__label {
-          font-family: Georgia, "Times New Roman", serif;
-          fill: #163f45;
-          letter-spacing: 0;
-          paint-order: stroke;
-          stroke: rgba(245, 225, 178, 0.35);
-          stroke-width: 1.4px;
-        }
-
-        .pirate-compass__label--cardinal {
-          font-size: 25px;
-          font-weight: 700;
-        }
-
-        .pirate-compass__label--cardinal.is-north {
-          fill: #9e2d1e;
-          font-size: 31px;
-        }
-
-        .pirate-compass__label--minor {
-          font-size: 12px;
-          font-weight: 700;
-          opacity: 0.88;
-        }
-
-        .pirate-compass__degree {
-          font-family: Georgia, "Times New Roman", serif;
-          font-size: 9px;
-          font-weight: 700;
-          fill: #6c4923;
-          letter-spacing: 0;
-          opacity: 0.75;
-        }
-
-        .pirate-compass__needleWrap {
-          transform-origin: center;
-          transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .pirate-compass__fleur {
-          filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22));
-        }
-      `}</style>
+            <span className="pirate-compass__dome" aria-hidden />
         </div>
     );
 }
