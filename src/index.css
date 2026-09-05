@@ -200,6 +200,56 @@
     background: var(--accent);
     color: var(--color-surface);
   }
+
+  /*
+   * Pekeren: en pennesplitt.
+   *
+   * Hele appen er en feltbok, og markøren var det siste stedet operativsystemet
+   * fortsatt tegnet 2010-tallet inn i den. Splitten er den samme formen i begge
+   * tilstander — bare fyllet skifter, fra papir til messing — så hotspotten
+   * ligger i samme spiss uansett, og man aldri må lete etter hvor pekeren
+   * faktisk peker.
+   *
+   * Lyst fyll med mørk kontur leses på både papir og lampelys, så det trengs
+   * ikke to sett for de to temaene.
+   *
+   * Tre forbehold er bakt inn. Nøkkelordet etter URL-en er ikke pynt: klarer
+   * ikke nettleseren å laste bildet, står det fortsatt en fungerende peker der.
+   * `pointer: fine` holder hele greia unna berøringsskjermer, der det ikke
+   * finnes noen markør å bytte ut. Og skrivefelt beholder operativsystemets
+   * egen tekstmarkør — den er en presisjonsindikator folk leser posisjon ut av,
+   * ikke dekor.
+   */
+  @media (pointer: fine) {
+    :root {
+      --cursor-nib: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23f5eedd' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23a9772f' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+      --cursor-nib-brass: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23c9a15a' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23fff3d4' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='20.5' cy='20.5' r='2.6' fill='%23fff3d4' stroke='%23211f17' stroke-width='1.2'/%3E%3C/svg%3E");
+    }
+
+    body {
+      cursor: var(--cursor-nib) 3 2, default;
+    }
+
+    a,
+    button,
+    summary,
+    label[for],
+    [role='button'],
+    .cursor-pointer,
+    select {
+      cursor: var(--cursor-nib-brass) 3 2, pointer;
+    }
+
+    :disabled,
+    [aria-disabled='true'] {
+      cursor: var(--cursor-nib) 3 2, not-allowed;
+    }
+
+    input,
+    textarea {
+      cursor: text;
+    }
+  }
 }
 
 @layer components {
@@ -597,6 +647,24 @@
 }
 .panel-in {
   animation: panel-in var(--duration-in) var(--ease-out) both;
+}
+
+/*
+ * Kronometeret de siste sekundene. Puls på `transform` og `opacity` — begge
+ * går til kompositoren, så ingenting av dette rører hovedtråden i det sekundet
+ * spillet skal kjennes raskest.
+ */
+@keyframes chrono-urgent {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+.chrono-urgent {
+  animation: chrono-urgent 1s ease-in-out infinite;
 }
 
 /* bomskudd: HUD-en rister, ikke kartet */
