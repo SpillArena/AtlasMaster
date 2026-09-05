@@ -68,24 +68,17 @@ export default {
           '0%, 100%': { opacity: '0.35' },
           '50%': { opacity: '0.9' },
         },
-        // lakkseglet blir pressa ned
-        'stamp-press': {
-          '0%': { transform: 'scale(2.1) rotate(-14deg)', opacity: '0' },
-          '60%': { transform: 'scale(0.94) rotate(-7deg)', opacity: '1' },
-          '100%': { transform: 'scale(1) rotate(-6deg)', opacity: '1' },
-        },
-        // signalbluss som stig
-        'flare-rise': {
-          '0%': { transform: 'translateY(6px) scale(0.9)', opacity: '0' },
-          '100%': { transform: 'translateY(-2px) scale(1)', opacity: '1' },
-        },
       },
+      // MERK — `stamp-press` og `flare-rise` stod også her, med nøyaktig same
+      // keyframes som i index.css. To definisjonar av same animasjon er éi for
+      // mange: den eine blir endra, den andre ikkje, og kva av dei som vinn
+      // kjem an på kva rekkjefølgje laga hamnar i. Dei bur i index.css saman
+      // med resten av kartanimasjonane; klassane heiter `.stamp-press` og
+      // `.flare-rise`, ikkje `animate-`.
       animation: {
         'combo-pop': 'combo-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
         sheen: 'sheen 0.9s ease-out',
         breathe: 'breathe 2.4s ease-in-out infinite',
-        'stamp-press': 'stamp-press 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
-        'flare-rise': 'flare-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

@@ -96,6 +96,19 @@
     --map-land: var(--color-land);
     --map-border: #7a6b47;
 
+    /* --- slitasje: det som gjør papiret gammelt ---
+       Fire lag, og de gjør hver sin jobb. Fibrene er trykket selve arket har.
+       Flekkene er årene i en kjeller. Bretten er der kartet har vært foldet
+       fire ganger og lagt i en lomme. Riften er der det har røket. */
+    --paper-fibre: rgba(84, 62, 26, 0.055);
+    --paper-blotch: rgba(120, 92, 40, 0.05);
+    --foxing: rgba(146, 100, 40, 0.13);
+    --crease: rgba(88, 68, 30, 0.14);
+    --crease-lit: rgba(255, 250, 235, 0.5);
+    --tear-edge: #cdbf9c;
+    --tear-shadow: rgba(60, 44, 16, 0.3);
+    --tear-gap: rgba(74, 58, 28, 0.14);
+
     /* blekk til de håndtegnede lagene */
     --ink: #211f17;
     --ink-soft: color-mix(in srgb, var(--ink) 55%, transparent);
@@ -145,6 +158,17 @@
     --map-border: #b79a63;
 
     --map-idle: rgba(235, 226, 205, 0.1);
+
+    /* Mørk modus snur lyset: bretten fanger lampen i stedet for å skygge, og
+       riften viser bordet under i stedet for lyset gjennom. */
+    --paper-fibre: rgba(0, 0, 0, 0.2);
+    --paper-blotch: rgba(0, 0, 0, 0.16);
+    --foxing: rgba(206, 158, 82, 0.07);
+    --crease: rgba(0, 0, 0, 0.34);
+    --crease-lit: rgba(206, 158, 82, 0.13);
+    --tear-edge: #4a422e;
+    --tear-shadow: rgba(0, 0, 0, 0.6);
+    --tear-gap: rgba(0, 0, 0, 0.4);
 
     --ink: #ebe2cd;
     --paper-grain: rgba(0, 0, 0, 0.22);
@@ -273,10 +297,96 @@
     padding: 0 0.9rem;
   }
 
-  /* Papirkorn — legg på store flater som skal kjennes trykt. */
+  /*
+   * Papirkorn — legg på store flater som skal kjennes trykt.
+   *
+   * Tre lag i stedet for ett. Prikkrasteret er trykket, og var alt som var her
+   * før; de to skrå strekene er fibrene i arket, og de brede feltene er
+   * ujevnheten i massen. Alle tre er gradienter, så det er null forespørsler,
+   * null piksler å laste, og laget koster ingenting etter første maling.
+   */
   .grain {
-    background-image: radial-gradient(var(--paper-grain) 1px, transparent 1.2px);
-    background-size: 4px 4px;
+    background-image:
+      radial-gradient(var(--paper-grain) 1px, transparent 1.2px),
+      repeating-linear-gradient(
+        58deg,
+        var(--paper-fibre) 0 1px,
+        transparent 1px 4px
+      ),
+      repeating-linear-gradient(
+        -34deg,
+        var(--paper-fibre) 0 1px,
+        transparent 1px 7px
+      ),
+      radial-gradient(120% 90% at 12% 8%, var(--paper-blotch), transparent 55%),
+      radial-gradient(90% 120% at 88% 82%, var(--paper-blotch), transparent 60%);
+    background-size:
+      4px 4px,
+      auto,
+      auto,
+      auto,
+      auto;
+  }
+
+  /*
+   * Aldersflekker. Papir som har ligget lenge får rustbrune prikker der
+   * soppen har stått — «foxing» er ordet. Uregelmessig plassert med vilje:
+   * et jevnt mønster leses som en tekstur, en ujevn samling som alder.
+   */
+  .foxed {
+    position: relative;
+  }
+  .foxed::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      radial-gradient(6px 5px at 18% 24%, var(--foxing), transparent 70%),
+      radial-gradient(4px 6px at 74% 16%, var(--foxing), transparent 70%),
+      radial-gradient(9px 7px at 62% 71%, var(--foxing), transparent 72%),
+      radial-gradient(3px 3px at 33% 82%, var(--foxing), transparent 70%),
+      radial-gradient(5px 4px at 89% 54%, var(--foxing), transparent 70%),
+      radial-gradient(7px 9px at 8% 63%, var(--foxing), transparent 74%);
+  }
+
+  /*
+   * Brettene. Et kart som har vært i en lomme er foldet fire ganger, og
+   * folden holder seg: en tynn skygge på den ene siden av linja og et
+   * lysstrøk på den andre, som papir som ikke helt vil legge seg flatt igjen.
+   */
+  .creased {
+    position: relative;
+  }
+  .creased::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      linear-gradient(90deg, transparent calc(33.33% - 1px), var(--crease) 33.33%, var(--crease-lit) calc(33.33% + 1px), transparent calc(33.33% + 2px)),
+      linear-gradient(90deg, transparent calc(66.66% - 1px), var(--crease) 66.66%, var(--crease-lit) calc(66.66% + 1px), transparent calc(66.66% + 2px)),
+      linear-gradient(0deg, transparent calc(50% - 1px), var(--crease) 50%, var(--crease-lit) calc(50% + 1px), transparent calc(50% + 2px));
+  }
+
+  /*
+   * Revet kant.
+   *
+   * Masken er ett statisk SVG med feTurbulence bakt inn: nettleseren
+   * rasteriserer det én gang og bruker det som maske etterpå, så det koster
+   * ingenting per bilde — til forskjell fra en `filter:` på selve elementet,
+   * som må regnes om hver gang noe under flytter seg.
+   */
+  .torn {
+    --torn: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='240' preserveAspectRatio='none'%3E%3Cfilter id='t' x='-12%25' y='-12%25' width='124%25' height='124%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028 0.07' numOctaves='4' seed='11'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='13' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='9' y='9' width='302' height='222' rx='6' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+    -webkit-mask-image: var(--torn);
+    mask-image: var(--torn);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
   }
 
   /* Tekststiler fra handoff-en. */

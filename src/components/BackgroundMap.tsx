@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { makePath, makeProjection, naturalAspect } from '../game/projection'
 import { getRegion } from '../game/regions'
+import { PaperRifts } from './PaperRifts'
 
 const H = 900
 
@@ -19,6 +20,9 @@ interface Props {
  * slik portolan-kart hadde dem. Samme projeksjon som spillkartet, men dempet
  * og uten interaksjon — «her er du» ligger under hver skjerm uten å slåss med
  * innholdet.
+ *
+ * Over alt dette ligger alderen: aldersflekker, brettene arket har vært
+ * foldet etter, og riftene som til slutt går langs dem.
  *
  * All bevegelse går via CSS og er slått av under «mindre bevegelse».
  */
@@ -43,8 +47,8 @@ export function BackgroundMap({ regionId }: Props) {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* papirkorn på hele flaten */}
-      <div className="grain absolute inset-0 opacity-[0.5]" />
+      {/* papirkorn, aldersflekker og bretter på hele flaten */}
+      <div className="grain foxed creased absolute inset-0 opacity-[0.5]" />
 
       {/* to drivende felt: aksenten og havet, så temaet slår igjennom */}
       <div
@@ -98,6 +102,12 @@ export function BackgroundMap({ regionId }: Props) {
           />
         </svg>
       )}
+
+      {/*
+        Riftene ligger over kartet og under kompasset: arket har røket, ikke
+        instrumentet.
+      */}
+      <PaperRifts className="opacity-[0.5] dark:opacity-[0.6]" />
 
       {/* kompassrose i hjørnet */}
       <svg
