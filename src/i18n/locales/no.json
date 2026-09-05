@@ -72,7 +72,8 @@
     "setName": "Sett navn",
     "editName": "Endre navn ({{name}})",
     "level": "Nivå {{level}}",
-    "backToArena": "Tilbake til Arena"
+    "backToArena": "Tilbake til Arena",
+    "anonymous": "Anonym"
   },
   "namePrompt": {
     "eyebrow": "Skriv deg inn i loggboka",
@@ -95,7 +96,11 @@
     "offline": "Fikk ikke kontakt med den globale tavla. Viser resultatene fra denne enheten.",
     "region": "Velg region",
     "mode": "Velg spillmodus",
-    "mixedModes": "Modusene er ikke like mye verdt. Velg én for å sammenligne rettferdig."
+    "mixedModes": "Modusene er ikke like mye verdt. Velg én for å sammenligne rettferdig.",
+    "allRegions": "Alle regionar",
+    "pace": "Tempo",
+    "error": "Ledertavla svarte ikkje skikkeleg. Dette er ikkje ei tom tavle — vi fekk ikkje lese henne.",
+    "notListed": "Du er ikkje blant dei viste enno. Spel ei runde for å komme på tavla."
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
@@ -202,7 +207,10 @@
     },
     "missedTitle_one": "1 sted du bør øve på",
     "missedTitle_other": "{{count}} steder du bør øve på",
-    "missedTitle": "{{count}} steder du bør øve på"
+    "missedTitle": "{{count}} steder du bør øve på",
+    "globalRank": "Nummer {{rank}} på den globale tavla",
+    "notCounted": "Denne runda kom ikkje på den globale tavla.",
+    "savedLocally": "Lagra på denne eininga — tavla svarte ikkje."
   },
   "meta": {
     "title": "AtlasMaster — kartspillet om verden",

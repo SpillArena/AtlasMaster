@@ -20,6 +20,19 @@ export interface MissedItem {
   solved: boolean
 }
 
+/**
+ * Hva den globale tavla svarte på innsendingen.
+ *
+ * `rank` er plassen runden fikk i sin egen øvelse — region, kategori, modus og
+ * tempo. `problem` er satt når tavla ikke tok imot: enten fordi ingen svarte,
+ * eller fordi tjeneren sa nei. De to var umulige å skille før, og begge endte
+ * med at spilleren aldri dukket opp på tavla uten et ord om hvorfor.
+ */
+export interface CloudOutcome {
+  rank: number | null
+  problem?: 'unreachable' | 'rejected'
+}
+
 interface Props {
   total: number
   /** antall faktisk riktige (oppgitt teller ikke) */
@@ -34,6 +47,8 @@ interface Props {
   elapsedMs: number
   /** hva runden gjorde med profilen — null til den er lagret */
   run: RunResult | null
+  /** hva den globale tavla svarte — null til svaret er der, eller uten samtykke */
+  cloud?: CloudOutcome | null
   onRetry: () => void
   onMenu: () => void
   onLeaderboard: () => void
@@ -74,6 +89,7 @@ export function ResultScreen({
   missed,
   elapsedMs,
   run,
+  cloud,
   onRetry,
   onMenu,
   onLeaderboard,
@@ -146,6 +162,22 @@ export function ResultScreen({
             >
               {t('result.newRecord')}
             </motion.p>
+          )}
+
+          {/*
+            Plassen runden fikk på den globale tavla. Tavla viser tjuefem
+            rader; en spiller som havner på plass sekstitre hadde ingen måte å
+            se det på — resultatskjermen sa bare at runden var over.
+          */}
+          {cloud?.rank != null && (
+            <p className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+              {t('result.globalRank', { rank: cloud.rank })}
+            </p>
+          )}
+          {cloud?.problem && (
+            <p role="status" className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+              {t(cloud.problem === 'rejected' ? 'result.notCounted' : 'result.savedLocally')}
+            </p>
           )}
         </div>
 

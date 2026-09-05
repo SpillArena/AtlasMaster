@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { LeaderboardRow } from './LeaderboardRow'
 import { useBoard } from './useBoard'
+import { getName } from '../../game/leaderboard'
 import { Icon } from '../Icon'
 
 interface Props {
@@ -19,7 +20,14 @@ interface Props {
  */
 export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
   const { t } = useTranslation()
-  const { entries, loading, offline } = useBoard('global', regionId, 'all', 'all', limit)
+  const { entries, loading, offline, failed } = useBoard('global', {
+    regionId,
+    categoryId: 'all',
+    mode: 'all',
+    pace: 'all',
+    limit,
+  })
+  const me = getName().trim().toLowerCase()
 
   return (
     <motion.section
@@ -51,6 +59,10 @@ export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
         <p role="status" className="py-4 text-center text-sm" style={{ color: 'var(--text-subtle)' }}>
           {t('leaderboard.loading')}
         </p>
+      ) : failed ? (
+        <p role="alert" className="py-4 text-center text-sm" style={{ color: 'var(--danger)' }}>
+          {t('leaderboard.error')}
+        </p>
       ) : entries.length === 0 ? (
         <p className="py-4 text-center text-sm" style={{ color: 'var(--text-subtle)' }}>
           {t('leaderboard.empty')}
@@ -63,7 +75,12 @@ export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
               className="border-t first:border-t-0"
               style={{ borderColor: 'var(--border)' }}
             >
-              <LeaderboardRow entry={entry} place={i} variant="compact" />
+              <LeaderboardRow
+                entry={entry}
+                place={i}
+                variant="compact"
+                isMe={Boolean(me) && entry.name.trim().toLowerCase() === me}
+              />
             </li>
           ))}
         </ol>

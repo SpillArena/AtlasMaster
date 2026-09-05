@@ -1,12 +1,13 @@
 /**
  * Global ledertavle for AtlasMaster (Cloudflare Pages Function + D1).
  *
- * GET  /api/leaderboard?region=norway&category=fylker&mode=click&limit=25
+ * GET  /api/leaderboard?region=norway&category=fylker&mode=click&pace=blitz&limit=25
  * POST /api/leaderboard — send inn et resultat
  *
  * Poengsummen regnes ut i nettleseren, så den kan ikke stoles blindt på.
  * Derfor avvises alt som ikke kan ha skjedd i et ekte spill: ukjente
- * kategorier/moduser, umulige tellinger og poeng over det teoretiske taket.
+ * kategorier/moduser, moduser kategorien ikke tilbyr, umulige tellinger og
+ * poeng over det teoretiske taket.
  */
 
 const DEFAULT_LIMIT = 25
@@ -17,16 +18,40 @@ const MAX_LIMIT = 100
  * bevisst ulike per region — «fylker» finnes bare i Norge, «countries» bare
  * i Europa — så et resultat kan ikke sendes inn under feil region.
  */
-const REGION_CATEGORIES = {
-  norway: new Set(['fylker', 'storbyer', 'elver', 'fjell']),
-  europe: new Set(['countries', 'capitals', 'rivers', 'peaks']),
-  asia: new Set(['asiaCountries', 'asiaCapitals', 'asiaRivers', 'asiaPeaks']),
-  usa: new Set(['usStates', 'usCities', 'usRivers', 'usPeaks']),
-  world: new Set(['worldCountries', 'worldFlags']),
-}
-
 const MODES = new Set(['click', 'choice', 'type', 'flag', 'pick'])
 const PACES = new Set(['relaxed', 'normal', 'blitz'])
+
+/** Standardmodusene — må speile MODES i src/game/types.ts. */
+const MAP_MODES = ['click', 'choice', 'type']
+/** Flaggmodusene — kategorier som setter `modes` eksplisitt i regions.ts. */
+const FLAG_MODES = ['flag', 'pick']
+
+/**
+ * Kategori → modusene kategorien faktisk tilbyr.
+ *
+ * Det holdt ikke å sjekke at regionen har kategorien og at modusen finnes.
+ * `{world, worldFlags, type}` bestod begge testene, og landet på tavla — men
+ * `worldFlags` kan bare spilles i flaggmodus, så raden kunne aldri filtreres
+ * fram igjen. Den ble liggende, usynlig for alle unntatt «alle moduser».
+ * Paringen region⊃kategori håndheves nettopp for at slikt ikke skal skje;
+ * paringen kategori⊃modus manglet.
+ */
+const REGION_CATEGORIES = {
+  norway: { fylker: MAP_MODES, storbyer: MAP_MODES, elver: MAP_MODES, fjell: MAP_MODES },
+  europe: { countries: MAP_MODES, capitals: MAP_MODES, rivers: MAP_MODES, peaks: MAP_MODES },
+  asia: {
+    asiaCountries: MAP_MODES,
+    asiaCapitals: MAP_MODES,
+    asiaRivers: MAP_MODES,
+    asiaPeaks: MAP_MODES,
+  },
+  usa: { usStates: MAP_MODES, usCities: MAP_MODES, usRivers: MAP_MODES, usPeaks: MAP_MODES },
+  world: { worldCountries: MAP_MODES, worldFlags: FLAG_MODES },
+}
+
+const hasRegion = (region) => Object.hasOwn(REGION_CATEGORIES, region)
+const hasCategory = (region, category) =>
+  hasRegion(region) && Object.hasOwn(REGION_CATEGORIES[region], category)
 
 /*
  * Poengtaket, som speiler src/game/scoring.ts.
@@ -71,27 +96,37 @@ const SELECT_COLUMNS = `
     scoring_version AS scoringVersion`
 
 /**
- * Én oppføring per spiller per region+kategori+modus — den beste.
+ * Én oppføring per spiller per øvelse — den beste — sortert høyest først.
  *
- * `mode` er et eget filter og ikke bare en gruppering: modusene er ikke like
- * mye verdt lenger, så en skriverunde og en klikkerunde i samme kategori er
- * to ulike øvelser. Uten filteret ville skrivemodus ha tatt hele toppen av
- * enhver blandet tavle på multiplikatoren alene.
+ * ØVELSEN er region + kategori + modus + TEMPO. Tempoet var det som manglet.
+ * Det ganger poengsummen med 0,8 i rolig og 1,4 i lyn (`PACE_META` i
+ * src/game/types.ts), men var verken filter eller grupperingsnøkkel: en
+ * lynrunde ble rangert rett mot en rolig runde i samme celle og vant på
+ * multiplikatoren alene. Toppen av enhver tavle var lynrunder, og en spiller
+ * som ville måle seg mot dem hadde ingen måte å se hvorfor. Nøyaktig samme
+ * grunn som `mode` ble et filter i sin tid; tempoet ble stående halvferdig.
+ *
+ * DEDUPLISERINGEN sier nå hva den mener. Den stod som `HAVING score =
+ * MAX(score)` — en tautologi, sann for hver eneste gruppe, som ikke gjorde
+ * annet enn å utløse SQLites egen regel om at bare-kolonner i en gruppe med
+ * `MAX()` hentes fra maksimumsraden. Den virket, men intensjonen «behold
+ * spillerens beste rad» stod ingen steder, og enhver endring som la til et
+ * aggregat til eller fjernet `HAVING` ville stille og rolig gitt vilkårlige
+ * rader i stedet. `ROW_NUMBER()` sier det høyt.
  */
-async function fetchTop(db, region, category, mode, limit) {
+export async function fetchTop(db, { region, category, mode, pace, limit }) {
   const filters = []
   const binds = []
-  if (region) {
-    filters.push('region = ?')
-    binds.push(region)
-  }
-  if (category) {
-    filters.push('category = ?')
-    binds.push(category)
-  }
-  if (mode) {
-    filters.push('mode = ?')
-    binds.push(mode)
+  for (const [column, value] of [
+    ['region', region],
+    ['category', category],
+    ['mode', mode],
+    ['pace', pace],
+  ]) {
+    if (value) {
+      filters.push(`${column} = ?`)
+      binds.push(value)
+    }
   }
   const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
   binds.push(limit)
@@ -99,10 +134,16 @@ async function fetchTop(db, region, category, mode, limit) {
   const { results } = await db
     .prepare(
       `SELECT ${SELECT_COLUMNS}
-       FROM leaderboard_entries
-       ${where}
-       GROUP BY username, region, category, mode
-       HAVING score = MAX(score)
+       FROM (
+         SELECT *,
+                ROW_NUMBER() OVER (
+                  PARTITION BY username, region, category, mode, pace
+                  ORDER BY score DESC, timestamp DESC, id DESC
+                ) AS rank_in_group
+         FROM leaderboard_entries
+         ${where}
+       )
+       WHERE rank_in_group = 1
        ORDER BY score DESC, timestamp DESC, id DESC
        LIMIT ?`,
     )
@@ -112,7 +153,33 @@ async function fetchTop(db, region, category, mode, limit) {
   return results ?? []
 }
 
-function parseEntry(raw) {
+/**
+ * Hvilken plass en poengsum har i sin egen øvelse.
+ *
+ * Tavla viser tjuefem rader. En spiller som havner på plass sekstitre har
+ * ingen måte å se det på — resultatskjermen sa bare at runden var lagret.
+ * Innsendingen kjørte allerede et fullt tavleoppslag til for å returnere en
+ * oppdatert liste som klienten kastet; dette er billigere og svarer på det
+ * spilleren faktisk lurer på.
+ */
+export async function rankOf(db, { region, category, mode, pace, score }) {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) + 1 AS rank
+       FROM (
+         SELECT MAX(score) AS best
+         FROM leaderboard_entries
+         WHERE region = ? AND category = ? AND mode = ? AND pace = ?
+         GROUP BY username
+       )
+       WHERE best > ?`,
+    )
+    .bind(region, category, mode, pace, score)
+    .first()
+  return row?.rank ?? null
+}
+
+export function parseEntry(raw) {
   const username = typeof raw.username === 'string' ? raw.username.trim() : ''
   const category = typeof raw.category === 'string' ? raw.category : ''
   const region = typeof raw.region === 'string' ? raw.region : ''
@@ -126,9 +193,13 @@ function parseEntry(raw) {
   const elapsedMs = Number(raw.elapsedMs)
 
   if (!username || username.length > 20) return { error: 'Invalid username' }
-  if (!Object.hasOwn(REGION_CATEGORIES, region)) return { error: 'Invalid region' }
-  if (!REGION_CATEGORIES[region].has(category)) return { error: 'Invalid category' }
+  if (!hasRegion(region)) return { error: 'Invalid region' }
+  if (!hasCategory(region, category)) return { error: 'Invalid category' }
   if (!MODES.has(mode)) return { error: 'Invalid mode' }
+  // modusen må være en kategorien faktisk tilbyr — se REGION_CATEGORIES
+  if (!REGION_CATEGORIES[region][category].includes(mode)) {
+    return { error: 'Mode not available for this category' }
+  }
   if (!PACES.has(pace)) return { error: 'Invalid pace' }
   if (!Number.isInteger(total) || total < 1 || total > 500) return { error: 'Invalid total' }
   if (!Number.isInteger(correctCount) || correctCount < 0 || correctCount > total)
@@ -167,23 +238,59 @@ function parseEntry(raw) {
   }
 }
 
+/**
+ * Grensa for hvor mange rader ett oppslag kan hente.
+ *
+ * Den stod som `Math.min(Number(param) || 25, 100)`. `?limit=-1` ga
+ * `Math.min(-1, 100)`, altså −1, og SQLite tolker en negativ LIMIT som ingen
+ * grense i det hele tatt: taket var en anbefaling, og hvem som helst kunne be
+ * om hele tabellen. `?limit=10.5` gikk rett gjennom som brøk, og `?limit=0`
+ * ble stille til 25 fordi null er falsy.
+ */
+export function parseLimit(raw) {
+  const n = Number(raw)
+  if (raw === null || !Number.isFinite(n)) return DEFAULT_LIMIT
+  return Math.min(Math.max(Math.trunc(n), 1), MAX_LIMIT)
+}
+
 export async function onRequestGet(context) {
   const { env, request } = context
   const url = new URL(request.url)
-  const regionParam = url.searchParams.get('region')
-  const region = Object.hasOwn(REGION_CATEGORIES, regionParam) ? regionParam : null
-  const categoryParam = url.searchParams.get('category')
+
+  /*
+   * Ukjente filterverdier avvises i stedet for å forkastes stille.
+   *
+   * `?region=bogus&category=fylker` ga før hele den regionsløse tavla med
+   * status 200: begge parametrene ble droppet, og svaret var en fullt
+   * troverdig, helt feil liste. En skrivefeil skal si fra.
+   *
+   * Region kan fortsatt utelates — det er tavla på tvers av alle regioner, og
+   * den er en gyldig forespørsel.
+   */
+  const region = url.searchParams.get('region')
+  if (region !== null && !hasRegion(region)) return json({ error: 'Invalid region' }, 400)
+
+  const category = url.searchParams.get('category')
   // en kategori gir bare mening innenfor en region
-  const category =
-    region && categoryParam && REGION_CATEGORIES[region].has(categoryParam)
-      ? categoryParam
-      : null
-  const modeParam = url.searchParams.get('mode')
-  const mode = MODES.has(modeParam) ? modeParam : null
-  const limit = Math.min(Number(url.searchParams.get('limit')) || DEFAULT_LIMIT, MAX_LIMIT)
+  if (category !== null && !hasCategory(region, category)) {
+    return json({ error: 'Invalid category' }, 400)
+  }
+
+  const mode = url.searchParams.get('mode')
+  if (mode !== null && !MODES.has(mode)) return json({ error: 'Invalid mode' }, 400)
+
+  const pace = url.searchParams.get('pace')
+  if (pace !== null && !PACES.has(pace)) return json({ error: 'Invalid pace' }, 400)
 
   try {
-    return json({ entries: await fetchTop(env.DB, region, category, mode, limit) })
+    const entries = await fetchTop(env.DB, {
+      region,
+      category,
+      mode,
+      pace,
+      limit: parseLimit(url.searchParams.get('limit')),
+    })
+    return json({ entries })
   } catch (error) {
     return json({ error: 'Failed to load leaderboard', details: String(error) }, 500)
   }
@@ -228,10 +335,8 @@ export async function onRequestPost(context) {
       )
       .run()
 
-    return json(
-      { entry, entries: await fetchTop(env.DB, entry.region, null, entry.mode, DEFAULT_LIMIT) },
-      201,
-    )
+    // svaret bærer plasseringen, ikke en tavle klienten kaster
+    return json({ entry, rank: await rankOf(env.DB, entry) }, 201)
   } catch (error) {
     return json({ error: 'Failed to save entry', details: String(error) }, 500)
   }

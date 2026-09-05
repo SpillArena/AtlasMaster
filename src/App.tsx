@@ -115,9 +115,16 @@ function App() {
                 </h1>
               </div>
               <WorldMapPicker onPick={setRegionId} />
+              {/*
+                Dashbordet viser tavla på tvers av alle regioner.
+                Den stod låst til standardregionen, altså Norge, på en skjerm
+                der ingen region er valgt enda: en spiller som bare spiller
+                Asia så aldri et eneste resultat av sitt eget der. API-et har
+                alltid støttet den regionsløse tavla — ingen skjerm ba om den.
+              */}
               <LeaderboardPanel
                 key={profileVersion}
-                regionId={DEFAULT_REGION_ID}
+                regionId="all"
                 onSeeAll={() => setShowLeaderboard(true)}
               />
               <FooterSection />

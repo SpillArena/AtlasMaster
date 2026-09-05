@@ -63,45 +63,70 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
 }
 
 /**
- * Prøver hver kjente API-sti til én svarer. 404 betyr «feil sti», så da går
- * vi videre til neste; andre feil regnes som at tjenesten er nede.
+ * Hva et kall endte med.
+ *
+ * Skillet mellom «serveren svarte ikke» og «serveren sa nei» fantes ikke før:
+ * begge ble til `null`. En avvist innsending og en død server så identiske ut,
+ * og tavla viste «ingen resultater enda» når D1 svarte med en femhundre.
+ * Spilleren fikk vite at det ikke var noe der, i stedet for at vi ikke fikk
+ * sett etter.
  */
-async function callApi(query: string, init?: RequestInit): Promise<unknown | null> {
+export type ApiResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; reason: 'unreachable' }
+  | { ok: false; reason: 'rejected'; status: number; message?: string }
+
+/**
+ * Prøver hver kjente API-sti til én svarer. 404 betyr «feil sti», så da går
+ * vi videre til neste; andre feil er tjenestens eget svar.
+ */
+async function callApi<T>(query: string, init?: RequestInit): Promise<ApiResult<T>> {
   for (const base of API_PATHS) {
     try {
       const response = await request(`${base}${query}`, init)
       if (response.status === 404) continue
-      if (!response.ok) return null
-      return await response.json()
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null
+        return { ok: false, reason: 'rejected', status: response.status, message: body?.error }
+      }
+      return { ok: true, data: (await response.json()) as T }
     } catch {
       continue
     }
   }
-  return null
+  return { ok: false, reason: 'unreachable' }
+}
+
+export interface BoardQuery {
+  regionId?: string
+  categoryId?: string
+  mode?: string
+  /** rolig, normal eller lyn — 'all' blander dem */
+  pace?: string
+  limit?: number
 }
 
 /**
- * Henter den globale toppen. Returnerer null når tavla ikke er tilgjengelig.
+ * Henter den globale toppen, sortert høyest først.
  *
  * `regionId` uten `categoryId` gir hele regionens tavle på tvers av
- * kategorier — det er den visningen dashbordet bruker. `mode` snevrer inn til
- * én spillmodus: modusene er ikke like mye verdt, så en blandet tavle
- * rangerer ikke like øvelser mot hverandre.
+ * kategorier; `'all'` for begge gir tavla på tvers av alle regioner. `mode` og
+ * `pace` snevrer inn til én øvelse — verken modusene eller tempoene er like
+ * mye verdt, så en blandet tavle rangerer ikke like ting mot hverandre.
  */
 export async function fetchGlobalEntries(
-  regionId?: string,
-  categoryId?: string,
-  mode?: string,
-  limit = 25,
-): Promise<Entry[] | null> {
+  query: BoardQuery = {},
+): Promise<ApiResult<Entry[]>> {
+  const { regionId, categoryId, mode, pace, limit = 25 } = query
   const params = new URLSearchParams({ limit: String(limit) })
   if (categoryId && categoryId !== 'all') params.set('category', categoryId)
   if (regionId && regionId !== 'all') params.set('region', regionId)
   if (mode && mode !== 'all') params.set('mode', mode)
+  if (pace && pace !== 'all') params.set('pace', pace)
 
-  const data = (await callApi(`?${params}`)) as { entries?: CloudEntry[] } | null
-  if (!data?.entries) return null
-  return data.entries.map(toEntry)
+  const result = await callApi<{ entries?: CloudEntry[] }>(`?${params}`)
+  if (!result.ok) return result
+  return { ok: true, data: (result.data.entries ?? []).map(toEntry) }
 }
 
 export interface SubmitPayload {
@@ -118,12 +143,21 @@ export interface SubmitPayload {
   elapsedMs: number
 }
 
-/** Sender inn et resultat. `false` betyr at det bare ble lagret lokalt. */
-export async function submitScore(payload: SubmitPayload): Promise<boolean> {
-  const data = await callApi('', {
+/**
+ * Sender inn et resultat, og får plasseringen tilbake.
+ *
+ * Svaret bar en full, oppdatert tavle før — beregnet med et ekstra oppslag på
+ * serveren, og kastet av kaller-siden, som bare så etter om det kom noe i det
+ * hele tatt. Nå bærer det plassen runden fikk, som er det spilleren lurer på.
+ */
+export async function submitScore(
+  payload: SubmitPayload,
+): Promise<ApiResult<{ rank: number | null }>> {
+  const result = await callApi<{ rank?: number | null }>('', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  return data !== null
+  if (!result.ok) return result
+  return { ok: true, data: { rank: result.data.rank ?? null } }
 }
