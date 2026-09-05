@@ -224,7 +224,6 @@ function Game({
        * fikk, som er det man vil vite.
        */
       void submitScore({
-        username: name,
         category: categoryId,
         region: regionId,
         mode,

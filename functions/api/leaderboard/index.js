@@ -8,7 +8,15 @@
  * Derfor avvises alt som ikke kan ha skjedd i et ekte spill: ukjente
  * kategorier/moduser, moduser kategorien ikke tilbyr, umulige tellinger og
  * poeng over det teoretiske taket.
+ *
+ * HVEM som sendte inn, er ikke lenger noe innsenderen forteller oss.
+ * Brukernavnet leses ut av et signert teikn og ikke ut av kroppen: en streng i
+ * et JSON-felt kan være hvem som helst, og siden tavla holder én rad per
+ * brukernavn, ville en høyere falsk poengsum ERSTATTE raden til den virkelige
+ * spilleren i stedet for å legge seg ved siden av. Se functions/api/auth/.
  */
+
+import { verifyToken } from '../auth/index.js'
 
 const DEFAULT_LIMIT = 25
 const MAX_LIMIT = 100
@@ -179,8 +187,7 @@ export async function rankOf(db, { region, category, mode, pace, score }) {
   return row?.rank ?? null
 }
 
-export function parseEntry(raw) {
-  const username = typeof raw.username === 'string' ? raw.username.trim() : ''
+export function parseEntry(raw, username) {
   const category = typeof raw.category === 'string' ? raw.category : ''
   const region = typeof raw.region === 'string' ? raw.region : ''
   const mode = typeof raw.mode === 'string' ? raw.mode : ''
@@ -299,6 +306,15 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { env, request } = context
 
+  if (!env.AUTH_SECRET) {
+    return json({ error: 'Accounts are not configured on this deployment' }, 503)
+  }
+
+  const header = request.headers.get('Authorization') ?? ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  const username = await verifyToken(env.AUTH_SECRET, token)
+  if (!username) return json({ error: 'Sign in to post a score' }, 401)
+
   let payload
   try {
     payload = await request.json()
@@ -306,7 +322,8 @@ export async function onRequestPost(context) {
     return json({ error: 'Invalid JSON body' }, 400)
   }
 
-  const parsed = parseEntry(payload)
+  // navnet kommer fra teiknet, aldri fra kroppen
+  const parsed = parseEntry(payload, username)
   if (parsed.error) return json({ error: parsed.error }, 400)
   const entry = parsed.entry
 

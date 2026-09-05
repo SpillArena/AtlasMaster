@@ -20,6 +20,11 @@ import {
   parseLimit,
   rankOf as realRankOf,
 } from '../functions/api/leaderboard/index.js'
+import {
+  issueToken,
+  onRequestPost as authPost,
+  verifyToken,
+} from '../functions/api/auth/index.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const db = new DatabaseSync(':memory:')
@@ -83,6 +88,9 @@ runSql('0003_add_scoring_version.sql')
 // --- 0004: indeksane spørjinga faktisk treng, og ein daud indeks ut ---
 runSql('0004_leaderboard_pace_index.sql')
 
+// --- 0005: kontoar ---
+runSql('0005_create_players.sql')
+
 check(
   'rader frå før modusverdiane blir merkte som versjon 1',
   db.prepare('SELECT scoring_version AS v, COUNT(*) AS n FROM leaderboard_entries GROUP BY v').all(),
@@ -114,6 +122,7 @@ const d1 = {
         return {
           all: async () => ({ results: stmt.all(...binds) }),
           first: async () => stmt.get(...binds) ?? null,
+          run: async () => ({ success: true, meta: stmt.run(...binds) }),
         }
       },
     }
@@ -257,7 +266,6 @@ check(
  * spelast i flaggmodus; ei skriverunde der kunne aldri filtrerast fram igjen.
  */
 const submission = (over) => ({
-  username: 'Siri',
   region: 'world',
   category: 'worldFlags',
   mode: 'flag',
@@ -270,20 +278,20 @@ const submission = (over) => ({
   elapsedMs: 20000,
   ...over,
 })
-check('flaggmodus er lov i flaggkategorien', parseEntry(submission()).error ?? 'ok', 'ok')
+check('flaggmodus er lov i flaggkategorien', parseEntry(submission(), 'Siri').error ?? 'ok', 'ok')
 check(
   'skrivemodus er ikkje lov i flaggkategorien',
-  parseEntry(submission({ mode: 'type' })).error,
+  parseEntry(submission({ mode: 'type' }), 'Siri').error,
   'Mode not available for this category',
 )
 check(
   'flaggmodus er ikkje lov i ein vanleg kartkategori',
-  parseEntry(submission({ region: 'norway', category: 'fylker' })).error,
+  parseEntry(submission({ region: 'norway', category: 'fylker' }), 'Siri').error,
   'Mode not available for this category',
 )
 check(
   'ukjend kategori i ein kjend region blir avvist',
-  parseEntry(submission({ category: 'fylker' })).error,
+  parseEntry(submission({ category: 'fylker' }), 'Siri').error,
   'Invalid category',
 )
 
@@ -327,6 +335,93 @@ check(
   indexes.includes('idx_leaderboard_category_score'),
   false,
 )
+
+/*
+ * Kontoane, køyrde mot det ekte endepunktet.
+ *
+ * PBKDF2 og HMAC finst i node:crypto sitt WebCrypto-lag akkurat som i
+ * Cloudflare-runtimen, så heile registrer-og-logg-inn-vegen kan køyrast her
+ * med den same koden som står i produksjon.
+ */
+const SECRET = 'test-secret-not-a-real-one'
+const authEnv = { DB: d1, AUTH_SECRET: SECRET }
+const callAuth = async (body, env = authEnv) => {
+  const response = await authPost({
+    env,
+    request: new Request('https://example.test/api/auth', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  })
+  return { status: response.status, body: await response.json() }
+}
+
+const registered = await callAuth({ action: 'register', username: 'Kartleser', pin: '4711' })
+check('registrering lukkast', registered.status, 200)
+check(
+  'teiknet frå registreringa er gyldig',
+  await verifyToken(SECRET, registered.body.token),
+  'Kartleser',
+)
+
+check(
+  'same namn kan ikkje registrerast to gonger',
+  (await callAuth({ action: 'register', username: 'Kartleser', pin: '9999' })).status,
+  409,
+)
+check(
+  'namn er ikkje skiftesensitive',
+  (await callAuth({ action: 'register', username: 'kartleser', pin: '9999' })).status,
+  409,
+)
+
+check(
+  'rett PIN loggar inn',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' })).status,
+  200,
+)
+check(
+  'feil PIN blir avvist',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '0000' })).body.error,
+  'bad_credentials',
+)
+check(
+  'ukjent namn gjev same svar som feil PIN',
+  (await callAuth({ action: 'login', username: 'Finnesikkje', pin: '4711' })).body.error,
+  'bad_credentials',
+)
+
+/* Femte feil på rad stenger kontoen — det er dette som gjer fire siffer verd noko. */
+for (let i = 0; i < 4; i++) await callAuth({ action: 'login', username: 'Kartleser', pin: '0000' })
+check(
+  'kontoen blir stengd etter fem feil',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' })).status,
+  429,
+)
+
+check('for kort PIN blir avvist', (await callAuth({ action: 'register', username: 'Ny', pin: '12' })).body.error, 'bad_pin')
+check('PIN med bokstavar blir avvist', (await callAuth({ action: 'register', username: 'Ny', pin: '12a4' })).body.error, 'bad_pin')
+check(
+  'brukarnamn med kontrollteikn blir avvist',
+  (await callAuth({ action: 'register', username: 'Ny\u0000namn', pin: '1234' })).body.error,
+  'bad_username',
+)
+check(
+  'utan nøkkel svarar tenesta at ho ikkje er sett opp',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' }, { DB: d1 })).status,
+  503,
+)
+
+/* Teiknet: signaturen dekkjer både namnet og utløpstida. */
+const token = await issueToken(SECRET, 'Kartleser')
+check('eit tukla teikn blir forkasta', await verifyToken(SECRET, token.slice(0, -1) + 'x'), null)
+check('feil nøkkel forkastar teiknet', await verifyToken('ein annan nøkkel', token), null)
+check(
+  'eit utgått teikn blir forkasta',
+  await verifyToken(SECRET, token, Date.now() + 400 * 24 * 60 * 60 * 1000),
+  null,
+)
+check('eit teikn utan signatur blir forkasta', await verifyToken(SECRET, 'berre-tekst'), null)
 
 console.log(failures === 0 ? '\nAlle sjekkar gjekk gjennom.' : `\n${failures} sjekk(ar) feila.`)
 process.exit(failures === 0 ? 0 : 1)

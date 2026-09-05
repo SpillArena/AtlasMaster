@@ -240,5 +240,34 @@
     "count": "{{count}} kategorier",
     "plate": "Plate {{n}}",
     "back": "Bytt region"
+  },
+  "auth": {
+    "registerTitle": "Ta namnet ditt",
+    "registerDesc": "Vel eit namn og ein PIN. PIN-en er det som hindrar andre i å sende inn poeng som deg.",
+    "loginTitle": "Logg inn",
+    "loginDesc": "Namn og PIN, så kjem poenga dine på den globale tavla igjen.",
+    "signedInTitle": "Innlogga",
+    "signedInDesc": "Du speler som {{name}}. Poeng kjem på den globale tavla under det namnet.",
+    "signIn": "Logg inn",
+    "signOut": "Logg ut",
+    "register": "Opprett",
+    "guest": "Spel utan konto",
+    "haveAccount": "Eg har eit namn frå før",
+    "needAccount": "Eg treng eit namn",
+    "pinPlaceholder": "PIN",
+    "pinHint": "4 til 6 siffer. Fem feil stenger namnet i eit kvarter.",
+    "errors": {
+      "not_configured": "Kontoar er slått av på denne tenaren.",
+      "bad_action": "Noko gjekk gale. Prøv igjen.",
+      "bad_body": "Noko gjekk gale. Prøv igjen.",
+      "bad_username": "Bruk bokstavar, tal, mellomrom, punktum, bindestrek eller apostrof.",
+      "bad_pin": "PIN-en må vere 4 til 6 siffer.",
+      "name_taken": "Namnet er teke. Logg inn om det er ditt.",
+      "bad_credentials": "Feil namn eller PIN.",
+      "locked": "For mange forsøk. Vent eit kvarter og prøv igjen.",
+      "service_failed": "Kontotenesta har ein dårleg dag. Prøv igjen om litt.",
+      "unreachable": "Ikkje noko svar frå tenaren. Du kan framleis spele utan konto.",
+      "failed": "Det gjekk ikkje. Prøv igjen."
+    }
   }
 }

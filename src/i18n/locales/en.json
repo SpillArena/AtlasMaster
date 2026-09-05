@@ -240,5 +240,34 @@
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",
     "back": "Change region"
+  },
+  "auth": {
+    "registerTitle": "Claim your name",
+    "registerDesc": "Pick a name and a PIN. The PIN is what keeps anyone else from posting scores as you.",
+    "loginTitle": "Sign in",
+    "loginDesc": "Your name and PIN, and your scores go back on the global board.",
+    "signedInTitle": "Signed in",
+    "signedInDesc": "You are playing as {{name}}. Scores go on the global board under that name.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "register": "Create",
+    "guest": "Play without an account",
+    "haveAccount": "I already have a name",
+    "needAccount": "I need a name",
+    "pinPlaceholder": "PIN",
+    "pinHint": "4 to 6 digits. Five wrong tries locks the name for fifteen minutes.",
+    "errors": {
+      "not_configured": "Accounts are switched off on this server.",
+      "bad_action": "Something went wrong. Try again.",
+      "bad_body": "Something went wrong. Try again.",
+      "bad_username": "Use letters, numbers, spaces, dots, dashes or apostrophes.",
+      "bad_pin": "The PIN must be 4 to 6 digits.",
+      "name_taken": "That name is taken. Sign in if it is yours.",
+      "bad_credentials": "Wrong name or PIN.",
+      "locked": "Too many tries. Wait fifteen minutes and try again.",
+      "service_failed": "The account service is having a bad day. Try again shortly.",
+      "unreachable": "No answer from the server. You can still play without an account.",
+      "failed": "That did not work. Try again."
+    }
   }
 }

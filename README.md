@@ -79,6 +79,32 @@ npx wrangler pages dev
 If the board does not respond, the game falls back to the results stored on the
 device. A round is never lost because the cloud was unreachable.
 
+### Accounts
+
+Posting to the global board needs an account: a name and a 4-6 digit PIN,
+`functions/api/auth/`. Before this, a player was a string in a text field —
+anyone could post under any name, and because the board keeps one row per
+username, a higher fake score *replaced* the real player's row instead of
+sitting beside it.
+
+What actually protects a PIN is the attempt limit, not the hash: five wrong
+tries lock the name for fifteen minutes. Four digits is ten thousand values, and
+no key derivation function makes that number big. PBKDF2 is there for the other
+case — if the database leaks, the PINs should not be readable in one pass.
+
+The signing key is **not** in `wrangler.toml`:
+
+```bash
+npx wrangler pages secret put AUTH_SECRET   # deployed
+echo 'AUTH_SECRET=anything-long-and-random' > .dev.vars   # local, gitignored
+```
+
+Without it, `/api/auth` and score submission both answer 503 rather than falling
+back to something that looks like it works. Rounds still save on the device, and
+playing without an account still works — those rounds just stay local.
+
+Run the migrations, `0005_create_players.sql` included, before deploying this.
+
 ### Datasets and checks
 
 ```bash
@@ -130,6 +156,15 @@ npx wrangler d1 migrations apply atlasmaster-leaderboard --remote
 
 `0002_add_region.sql` adds `region` with `DEFAULT 'norway'`, so every row from
 before regions stays as a Norway round.
+
+`0004_leaderboard_pace_index.sql` indexes what the query actually groups and
+filters on now that pace is part of the exercise, and drops the index
+`0002` already described as superseded.
+
+`0005_create_players.sql` adds the accounts table. `COLLATE NOCASE` on the
+primary key stops `Kari` and `kari` from becoming two accounts — and fixes the
+same split that already existed on the board, where the two showed up as
+duplicate rows.
 
 `0003_add_scoring_version.sql` adds `scoring_version` with `DEFAULT 1`. The
 modes are not worth the same any more (see `MODE_MULTIPLIER` in

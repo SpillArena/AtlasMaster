@@ -1,3 +1,4 @@
+import { getSession, signOut } from './auth'
 import type { Entry } from './leaderboard'
 import type { Mode, Pace } from './types'
 
@@ -130,7 +131,6 @@ export async function fetchGlobalEntries(
 }
 
 export interface SubmitPayload {
-  username: string
   category: string
   region: string
   mode: Mode
@@ -153,11 +153,21 @@ export interface SubmitPayload {
 export async function submitScore(
   payload: SubmitPayload,
 ): Promise<ApiResult<{ rank: number | null }>> {
+  const session = getSession()
+  if (!session) return { ok: false, reason: 'rejected', status: 401, message: 'Not signed in' }
+
   const result = await callApi<{ rank?: number | null }>('', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // navnet kommer fra teiknet, ikke fra kroppen — se functions/api/auth/
+      Authorization: `Bearer ${session.token}`,
+    },
     body: JSON.stringify(payload),
   })
+
+  // et teikn kan ha gått ut mens fanen stod åpen; da er økten over
+  if (!result.ok && result.reason === 'rejected' && result.status === 401) signOut()
   if (!result.ok) return result
   return { ok: true, data: { rank: result.data.rank ?? null } }
 }

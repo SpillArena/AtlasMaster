@@ -15,3 +15,8 @@ coverage/
 
 # Cloudflare Wrangler local state
 .wrangler/
+
+# Cloudflare-hemmelegheiter for lokal køyring — AUTH_SECRET og liknande.
+# Ein signeringsnøkkel i git er ikkje ein nøkkel.
+.dev.vars
+.dev.vars.*

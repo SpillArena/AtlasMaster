@@ -16,6 +16,8 @@ export const PREFERENCE_KEYS = [
   'playerName',
   'leaderboard',
   'progress',
+  // innloggingsteiknet — med i lista så «slett mine data» faktisk logger ut
+  'auth',
 ] as const
 
 function storage(): Storage | null {
