@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "data:norway": "node scripts/build-norway.mjs",
     "data:europe": "node scripts/build-europe-countries.mjs",
     "data:asia": "node scripts/build-asia.mjs",
     "data:usa": "node scripts/build-usa.mjs",

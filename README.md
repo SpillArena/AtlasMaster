@@ -108,6 +108,7 @@ Run the migrations, `0005_create_players.sql` included, before deploying this.
 ### Datasets and checks
 
 ```bash
+npm run data:norway    # county borders from Kartverket
 npm run data:europe    # rebuild the Europe outline from Natural Earth
 npm run data:asia      # countries, capitals, rivers and peaks in Asia
 npm run data:usa       # states, cities, rivers and peaks in the USA
@@ -119,10 +120,17 @@ npm run bench:map      # what the map layer costs per region
 
 The data scripts need
 `npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3 topojson-server@3 topojson-simplify@3`.
-`data:asia` and `data:usa` also fetch Natural Earth datasets over the network
+`data:norway`, `data:asia` and `data:usa` also fetch datasets over the network
 the first time and cache them in `node_modules/.cache/atlasmaster/`. The result
 is checked in, so the scripts only need to run when the place lists or the
 resolution change.
+
+`data:norway` fetches the S-resolution county borders from
+[robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner) —
+Kartverket data, licensed CC BY 4.0, generalised and clipped to the coastline.
+It is the only region built from something other than Natural Earth or a
+`*-atlas` topology, and the only builder with an attribution requirement to
+carry: see the header of `scripts/build-norway.mjs`.
 
 **The order is not optional.** The builders write raw data; the two steps after
 make it playable, and both are one-time operations that cannot run twice on the
