@@ -53,6 +53,19 @@ function App() {
   // en runde er i gang når tempo er valgt og ledertavla ikke dekker skjermen
   const inGame = Boolean(category && mode && pace && !showLeaderboard)
 
+  /*
+   * Sporet i headeren: hvor i feltboka man står.
+   *
+   * Kategori-, modus- og temposkjermene så identiske ut fra hverandre —
+   * samme bakgrunn, samme plate, samme tilbake-knapp — og ingenting sa om man
+   * var på vei inn i Europa eller i Asia.
+   */
+  const trail = [
+    region && t(region.labelKey),
+    category && t(category.labelKey),
+    mode && t(`mode.${mode}.title`),
+  ].filter((part): part is string => Boolean(part))
+
   // ett steg tilbake: ledertavle > tempo > modus > kategori > region
   const goBack = () => {
     if (showLeaderboard) {
@@ -85,6 +98,7 @@ function App() {
           onGiveUp={() => setConfirmGiveUp(true)}
           onEditName={() => setEditingName(true)}
           profileVersion={profileVersion}
+          trail={trail}
         />
 
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">

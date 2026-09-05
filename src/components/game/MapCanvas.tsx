@@ -48,9 +48,8 @@ const SHELF_TOLERANCE = 2.5
 type ShapeState = 'idle' | 'correct' | 'revealed' | 'wrong' | 'target'
 
 /**
- * Ei projisert flate, med det `SmallTargets` treng for å måle henne: midtpunkt,
- * største utstrekning og halve avstanden til næraste nabo — alt i
- * lerretseiningar.
+ * Ei projisert flate, med det `SmallTargets` treng for å måle henne: midtpunkt
+ * og største utstrekning, i lerretseiningar.
  */
 interface MeasuredPath {
   id: string
@@ -58,7 +57,6 @@ interface MeasuredPath {
   cx: number
   cy: number
   size: number
-  gap: number
 }
 
 const STATE_COLOR: Record<ShapeState, string> = {
@@ -208,15 +206,7 @@ export const MapCanvas = memo(function MapCanvas({
       const size = Number.isFinite(x0) ? Math.max(x1 - x0, y1 - y0) : Infinity
       return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size }
     })
-    const paths = measured.map((p) => {
-      let gap = Infinity
-      for (const q of measured) {
-        if (q === p) continue
-        gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
-      }
-      return { ...p, gap }
-    })
-    return { paths, points: [], basePaths, land, shelf, graticule, centers, W }
+    return { paths: measured, points: [], basePaths, land, shelf, graticule, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom])
 
   /**
@@ -509,26 +499,44 @@ const SmallTargets = memo(function SmallTargets({
     [status, onPick],
   )
 
-  if (!live) return null
-
   /** fingertuppen målt i lerretseiningar ved gjeldande zoom */
   const reach = (HIT_PX * unitsPerPx) / k
 
+  /*
+   * Kven som treng hjelp, og kor stor hjelpa kan bli.
+   *
+   * Avstanden blir målt berre mot dei andre små flatene, ikkje mot alle. Ein
+   * sirkel som ligg *under* dei synlege banene kan ikkje stele eit klikk frå
+   * Italia uansett kor stor han er — Italia tek imot sitt eige klikk først.
+   * Det einaste to sirklar kan kollidere med, er kvarandre.
+   *
+   * Målt mot alle vart Vatikanstaten kapa av midtpunktet til Italia, som ligg
+   * eit par hundre kilometer unna, og sat att med ei treffflate på fjorten
+   * piksler — like liten som landet var frå før.
+   */
+  const small = live
+    ? paths.filter(
+        (p) => p.size < 2 * reach && !status[p.id] && Number.isFinite(p.cx) && Number.isFinite(p.cy),
+      )
+    : []
+
+  if (!small.length) return null
+
   return (
     <g onClick={handleClick}>
-      {paths.map(({ id, cx, cy, size, gap }) => {
-        // stor nok alt, alt løyst, eller utan gyldig midtpunkt — ingen hjelp
-        if (size >= 2 * reach || status[id] || !Number.isFinite(cx) || !Number.isFinite(cy)) {
-          return null
+      {small.map((p) => {
+        let gap = Infinity
+        for (const q of small) {
+          if (q === p) continue
+          gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
         }
-        const r = Math.max(size / 2, Math.min(reach, gap))
         return (
           <circle
-            key={`hit-${id}`}
-            data-id={id}
-            cx={cx}
-            cy={cy}
-            r={r}
+            key={`hit-${p.id}`}
+            data-id={p.id}
+            cx={p.cx}
+            cy={p.cy}
+            r={Math.max(p.size / 2, Math.min(reach, gap))}
             fill="transparent"
             className="cursor-pointer"
           />
