@@ -50,7 +50,7 @@ export function Leaderboard({ regionId }: Props) {
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
-      <h1 className="font-display mb-4 flex items-center gap-2 text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
+      <h1 className="text-h2 mb-4 flex items-center gap-2">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}
       </h1>

@@ -32,9 +32,7 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
         <p className="eyebrow">
           {t(category.labelKey)} · {t(`mode.${mode}.title`)}
         </p>
-        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
-          {t('pace.title')}
-        </h2>
+        <h2 className="text-h2">{t('pace.title')}</h2>
       </div>
 
       <ul role="radiogroup" aria-label={t('pace.title')} className="grid gap-2.5 sm:grid-cols-3">

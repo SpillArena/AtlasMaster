@@ -36,14 +36,6 @@
 
     /* --- typografi --- */
     --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --text-h1-size: 34px;
-    --text-h1-line: 40px;
-    --text-h2-size: 25px;
-    --text-h2-line: 32px;
-    --text-body-size: 16px;
-    --text-body-line: 24px;
-    --text-small-size: 14px;
-    --text-small-line: 20px;
     --text-caption-size: 12px;
     --text-caption-line: 16px;
 
@@ -439,30 +431,25 @@
     mask-repeat: no-repeat;
   }
 
-  /* Tekststiler fra handoff-en. */
+  /*
+   * Tekststiler fra handoff-en.
+   *
+   * `.text-h1` og `.text-h2` var faste størrelser — 34/40px og 25/32px — og
+   * stod ubrukte i heile spelet: kvar skjermtittel skreiv i staden ut
+   * `font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl` for
+   * hand, likt på fire skjermar. Ein fast storleik kunne ikkje ha erstatta den
+   * strengen — han manglar responssteget til `sm`, og hadde gjort
+   * mobiltitlane større enn dei skal vere. Klassane ber difor steget sjølve
+   * no, og er nøyaktig den same Tailwind-oppskrifta att, berre samla på éin
+   * stad: `.text-h2` er 24px som stig til 30px ved `sm`, det skjermtitlane
+   * alt gjorde; `.text-h1` er steget over, til bruk der ein tittel skal vege
+   * tyngre enn ein skjermtittel.
+   */
   .text-h1 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: var(--text-h1-size);
-    line-height: var(--text-h1-line);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    @apply font-display text-3xl font-semibold tracking-[-0.01em] sm:text-4xl;
   }
   .text-h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: var(--text-h2-size);
-    line-height: var(--text-h2-line);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-  }
-  .text-body {
-    font-size: var(--text-body-size);
-    line-height: var(--text-body-line);
-    font-weight: 400;
-  }
-  .text-small {
-    font-size: var(--text-small-size);
-    line-height: var(--text-small-line);
-    font-weight: 400;
+    @apply font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl;
   }
   .text-caption {
     font-size: var(--text-caption-size);

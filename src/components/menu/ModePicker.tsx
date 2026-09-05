@@ -61,9 +61,7 @@ export function ModePicker({ regionId, category, onPick }: Props) {
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
       <div>
         <p className="eyebrow">{t(category.labelKey)}</p>
-        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
-          {t('mode.subtitle')}
-        </h2>
+        <h2 className="text-h2">{t('mode.subtitle')}</h2>
       </div>
 
       <ul className="flex flex-col gap-3">
