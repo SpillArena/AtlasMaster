@@ -19,6 +19,17 @@ const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
 const usStates = json(() => import('../data/usa/states.json'))
 const worldCountries = json(() => import('../data/world/countries.json'))
+/**
+ * Verdenskartet i to oppløsninger.
+ *
+ * `countries` er spillbildet: 50m-geometri der man kan zoome inn på
+ * Sognefjorden. `outline` er det samme kartet med en firedel av punktene, og
+ * er det landingssiden og bakgrunnen tegner — der er hele kloden ni hundre
+ * piksler bred, og resten er detaljer ingen skjerm viser. Forskjellen er
+ * fire hundre kilobyte hver besøkende slipper å laste ned før noe er valgt.
+ * Begge kommer fra scripts/build-world.mjs og deler id-er.
+ */
+const worldOutline = json(() => import('../data/world/outline.json'))
 
 /**
  * MERK — kategori-id-ane til Noreg er med vilje norske og uendra
@@ -289,7 +300,7 @@ export const regions: Region[] = [
     // Natural Earth 1 — kompromissprojeksjonen laget nettopp for verdenskart:
     // polene krympes, formene holder seg, og ingenting strekkes ut mot kantene.
     projection: { kind: 'naturalEarth' },
-    outline: worldCountries,
+    outline: worldOutline,
     categories: worldCategories,
   },
 ]

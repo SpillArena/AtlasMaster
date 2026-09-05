@@ -16,6 +16,21 @@ The game was called NorgesMester and covered only Norway until August 2026.
 | Europe | Countries (39), capitals, rivers, peaks | Conic conformal, 35/65°, rotated −10° (ETRS89-LCC) |
 | Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area, centred 87°E/22°N |
 | USA | States (50), cities, rivers, peaks | Albers USA (Alaska and Hawaii in inset boxes) |
+| World | Countries (195), flags | Natural Earth 1 |
+
+The World region ships two files from the same build. `countries.json` is the
+playable map at Natural Earth 50m; `outline.json` is the same features with a
+quarter of the points, and it is what the landing page and the background draw.
+The whole globe is 900 px wide there, so the detail would not survive the
+rasteriser — and splitting them keeps 290 kB off the first paint. They share
+ids, and `check:geo` fails if they drift apart.
+
+Not every feature on the world map is an answer. Sovereign states plus Kosovo
+are (195 of them); overseas territories, crown dependencies and areas without
+an ISO code are drawn so the map has no holes, but carry
+`properties.playable: false`. `toQuizFeatures` in `src/game/types.ts` enforces
+the split — no other dataset sets the flag, so everywhere else every feature is
+an answer.
 
 Russia is in no region. Its geometry runs from 20°E across the date line, and
 `fitExtent` would zoom out to the whole northern hemisphere to include it. See
@@ -90,9 +105,18 @@ same file:
 ```bash
 node scripts/build-europe-countries.mjs   # or whatever changed
 node scripts/optimise-geo.mjs             # cuts coordinate precision
-node scripts/simplify-geo.mjs             # simplifies topologically
+node scripts/simplify-geo.mjs src/data/europe/countries.json
 npm run check:geo                         # then check that it held
 ```
+
+Name the files you rebuilt. `simplify-geo.mjs` with no arguments runs its whole
+list, and a second pass over a file eats what the first one left. Simplification
+stops when a feature would lose more than 15 % of its area **or** 5 % of its
+coastline. The second guard is the one that matters for a fjord: Sognefjorden is
+170 km long and 4 km wide, so removing it costs almost no area — area alone is
+blind to exactly the detail the map is for. Features whose largest single ring
+is under a degree are passed through untouched; there is nothing to remove from
+an atoll but the atoll.
 
 The geometry comes from outside; the names do not. Each builder keeps its own
 list of Norwegian and English names and takes only coordinates from the

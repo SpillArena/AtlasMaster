@@ -56,6 +56,10 @@ const EUROPE = new Map([
   [752, ['Sverige', 'Sweden']], [756, ['Sveits', 'Switzerland']],
   [804, ['Ukraina', 'Ukraine']], [807, ['Nord-Makedonia', 'North Macedonia']],
   [643, ['Russland', 'Russia']],
+  // mikrostatane — sjå kommentaren under
+  [20, ['Andorra', 'Andorra']], [336, ['Vatikanstaten', 'Vatican City']],
+  [438, ['Liechtenstein', 'Liechtenstein']], [492, ['Monaco', 'Monaco']],
+  [674, ['San Marino', 'San Marino']],
   [826, ['Storbritannia', 'United Kingdom']],
 ])
 
@@ -80,11 +84,19 @@ const EUROPE = new Map([
 const RUSSIA = 643
 
 /**
- * Mikrostatane (Vatikanstaten, Monaco, San Marino, Liechtenstein, Andorra) er
- * med vilje utelatne over. I 50m-oppløysing er dei 0,01–0,1° breie — i
- * klikkemodus ville dei vore reine flaksetreff. Dei høyrer heime i ein eigen
- * «mikrostatar»-kategori seinare, ikkje blanda inn blant Frankrike og Polen.
+ * Mikrostatane var utelatne her før, og grunngjevinga var god: dei er nokre få
+ * piksler breie, og i klikkemodus ville dei vore reine flaksetreff.
+ *
+ * Det var ikkje datasettet som var feil, men kartet. Polygona hadde ikkje noko
+ * minstemål for trykk — elvane hadde eit usynleg band og byane ein usynleg
+ * sirkel, flatene ingenting. `SmallTargets` i components/game/MapCanvas.tsx
+ * gjev no kvar flate som er mindre enn fingertuppen ei usynleg treffflate, og
+ * då er ikkje San Marino vanskelegare å treffe enn Oslo er. Grunnen til å
+ * halde dei ute er borte, og Europa har alle landa sine.
+ *
+ * Kosovo har ingen offisiell numerisk kode og blir kjend att på namnet.
  */
+const KOSOVO = { id: 'XK', name: 'Kosovo', nameEn: 'Kosovo' }
 
 /** Ringar med midtpunkt utanfor denne boksen blir forkasta. */
 const BOX = { minLon: -26, maxLon: 46, minLat: 33, maxLat: 72 }
@@ -145,11 +157,12 @@ const features = []
 const missing = new Set(EUROPE.keys())
 
 for (const f of world.features) {
+  const kosovo = f.id == null && f.properties?.name === 'Kosovo'
   const code = Number(f.id)
-  if (!EUROPE.has(code)) continue
+  if (!kosovo && !EUROPE.has(code)) continue
   missing.delete(code)
 
-  const [name, nameEn] = EUROPE.get(code)
+  const [name, nameEn] = kosovo ? [KOSOVO.name, KOSOVO.nameEn] : EUROPE.get(code)
   const clipped = code === RUSSIA ? clipGeometryToBox(f.geometry, BOX) : clipToEurope(f.geometry)
   if (!clipped) {
     console.warn(`  ! ${name} fell utanfor Europa-boksen — hoppa over`)
@@ -158,7 +171,7 @@ for (const f of world.features) {
 
   features.push({
     type: 'Feature',
-    properties: { id: String(code), name, nameEn },
+    properties: { id: kosovo ? KOSOVO.id : String(code), name, nameEn },
     geometry: roundGeometry(clipped),
   })
 }

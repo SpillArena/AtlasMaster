@@ -69,6 +69,11 @@ for (const file of globSync('src/data/*/*.json', { cwd: root }).sort()) {
   const raw = readFileSync(path, 'utf8')
   const data = JSON.parse(raw)
 
+  // src/data/*/ rommar meir enn geometri: world/flags.json er ei id→landkode-
+  // tabell. Globben tek henne med, og utan denne linja stoppar heile
+  // rørledninga på ei fil som aldri hadde koordinatar å runde av.
+  if (!Array.isArray(data.features)) continue
+
   let before = 0
   let after = 0
   for (const f of data.features) {
