@@ -21,6 +21,24 @@ type PirateCompassProps = {
     label?: string;
 };
 
+/*
+ * MERK — instrumentet plasserer ikke seg selv, og tar ikke imot en
+ * plasseringsklasse heller.
+ *
+ * Roten er `position: relative`, fordi messingkuppelen over glasset ligger
+ * `absolute inset-0` inni. Det stod som Tailwind-klassen `relative` rett i
+ * `className` her, foran den kalleren sendte inn — og `absolute` utenfra vant
+ * aldri: begge er utility-klasser med samme spesifisitet, så det er
+ * rekkefølgen i stilarket som avgjør, og der kommer `.relative` sist.
+ * Kompasset falt derfor ut i vanlig flyt og la seg *under* kartet i stedet for
+ * nede i hjørnet av det.
+ *
+ * Nå bor `position` i `.pirate-compass` i index.css og hører komponenten til.
+ * Skal instrumentet stå et sted, pakk det inn:
+ *
+ *   <div className="absolute bottom-5 left-5"><PirateCompass … /></div>
+ */
+
 export default function PirateCompass({
     size = 240,
     className = "",
@@ -30,24 +48,44 @@ export default function PirateCompass({
 }: PirateCompassProps) {
     const pointing = heading !== null && Number.isFinite(heading);
     const center = 200;
-    const roseOuter = 116;
-    const roseInner = 74;
 
+    /*
+     * Urskiva i tre bånd, utenfra og inn: streker (127–137), bokstaver (112),
+     * rose (56–96). Ingen av dem deler radius med et annet.
+     *
+     * De gjorde det før, og da forsvant halve instrumentet. Rosen gikk ut til
+     * 116 og bokstavene stod på 104 — altså oppå diamantene — og fargene var
+     * hverandres: «N» var #9e2d1e på en #9e2d1e nord-diamant, «E», «S» og «W»
+     * var #163f45 på #174a50. De fire hovedstrekene var ikke svake, de var
+     * usynlige. Nå står bokstavene på bart papir, der de leses mot papiret og
+     * ikke mot en figur under seg.
+     */
+    const roseOuter = 96;
+    const roseInner = 56;
+    const letterRadius = 112;
+
+    /*
+     * Nord er liljen, ikke en «N».
+     *
+     * Den lå der fra før — en fleur-de-lis tvers over nordaksen — og en «N»
+     * oppå den var to nordmerker i samme punkt. Liljen er dessuten den et
+     * kompass faktisk bruker. Så blir det tre bokstaver, med god plass.
+     */
     const cardinals = [
-        { label: "N", angle: 0 },
         { label: "E", angle: 90 },
         { label: "S", angle: 180 },
         { label: "W", angle: 270 },
     ];
 
-    const intercardinals = [
-        { label: "NE", angle: 45 },
-        { label: "SE", angle: 135 },
-        { label: "SW", angle: 225 },
-        { label: "NW", angle: 315 },
-    ];
-
-    const degrees = Array.from({ length: 72 }, (_, i) => i * 5);
+    /*
+     * Hver tiende grad, ikke hver femte.
+     *
+     * Instrumentet står 168 px bredt på landingssida. Strekbåndet er da rundt
+     * 56 px i radius, altså 350 px rundt: 72 streker ble én per 4,9 px, og
+     * båndet leste som en grå ring. 36 gir dobbelt så mye luft — man ser at
+     * det *er* streker.
+     */
+    const degrees = Array.from({ length: 36 }, (_, i) => i * 10);
 
     const polar = (angle: number, radius: number) => {
         const a = ((angle - 90) * Math.PI) / 180;
@@ -65,15 +103,9 @@ export default function PirateCompass({
         return `M ${tip.x} ${tip.y} L ${left.x} ${left.y} L ${base.x} ${base.y} L ${right.x} ${right.y} Z`;
     };
 
-    const longTicks = Array.from({ length: 16 }, (_, i) => i * 22.5);
-    const ringNumbers = Array.from({ length: 12 }, (_, i) => ({
-        label: `${i === 0 ? 36 : i * 3}`,
-        angle: i * 30,
-    }));
-
     return (
         <div
-            className={`pirate-compass relative ${className}`}
+            className={`pirate-compass ${className}`}
             style={{ width: size, height: size }}
             aria-label={label}
             role="img"
@@ -177,16 +209,16 @@ export default function PirateCompass({
                     />
                 </g>
 
-                <circle cx="200" cy="200" r="126" fill="none" stroke="#67411e" strokeWidth="1.5" opacity="0.72" />
-                <circle cx="200" cy="200" r="118" fill="none" stroke="#b78437" strokeWidth="1.2" opacity="0.72" />
-                <circle cx="200" cy="200" r="98" fill="none" stroke="#1b4a4d" strokeWidth="1" opacity="0.42" />
-                <circle cx="200" cy="200" r="78" fill="none" stroke="#1b4a4d" strokeWidth="1" opacity="0.5" />
+                {/* ytterkant og innerkant av strekbåndet, og kanten av rosen */}
+                <circle cx="200" cy="200" r="138" fill="none" stroke="#67411e" strokeWidth="1.5" opacity="0.72" />
+                <circle cx="200" cy="200" r="125" fill="none" stroke="#b78437" strokeWidth="1.2" opacity="0.72" />
+                <circle cx="200" cy="200" r="100" fill="none" stroke="#1b4a4d" strokeWidth="1" opacity="0.42" />
 
                 {degrees.map((angle, i) => {
                     const isCardinal = angle % 90 === 0;
                     const isMajor = angle % 30 === 0;
-                    const outer = 132;
-                    const inner = isCardinal ? 116 : isMajor ? 121 : 125;
+                    const outer = 137;
+                    const inner = isCardinal ? 127 : isMajor ? 130 : 133;
                     const p1 = polar(angle, outer);
                     const p2 = polar(angle, inner);
                     return (
@@ -197,26 +229,9 @@ export default function PirateCompass({
                             x2={p2.x}
                             y2={p2.y}
                             stroke={isCardinal ? "#173f43" : "#765328"}
-                            strokeWidth={isCardinal ? 3 : isMajor ? 2 : 1}
+                            strokeWidth={isCardinal ? 3.5 : isMajor ? 2.4 : 1.4}
                             strokeLinecap="round"
                             opacity={0.95}
-                        />
-                    );
-                })}
-
-                {longTicks.map((angle, i) => {
-                    const p1 = polar(angle, 112);
-                    const p2 = polar(angle, 88);
-                    return (
-                        <line
-                            key={`inner-${i}`}
-                            x1={p1.x}
-                            y1={p1.y}
-                            x2={p2.x}
-                            y2={p2.y}
-                            stroke="#24565a"
-                            strokeWidth="1.1"
-                            opacity="0.35"
                         />
                     );
                 })}
@@ -236,7 +251,7 @@ export default function PirateCompass({
                     {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
                         <path
                             key={`mid-star-${i}`}
-                            d={diamondPath(angle, 98, 60, 7)}
+                            d={diamondPath(angle, 80, 46, 7)}
                             fill="#4f857e"
                             stroke="#234649"
                             strokeWidth="1.4"
@@ -248,47 +263,24 @@ export default function PirateCompass({
                     <circle cx="200" cy="200" r="7" fill="#fff0b0" stroke="#80501e" strokeWidth="2" />
                 </g>
 
+                {/*
+                  NØ/SØ/SV/NV og gradtallene stod her før. På 168 px kom de ut
+                  som henholdsvis 5 og 3,8 piksler — under det man kan lese,
+                  altså mønster og ikke tekst, oppå et bånd som allerede var
+                  fullt. Diamantene i rosen peker på mellomretningene; det er
+                  merket. Gradtallene hadde ingen å avløse, og er borte.
+                */}
                 <g>
                     {cardinals.map((item) => {
-                        const p = polar(item.angle, 104);
+                        const p = polar(item.angle, letterRadius);
                         return (
                             <text
                                 key={item.label}
                                 x={p.x}
-                                y={p.y + 6}
+                                y={p.y}
                                 textAnchor="middle"
-                                className={`pirate-compass__label pirate-compass__label--cardinal ${item.label === "N" ? "is-north" : ""
-                                    }`}
-                            >
-                                {item.label}
-                            </text>
-                        );
-                    })}
-
-                    {intercardinals.map((item) => {
-                        const p = polar(item.angle, 92);
-                        return (
-                            <text
-                                key={item.label}
-                                x={p.x}
-                                y={p.y + 4}
-                                textAnchor="middle"
-                                className="pirate-compass__label pirate-compass__label--minor"
-                            >
-                                {item.label}
-                            </text>
-                        );
-                    })}
-
-                    {ringNumbers.map((item) => {
-                        const p = polar(item.angle + 15, 124);
-                        return (
-                            <text
-                                key={item.label}
-                                x={p.x}
-                                y={p.y + 4}
-                                textAnchor="middle"
-                                className="pirate-compass__degree"
+                                dominantBaseline="central"
+                                className="pirate-compass__label pirate-compass__label--cardinal"
                             >
                                 {item.label}
                             </text>
@@ -301,39 +293,60 @@ export default function PirateCompass({
                       Uten en peiling driver nålen sakte rundt nord — en
                       magnetnål står aldri helt stille. Med en peiling slår
                       driften av, og overgangen i stilarket tar nåla dit.
-                      Nåla dreier om selve senteret (200 200) — samme punkt
-                      som driften i stilarket bruker.
+
+                      MERK — `rotate()` står uten dreiepunkt med vilje.
+                      Punktet ligger i stilarket, som `transform-origin` på
+                      `.pirate-compass__needleWrap`, og det gjelder både denne
+                      rotasjonen og driftanimasjonen. Skriver vi senteret her
+                      også, blir det lagt på to ganger: nåla dreier først om
+                      (200 200) og så om (200 200) én gang til, og havner
+                      `c − R(c)` unna — 400 enheter rett ut av urskiva ved 90°.
                     */}
                     <g
-                        transform={`rotate(${pointing ? heading : 0} 200 200)`}
+                        transform={`rotate(${pointing ? heading : 0})`}
                         className={`pirate-compass__needleWrap${pointing ? "" : " is-adrift"}`}
                     >
+                        {/*
+                          Nåla stopper på radius 98 — inne i rosen, og klar av
+                          bokstavbåndet. Den delen som snurrer har rosen for
+                          seg selv, og kortet under beholder liljen og
+                          bokstavene sine udekket, uansett hvor nåla står.
+                          Rakk den lenger, lå den permanent oppå nordmerket.
+
+                          Den lille fløtefargede hetta over den røde spissen er
+                          av samme grunn borte. Den nådde dessuten radius 145,
+                          utenfor papirskiva på 142, og ble klippet av kanten.
+                        */}
                         {showNeedle && (
                             <>
                                 <path
-                                    d="M 200 68 L 212 192 L 200 176 L 188 192 Z"
+                                    d="M 200 102 L 212 192 L 200 176 L 188 192 Z"
                                     fill="url(#pc-needle-red)"
                                     stroke="#45150f"
                                     strokeWidth="2"
                                 />
                                 <path
-                                    d="M 200 332 L 210 210 L 200 226 L 190 210 Z"
+                                    d="M 200 298 L 210 210 L 200 226 L 190 210 Z"
                                     fill="url(#pc-needle-light)"
                                     stroke="#5b4627"
                                     strokeWidth="2"
-                                />
-                                <path
-                                    d="M 196 82 L 200 55 L 204 82"
-                                    fill="#e8d7a4"
-                                    stroke="#5b4322"
-                                    strokeWidth="1.5"
                                 />
                             </>
                         )}
                     </g>
                 </g>
 
-                <g className="pirate-compass__fleur">
+                {/*
+                  Liljen er nordmerket, og står i bokstavbåndet sammen med E, S
+                  og W. Tegningen er den samme som før; den blir bare skalert
+                  ned til båndet i stedet for å bli tegnet om punkt for punkt.
+                  Slik den stod nådde spissen radius 147 — utenfor papirskiva —
+                  og foten gikk helt inn i rosen.
+                */}
+                <g
+                    className="pirate-compass__fleur"
+                    transform="translate(200 70) scale(0.384) translate(-200 -53)"
+                >
                     <path
                         d="M200 53
                C191 60, 189 74, 195 82

@@ -187,7 +187,14 @@ export function WorldMapPicker({ onPick }: Props) {
   }, [built]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4">
+    /*
+      Kartet bryter ut av `max-w-6xl`-spalta resten av appen står i. Det er
+      ikke et innslag på landingssida — det *er* landingssida, og det eneste
+      man kan gjøre der er å trykke på det. I spalta ble Norge rundt tolv
+      piksler bredt; her er hele klodens plass målt opp etter det minste man
+      skal kunne treffe, ikke etter tekstbredden under.
+    */
+    <div className="mx-auto w-full max-w-[88rem] px-4">
       {/*
         Kompasset ligger utenfor selve platen, ikke inni den. Platen bærer den
         revne kanten, og en maske klipper alt den inneholder — instrumentet
@@ -345,12 +352,14 @@ export function WorldMapPicker({ onPick }: Props) {
           <PaperRifts className="z-[5] opacity-40 dark:opacity-50" />
         </motion.div>
 
-        <PirateCompass
-          size={128}
-          heading={heading}
-          label={t("region.title")}
-          className="pointer-events-none absolute bottom-4 left-4 z-10 hidden drop-shadow-lg sm:inline-grid"
-        />
+        <div className="pointer-events-none absolute bottom-6 left-8 z-10 hidden sm:block">
+          <PirateCompass
+            size={168}
+            heading={heading}
+            label={t("region.title")}
+            className="drop-shadow-lg"
+          />
+        </div>
       </div>
 
       {/* tekst-snarveier: tilgjengelig fallback og tydelig på mobil */}

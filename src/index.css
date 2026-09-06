@@ -644,7 +644,10 @@
  * instrumentet var det ene stedet i appen som ikke visste at det finnes et
  * mørkt tema. Her ligger de én gang, og fargene er tokens.
  */
+/* `relative` er kuppelens holdepunkt — se notatet i PirateCompass.tsx */
 .pirate-compass {
+  position: relative;
+  display: inline-grid;
   border-radius: 50%;
   user-select: none;
   isolation: isolate;
@@ -666,31 +669,25 @@
   stroke-width: 1.4px;
 }
 
+/*
+ * 30, ikke 25: instrumentet står 168 px bredt, og viewBox-en er 400. Alt her
+ * krymper altså til 42 % av tallet som står. 25 ble 10,5 px på skjermen —
+ * lesbart bare hvis man visste hva det stod. 30 gir 12,6.
+ */
 .pirate-compass__label--cardinal {
-  font-size: 25px;
+  font-size: 30px;
   font-weight: 700;
 }
 
-.pirate-compass__label--cardinal.is-north {
-  fill: #9e2d1e;
-  font-size: 31px;
-}
-
-.pirate-compass__label--minor {
-  font-size: 12px;
-  font-weight: 700;
-  opacity: 0.88;
-}
-
-.pirate-compass__degree {
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  font-size: 9px;
-  font-weight: 700;
-  fill: #6c4923;
-  letter-spacing: 0;
-  opacity: 0.75;
-}
-
+/*
+ * Dreiepunktet til nåla, ett sted for begge som snurrer henne.
+ *
+ * `transform-box: view-box` gjør at `transform-origin` leses i viewBox-en sin
+ * egen enheter, ikke i omslutningsboksen til nåla — altså 200 200, midt i
+ * urskiva. Både `rotate()` fra komponenten og `compass-adrift` under dreier om
+ * det punktet. Derfor står `rotate()` i PirateCompass.tsx uten eget senter:
+ * to dreiepunkt blir lagt sammen, ikke det ene i stedet for det andre.
+ */
 .pirate-compass__needleWrap {
   transform-box: view-box;
   transform-origin: 200px 200px;
