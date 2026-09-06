@@ -9,51 +9,63 @@ import type { Award } from '../../game/useQuizEngine'
 import { Icon, type IconName } from '../Icon'
 
 /**
- * Lerretshøgda er fast; breidda følgjer regionen sitt eige sideforhold, så
- * både det høge Noreg og det breie Europa fyller flata.
+ * Lerretshøyden er fast; bredden følger regionens eget sideforhold, så
+ * både det høye Norge og det brede Europa fyller flata.
  */
 const H = 900
 
 /**
- * Ønskt treffradius for punkt-features, i CSS-pikslar.
+ * Ønsket treffradius for punkt-features, i CSS-piksler.
  *
- * Ein by er teikna med radius 5 i lerretskoordinatar. På ein telefon der 900
- * lerretseiningar blir pressa ned i ~500 px er den prikken under 3 px brei —
- * langt under dei 44 px i diameter både Apple og Google set som minstemål for
- * eit trykkmål. Sjølve prikken skal ikkje vekse (kartet blir uleseleg), så i
- * staden ligg det ei usynleg treffflate over.
+ * En by er tegnet med radius 5 i lerretskoordinater. På en telefon der 900
+ * lerretsenheter blir presset ned i ~500 px er den prikken under 3 px bred —
+ * langt under de 44 px i diameter både Apple og Google setter som minstemål for
+ * et trykkmål. Selve prikken skal ikke vokse (kartet blir uleselig), så i
+ * stedet ligger det en usynlig treffflate over.
  */
 const HIT_PX = 22
 
 /**
- * Kor mykje zoomen må endre seg før React får vite om det.
+ * Hvor mye zoomen må endre seg før React får vite om det.
  *
- * Sjølve panoreringa og zoomen går utanom React heilt — transformen blir
- * skriven rett på gruppa. Berre punktmarkørane og poengbobla treng å kjenne
- * skalaen, og dei toler å vere eit halvt steg bak: 5 % skilnad på radien til
- * ein prikk er ikkje synleg, men å byggje laget på nytt for kvar musrørsle er
- * det som gjer kartet hakkete.
+ * Selve panoreringen og zoomen går utenom React helt — transformen blir
+ * skrevet rett på gruppa. Bare punktmarkørene og poengbobla trenger å kjenne
+ * skalaen, og de tåler å være et halvt steg bak: 5 % forskjell på radien til
+ * en prikk er ikke synlig, men å bygge laget på nytt for hver musbevegelse er
+ * det som gjør kartet hakkete.
  */
 const K_STEP = 0.05
 
 /**
- * Kor grov geometrien under sokkelstripa er, i lerretseiningar.
+ * Hvor grov geometrien under sokkelstripa er, i lerretsenheter.
  *
- * Sjå `coarsen` i game/projection.ts. 2,5 einingar er under tre piksler på ein
- * telefon ved full utzooming, og stripa som teiknar dei er ni einingar brei.
+ * Se `coarsen` i game/projection.ts. 2,5 enheter er under tre piksler på en
+ * telefon ved full utzooming, og stripa som tegner dem er ni enheter bred.
  */
 const SHELF_TOLERANCE = 2.5
 
-/** Kva tilstand ei feature er i akkurat no — styrer farge og klikkbarheit. */
+/** Hvilken tilstand en feature er i akkurat nå — styrer farge og klikkbarhet. */
 type ShapeState = 'idle' | 'correct' | 'revealed' | 'wrong' | 'target'
+
+/**
+ * En projisert flate, med det `SmallTargets` trenger for å måle den: midtpunkt
+ * og største utstrekning, i lerretsenheter.
+ */
+interface MeasuredPath {
+  id: string
+  d: string
+  cx: number
+  cy: number
+  size: number
+}
 
 const STATE_COLOR: Record<ShapeState, string> = {
   correct: 'var(--success)',
   revealed: 'var(--info)',
   wrong: 'var(--danger)',
   target: 'var(--gold)',
-  // gjennomsiktig, ikkje «none»: terrenget skal lese gjennom, men flata må
-  // framleis ta imot klikk
+  // gjennomsiktig, ikke «none»: terrenget skal lese gjennom, men flata må
+  // fortsatt ta imot klikk
   idle: 'transparent',
 }
 
@@ -74,7 +86,7 @@ interface Props {
   status: Record<string, 'correct' | 'revealed'>
   /** sist feilklikkede id (rød) */
   flashId: string | null
-  /** det rette svaret, vist etter eit bomskot (blå) */
+  /** det rette svaret, vist etter et bomskudd (blå) */
   revealId?: string | null
   /** mål som skal markeres (choice/type) — pulserer */
   highlightId?: string | null
@@ -87,9 +99,9 @@ interface Props {
 }
 
 /**
- * Kartet re-renderer berre når spelet faktisk endrar seg. `GameScreen` teiknar
- * seg sjølv på nytt kvar 100 ms for klokka; utan denne grensa ville heile
- * kartet — fleire hundre baner — bli avstemt ti gonger i sekundet.
+ * Kartet re-renderer bare når spillet faktisk endrer seg. `GameScreen` tegner
+ * seg selv på nytt hver 100 ms for klokka; uten denne grensa ville hele
+ * kartet — flere hundre baner — bli avstemt ti ganger i sekundet.
  */
 export const MapCanvas = memo(function MapCanvas({
   projectionSpec,
@@ -107,9 +119,9 @@ export const MapCanvas = memo(function MapCanvas({
   disabled,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
-  /** gruppa all zoom og panorering blir skriven på — utanom React */
+  /** gruppa all zoom og panorering blir skrevet på — utenom React */
   const layerRef = useRef<SVGGElement>(null)
-  // useId gjev ':r1:' — kolon må vekk, elles blir url(#…) ein ugyldig selektor
+  // useId gir ':r1:' — kolon må vekk, ellers blir url(#…) en ugyldig selektor
   const uid = useId().replace(/:/g, '')
   const oceanId = `ocean${uid}`
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -133,15 +145,15 @@ export const MapCanvas = memo(function MapCanvas({
       geometries: fitData.features.map((f) => f.geometry),
     }
     const land = path(landGeometry) ?? ''
-    // sokkelstripa køyrer på ein grovare kopi — sjå SHELF_TOLERANCE
+    // sokkelstripa kjører på en grovere kopi — se SHELF_TOLERANCE
     const shelf = makeCoarsePath(projection, SHELF_TOLERANCE)(landGeometry) ?? ''
 
     /*
-     * Lengde- og breiddegradsnettet, klipt til regionen sitt eige utsnitt
-     * pluss litt luft. Eit globalt nett ville blitt projisert langt utanfor
-     * gyldig område i ei kjegleprojeksjon og lagt seg som viftestrekar over
-     * heile lerretet. albersUsa er unnateke: dei tre innfelte rutene deler
-     * ikkje eitt samanhengande gradnett, så nettet ville brote opp der.
+     * Lengde- og breddegradsnettet, klippet til regionens eget utsnitt
+     * pluss litt luft. Et globalt nett ville blitt projisert langt utenfor
+     * gyldig område i en kjegleprojeksjon og lagt seg som viftestreker over
+     * hele lerretet. albersUsa er unntatt: de tre innfelte rutene deler
+     * ikke ett sammenhengende gradnett, så nettet ville brutt opp der.
      */
     let graticule = ''
     if (projectionSpec.kind !== 'albersUsa') {
@@ -165,9 +177,9 @@ export const MapCanvas = memo(function MapCanvas({
         centers[f.id] = [p.x, p.y]
         return p
       })
-      // Halve avstanden til næraste nabo. Treffflata skal vere så stor som
-      // råd, men aldri så stor at ho stel klikk frå punktet ved sida av —
-      // hovudstadane i Benelux ligg tettare enn eit fingertupp er breitt.
+      // Halve avstanden til nærmeste nabo. Treffflata skal være så stor som
+      // mulig, men aldri så stor at den stjeler klikk fra punktet ved siden av —
+      // hovedstedene i Benelux ligger tettere enn et fingertupp er bredt.
       const points = placed.map((p) => {
         let gap = Infinity
         for (const q of placed) {
@@ -179,17 +191,28 @@ export const MapCanvas = memo(function MapCanvas({
       return { paths: [], points, basePaths, land, shelf, graticule, centers, W }
     }
 
-    const paths = features.map((f) => {
-      centers[f.id] = path.centroid(f.geometry) as [number, number]
-      return { id: f.id, d: path(f.geometry) ?? '' }
+    /*
+     * Hvor stor flata blir på lerretet, og halve avstanden til nærmeste nabo.
+     * Begge blir målt her fordi de bare endrer seg med projeksjonen — ikke
+     * med zoomen. `SmallTargets` bruker de to tallene til å avgjøre hvem som er
+     * for liten til å kunne trykkes på; se kommentaren der.
+     */
+    const measured = features.map((f) => {
+      const c = path.centroid(f.geometry) as [number, number]
+      centers[f.id] = c
+      const [[x0, y0], [x1, y1]] = path.bounds(f.geometry)
+      // en tom eller ugyldig geometri får uendelig størrelse: da blir den aldri
+      // regnet som for liten, og ingen usynlig flate blir lagt ut for den
+      const size = Number.isFinite(x0) ? Math.max(x1 - x0, y1 - y0) : Infinity
+      return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size }
     })
-    return { paths, points: [], basePaths, land, shelf, graticule, centers, W }
+    return { paths: measured, points: [], basePaths, land, shelf, graticule, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom])
 
   /**
-   * Kor mange lerretseiningar det går på ein CSS-piksel akkurat no. `viewBox`
-   * + `meet` skalerer med den minste av dei to faktorane, og det er den same
-   * rekninga her. Utan dette målet ville treffflata vore rett på ein skjerm og
+   * Hvor mange lerretsenheter det går på en CSS-piksel akkurat nå. `viewBox`
+   * + `meet` skalerer med den minste av de to faktorene, og det er den samme
+   * regningen her. Uten dette målet ville treffflata vært rett på en skjerm og
    * feil på alle andre.
    */
   const [unitsPerPx, setUnitsPerPx] = useState(1)
@@ -210,10 +233,10 @@ export const MapCanvas = memo(function MapCanvas({
   /*
    * d3-zoom: hjul, pinch og dra-panorering.
    *
-   * Hendingane kjem ei per musrørsle — fleire hundre i sekundet på ein
-   * presisjonspeikar. Dei blir difor samla opp og skrivne éin gong per
-   * biletramme, rett på DOM-en. React får berre vite om det når sjølve
-   * zoomnivået har flytta seg eit merkbart steg.
+   * Hendingene kommer én per musbevegelse — flere hundre i sekundet på en
+   * presisjonspeker. De blir derfor samlet opp og skrevet én gang per
+   * bilderamme, rett på DOM-en. React får bare vite om det når selve
+   * zoomnivået har flyttet seg et merkbart steg.
    */
   useEffect(() => {
     if (!svgRef.current) return
@@ -249,11 +272,11 @@ export const MapCanvas = memo(function MapCanvas({
         [W, H],
       ])
       /*
-       * Medan fingeren er nede blir kartet rasterisert på nytt for kvar
-       * biletramme. `optimizeSpeed` slår av kantutjamninga så lenge gesten
-       * varer: nettlesaren slepp å blande farge langs kvar einaste kant i
-       * ei kystlinje på tusenvis av punkt. Skilnaden ser du berre om du
-       * frys biletet — og då står kartet stille, og kanten er mjuk igjen.
+       * Mens fingeren er nede blir kartet rasterisert på nytt for hver
+       * bilderamme. `optimizeSpeed` slår av kantutjevningen så lenge gesten
+       * varer: nettleseren slipper å blande farge langs hver eneste kant i
+       * en kystlinje på tusenvis av punkt. Forskjellen ser du bare om du
+       * fryser bildet — og da står kartet stille, og kanten er myk igjen.
        */
       .on('start', () => {
         layerRef.current?.setAttribute('shape-rendering', 'optimizeSpeed')
@@ -298,8 +321,8 @@ export const MapCanvas = memo(function MapCanvas({
   const awardCenter = award ? centers[award.id] : undefined
 
   return (
-    // havet held fram utanfor sjølve viewBox-en, så letterbox-stripene på
-    // breie skjermar les som opent farvatn og ikkje som tom appbakgrunn
+    // havet fortsetter utenfor selve viewBox-en, så letterbox-stripene på
+    // brede skjermer leser som åpent farvann og ikke som tom appbakgrunn
     <div className="relative h-full w-full" style={{ background: 'var(--ocean-deep)' }}>
       <svg
         ref={svgRef}
@@ -315,17 +338,34 @@ export const MapCanvas = memo(function MapCanvas({
           </radialGradient>
         </defs>
 
-        {/* havet ligg utanfor zoom-gruppa så det alltid dekkjer heile flata */}
+        {/* havet ligger utenfor zoom-gruppa så det alltid dekker hele flata */}
         <rect x={0} y={0} width={W} height={H} fill={`url(#${oceanId})`} pointerEvents="none" />
 
         {/*
-          Transformen på denne gruppa blir sett imperativt av zoom-effekten
-          over. Difor står det ingen `transform`-prop her: hadde React eigd
-          attributtet, ville kvar rendring dratt kartet tilbake til den siste
-          verdien React kjenner, midt i ein gest.
+          Transformen på denne gruppa blir satt imperativt av zoom-effekten
+          over. Derfor står det ingen `transform`-prop her: hadde React eid
+          attributtet, ville hver rendring dratt kartet tilbake til den siste
+          verdien React kjenner, midt i en gest.
         */}
         <g ref={layerRef}>
           <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
+
+          {/*
+            Usynlige trykkmål for de minste landene. Laget ligger *under*
+            ShapeLayer med vilje — samme grunn som elvebåndene: et presist trykk
+            rett på Italia skal alltid gi Italia, og bare klikk som bommer på
+            alle synlige flater faller ned hit.
+          */}
+          {geom === 'polygon' && (
+            <SmallTargets
+              paths={paths}
+              status={status}
+              live={interactive && !disabled}
+              k={k}
+              unitsPerPx={unitsPerPx}
+              onPick={onPick}
+            />
+          )}
 
           {geom !== 'point' && (
             <ShapeLayer
@@ -378,10 +418,10 @@ export const MapCanvas = memo(function MapCanvas({
 })
 
 /**
- * Knappane ligg oppå kartflata. Dei hadde `.panel` før, med
- * `backdrop-filter: blur(14px)`: nettlesaren måtte då sløre utsnittet bak
- * knappen på nytt for kvar biletramme medan kartet flytta seg under. Ei
- * ugjennomsiktig flate kostar ingenting og les like tydeleg.
+ * Knappene ligger oppå kartflata. De hadde `.panel` før, med
+ * `backdrop-filter: blur(14px)`: nettleseren måtte da sløre utsnittet bak
+ * knappen på nytt for hver bilderamme mens kartet flyttet seg under. En
+ * ugjennomsiktig flate koster ingenting og leser like tydelig.
  */
 function ZoomBtn({ icon, onClick }: { icon: IconName; onClick: () => void }) {
   return (
@@ -408,8 +448,8 @@ function stateOf(
 ): ShapeState {
   const resolved = status[id]
   if (resolved) return resolved
-  // fasiten kjem før bomskotet: i skrive- og flervalgsmodus er det same id-en
-  // som både blei svart feil og er det rette svaret, og då er det fasiten som
+  // fasiten kommer før bomskuddet: i skrive- og flervalgsmodus er det samme id-en
+  // som både ble svart feil og er det rette svaret, og da er det fasiten som
   // skal lyse
   if (revealId === id) return 'revealed'
   if (flashId === id) return 'wrong'
@@ -418,12 +458,101 @@ function stateOf(
 }
 
 /**
+ * Usynlige trykkmål for flater som er for små til å kunne trykkes på.
+ *
+ * Malta er 0,39 grader bred. På et Europa-kart som spenner 72 grader blir
+ * øya tre-fire piksler — tegnet, men i praksis utreffbar, og det er nettopp
+ * derfor mikrostatene har vært holdt utenfor datasettene med vilje. En flate
+ * som er mindre enn trykkmålet får derfor en usynlig sirkel på størrelse med
+ * fingertuppen, akkurat som byene i `PointLayer`.
+ *
+ * To ting holder sirklene fra å stjele klikk. Laget ligger under de synlige
+ * flatene, så et trykk som treffer Italia er Italia — bare bomskudd ned i
+ * havet faller hit. Og radien vokser aldri forbi halve avstanden til nærmeste
+ * nabo, så to små naboland kan ikke dekke hverandre.
+ *
+ * Laget er skilt fra `ShapeLayer` fordi det er det eneste som trenger å vite om
+ * zoomen. Hadde de vært ett, måtte alle de hundre banene til ShapeLayer
+ * blitt avstemt på nytt for hvert zoom-steg.
+ */
+const SmallTargets = memo(function SmallTargets({
+  paths,
+  status,
+  live,
+  k,
+  unitsPerPx,
+  onPick,
+}: {
+  paths: MeasuredPath[]
+  status: Record<string, 'correct' | 'revealed'>
+  live: boolean
+  k: number
+  unitsPerPx: number
+  onPick: (id: string) => void
+}) {
+  // samme tre skansene som i ShapeLayer — se kommentaren der
+  const handleClick = useCallback(
+    (event: React.MouseEvent<SVGGElement>) => {
+      const id = (event.target as Element).getAttribute?.('data-id')
+      if (id && !status[id]) onPick(id)
+    },
+    [status, onPick],
+  )
+
+  /** fingertuppen målt i lerretsenheter ved gjeldende zoom */
+  const reach = (HIT_PX * unitsPerPx) / k
+
+  /*
+   * Hvem som trenger hjelp, og hvor stor hjelpa kan bli.
+   *
+   * Avstanden blir målt bare mot de andre små flatene, ikke mot alle. En
+   * sirkel som ligger *under* de synlige banene kan ikke stjele et klikk fra
+   * Italia uansett hvor stor den er — Italia tar imot sitt eget klikk først.
+   * Det eneste to sirkler kan kollidere med, er hverandre.
+   *
+   * Målt mot alle ble Vatikanstaten kappet av midtpunktet til Italia, som ligger
+   * et par hundre kilometer unna, og satt igjen med en treffflate på fjorten
+   * piksler — like liten som landet var fra før.
+   */
+  const small = live
+    ? paths.filter(
+        (p) => p.size < 2 * reach && !status[p.id] && Number.isFinite(p.cx) && Number.isFinite(p.cy),
+      )
+    : []
+
+  if (!small.length) return null
+
+  return (
+    <g onClick={handleClick}>
+      {small.map((p) => {
+        let gap = Infinity
+        for (const q of small) {
+          if (q === p) continue
+          gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
+        }
+        return (
+          <circle
+            key={`hit-${p.id}`}
+            data-id={p.id}
+            cx={p.cx}
+            cy={p.cy}
+            r={Math.max(p.size / 2, Math.min(reach, gap))}
+            fill="transparent"
+            className="cursor-pointer"
+          />
+        )
+      })}
+    </g>
+  )
+})
+
+/**
  * Polygon- og linje-features (fylke, land, elver).
  *
- * Laget tek imot klikk på gruppenivå og les `data-id` frå det som faktisk
- * blei treft. Alternativet — ein `onClick`-lukking per bane — ville laga
- * hundrevis av nye funksjonar for kvar rendring og gjort kvar einaste bane
- * ulik seg sjølv, så `memo` under aldri fekk slå til.
+ * Laget tar imot klikk på gruppenivå og leser `data-id` fra det som faktisk
+ * ble truffet. Alternativet — en `onClick`-lukking per bane — ville laget
+ * hundrevis av nye funksjoner for hver rendring og gjort hver eneste bane
+ * ulik seg selv, så `memo` under aldri fikk slå til.
  */
 const ShapeLayer = memo(function ShapeLayer({
   paths,
@@ -435,7 +564,7 @@ const ShapeLayer = memo(function ShapeLayer({
   live,
   onPick,
 }: {
-  paths: { id: string; d: string }[]
+  paths: MeasuredPath[]
   isLine: boolean
   status: Record<string, 'correct' | 'revealed'>
   flashId: string | null
@@ -445,12 +574,12 @@ const ShapeLayer = memo(function ShapeLayer({
   onPick: (id: string) => void
 }) {
   /*
-   * Andre skanse mot klikk på eit sted som alt er svart.
+   * Andre skanse mot klikk på et sted som alt er svart.
    *
-   * Første er `pointer-events: none` på bana sjølv, og den held for musa. Men
-   * hendinga blir fanga her oppe på gruppa, og eit `data-id` kan i prinsippet
-   * kome frå eit element som blei teikna i mellomtida. Motoren har den
-   * tredje og siste skansen; ingen av dei er dyre, og eit løyst fylke skal
+   * Første er `pointer-events: none` på bana selv, og den holder for musa. Men
+   * hendinga blir fanget her oppe på gruppa, og en `data-id` kan i prinsippet
+   * komme fra et element som ble tegnet i mellomtiden. Motoren har den
+   * tredje og siste skansen; ingen av dem er dyre, og et løst fylke skal
    * aldri kunne koste poeng.
    */
   const handleClick = useCallback(
@@ -464,11 +593,11 @@ const ShapeLayer = memo(function ShapeLayer({
   return (
     <g onClick={live ? handleClick : undefined}>
       {/*
-        Usynlege trykkmål for elvene. Ei elv er teikna 6 px brei — for smal
-        for ein finger. Banda ligg *under* dei synlege strekane med vilje:
-        der to elver kryssar, skal eit presist trykk rett på streken alltid
-        gje den elva du faktisk sikta på, og berre bomskota falle ned på
-        bandet. Løyste elver får ikkje noko band — dei er ute av spelet.
+        Usynlige trykkmål for elvene. En elv er tegnet 6 px bred — for smal
+        for en finger. Båndene ligger *under* de synlige strekene med vilje:
+        der to elver krysser, skal et presist trykk rett på streken alltid
+        gi den elva du faktisk siktet på, og bare bomskuddene falle ned på
+        båndet. Løste elver får ikke noe bånd — de er ute av spillet.
       */}
       {isLine &&
         live &&
@@ -504,11 +633,11 @@ const ShapeLayer = memo(function ShapeLayer({
 })
 
 /**
- * Éi feature på kartet.
+ * Én feature på kartet.
  *
- * Alle props er primitive verdiar, så `memo` kan avgjere på likskap: når
- * eitt svar endrar status på eitt fylke, er det berre det eine som blir
- * teikna om. Resten av kartet står urørt.
+ * Alle props er primitive verdier, så `memo` kan avgjøre på likhet: når
+ * ett svar endrer status på ett fylke, er det bare det ene som blir
+ * tegnet om. Resten av kartet står urørt.
  */
 const FeatureShape = memo(function FeatureShape({
   id,
@@ -523,8 +652,8 @@ const FeatureShape = memo(function FeatureShape({
   state: ShapeState
   live: boolean
 }) {
-  // eit løyst sted er ute av spelet: det skal korkje ta imot klikk, vise
-  // peikar eller lyse opp under musa
+  // et løst sted er ute av spillet: det skal verken ta imot klikk, vise
+  // peker eller lyse opp under musa
   const clickable = live && state !== 'correct' && state !== 'revealed'
   const color = isLine && state === 'idle' ? 'var(--text-subtle)' : STATE_COLOR[state]
 
@@ -539,7 +668,7 @@ const FeatureShape = memo(function FeatureShape({
       strokeLinecap={isLine ? 'round' : undefined}
       strokeLinejoin={isLine ? 'round' : undefined}
       className={[
-        // 75 ms: raskt nok til å kjennast direkte, men framleis ei mjuk
+        // 75 ms: raskt nok til å kjennes direkte, men fortsatt en myk
         // overgang når status skifter til rett/avslørt
         'outline-none transition-colors duration-75',
         state === 'target' ? 'animate-breathe' : '',
@@ -575,7 +704,7 @@ const PointLayer = memo(function PointLayer({
   unitsPerPx: number
   onPick: (id: string) => void
 }) {
-  // same tre skansane som i ShapeLayer — sjå kommentaren der
+  // samme tre skansene som i ShapeLayer — se kommentaren der
   const handleClick = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
       const id = (event.target as Element).getAttribute?.('data-id')
@@ -589,8 +718,8 @@ const PointLayer = memo(function PointLayer({
       {points.map(({ id, x, y, gap }) => {
         const state = stateOf(id, status, flashId, revealId, highlightId)
         const r = (state === 'target' ? 6 : 5) / k
-        // treffflata veks aldri forbi halve naboavstanden, og krympar med
-        // zoomen slik at ho held same storleik på skjermen
+        // treffflata vokser aldri forbi halve naboavstanden, og krymper med
+        // zoomen slik at den holder samme størrelse på skjermen
         const rHit = Math.max(r, Math.min((HIT_PX * unitsPerPx) / k, gap))
         return (
           <PointMark
@@ -634,9 +763,9 @@ const PointMark = memo(function PointMark({
   return (
     <g>
       {/*
-        Ringen rundt det aktive målet pustar med rein CSS. Han var ei
-        framer-motion-animasjon som skreiv ein ny `r` seksti gonger i
-        sekundet gjennom heile runden — ein JS-driven animasjonssløyfe som
+        Ringen rundt det aktive målet puster med ren CSS. Den var en
+        framer-motion-animasjon som skrev en ny `r` seksti ganger i
+        sekundet gjennom hele runden — en JS-driven animasjonssløyfe som
         aldri stod stille, midt oppå det tyngste laget i appen.
       */}
       {state === 'target' && (
@@ -659,7 +788,7 @@ const PointMark = memo(function PointMark({
         fill={POINT_COLOR[state]}
         className="pointer-events-none stroke-white stroke-[1] outline-none transition-colors duration-75"
       />
-      {/* usynleg treffflate — ligg øvst, så fingeren treffer ho først */}
+      {/* usynlig treffflate — ligger øverst, så fingeren treffer den først */}
       {clickable && (
         <circle data-id={id} cx={x} cy={y} r={rHit} fill="transparent" className="cursor-pointer" />
       )}
@@ -670,15 +799,15 @@ const PointMark = memo(function PointMark({
 /**
  * Ringen og «+120» som slår ut der treffet skjedde.
  *
- * Begge var framer-motion-element før. Ein slik komponent tek med seg ein
- * animasjonsmotor som reknar ut nye attributtverdiar i JavaScript seksti
- * gonger i sekundet — midt oppå det tyngste laget i appen, akkurat i det
- * sekundet spelet skal kjennast raskast. To CSS-keyframes gjer det same, på
- * kompositeringstråden, og let hovudtråden halde fram med kartet.
+ * Begge var framer-motion-element før. En slik komponent tar med seg en
+ * animasjonsmotor som regner ut nye attributtverdier i JavaScript seksti
+ * ganger i sekundet — midt oppå det tyngste laget i appen, akkurat i det
+ * sekundet spillet skal kjennes raskest. To CSS-keyframes gjør det samme, på
+ * kompositeringstråden, og lar hovedtråden fortsette med kartet.
  *
- * Gruppa ber `scale(1/k)`, motsett av zoomen på laget over. Ringen og
- * teksten held difor same storleik på skjermen uansett kor langt inn spelaren
- * har zooma, utan at nokon reknar om radiar per ramme.
+ * Gruppa bærer `scale(1/k)`, motsatt av zoomen på laget over. Ringen og
+ * teksten holder derfor samme størrelse på skjermen uansett hvor langt inn
+ * spilleren har zoomet, uten at noen regner om radier per ramme.
  */
 const AwardBurst = memo(function AwardBurst({
   x,
@@ -717,19 +846,19 @@ const AwardBurst = memo(function AwardBurst({
 })
 
 /**
- * Alt som ikkje endrar seg medan runden går: sokkel, landmasse, gradnett,
+ * Alt som ikke endrer seg mens runden går: sokkel, landmasse, gradnett,
  * kystlinje og bakgrunnsgrenser.
  *
- * Laget er skilt ut og memoisert med vilje. Klokka i HUD-en tikkar ti gonger
- * i sekundet; utan denne grensa ville React måtte samanlikne fleire hundre
- * `d`-strengar på kvar av dei. Props her er alle utleidde frå éin `useMemo`,
- * så referansane held seg stabile heilt til projeksjonen eller datasettet
- * faktisk byter.
+ * Laget er skilt ut og memoisert med vilje. Klokka i HUD-en tikker ti ganger
+ * i sekundet; uten denne grensa ville React måtte sammenligne flere hundre
+ * `d`-strenger på hver av dem. Props her er alle utledet fra én `useMemo`,
+ * så referansene holder seg stabile helt til projeksjonen eller datasettet
+ * faktisk byttes.
  *
- * Heile laget er `pointer-events: none`. Kartet gjer treff-test mot kvar
- * einaste synlege bane for kvar musrørsle, og landmassen er den mest
- * detaljerte bana som finst — å ta han ut av treff-testinga er gratis, for
- * han skal aldri kunne klikkast uansett.
+ * Hele laget er `pointer-events: none`. Kartet gjør treff-test mot hver
+ * eneste synlige bane for hver musbevegelse, og landmassen er den mest
+ * detaljerte bana som finnes — å ta den ut av treff-testingen er gratis, for
+ * den skal aldri kunne klikkes uansett.
  */
 const BaseMap = memo(function BaseMap({
   land,
@@ -745,14 +874,14 @@ const BaseMap = memo(function BaseMap({
   return (
     <g pointerEvents="none">
       {/*
-        Landmassen er den dyraste bana på kartet — Noreg åleine er tusenvis av
-        punkt fjordkyst — og han låg her fire gonger: to sokkelstriper, ei
-        fylling og ei kystlinje. Nettlesaren rasteriserte då den same
-        geometrien fire gonger for kvar biletramme under ein zoom. No er det
-        to passeringar, og den breiaste av dei går på ein grovare kopi.
+        Landmassen er den dyreste bana på kartet — Norge alene er tusenvis av
+        punkt fjordkyst — og den lå her fire ganger: to sokkelstriper, en
+        fylling og en kystlinje. Nettleseren rasteriserte da den samme
+        geometrien fire ganger for hver bilderamme under en zoom. Nå er det
+        to passeringer, og den bredeste av dem går på en grovere kopi.
       */}
 
-      {/* kontinentalsokkelen — ei brei, mjuk stripe langs kysten */}
+      {/* kontinentalsokkelen — en bred, myk stripe langs kysten */}
       <path
         d={shelf}
         fill="none"
@@ -772,7 +901,7 @@ const BaseMap = memo(function BaseMap({
         vectorEffect="non-scaling-stroke"
       />
 
-      {/* gradnett — svakt, over landflata som i eit trykt atlas */}
+      {/* gradnett — svakt, over landflata som i et trykt atlas */}
       {graticule && (
         <path
           d={graticule}
@@ -783,7 +912,7 @@ const BaseMap = memo(function BaseMap({
         />
       )}
 
-      {/* bakgrunns-omriss — grensene rundt features som ikkje er i spel */}
+      {/* bakgrunns-omriss — grensene rundt features som ikke er i spill */}
       {basePaths.map(({ id, d }) => (
         <path
           key={id}

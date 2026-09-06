@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MotionConfig } from 'framer-motion'
+import { MotionConfig, motion as fm } from 'framer-motion'
 import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
 import { CategoryPicker, ModePicker, PacePicker, WorldMapPicker } from './components/menu'
 import { GameScreen } from './components/game'
 import { Leaderboard, LeaderboardPanel } from './components/leaderboard'
+import { ProfilePanel } from './components/profile'
 import { FooterSection } from './components/footer'
 import { BackgroundMap } from './components/BackgroundMap'
 import { useGameSettings } from './contexts/useGameSettings'
@@ -25,6 +26,8 @@ function App() {
   // tempo som venter på at spilleren skriver inn navn
   const [pendingPace, setPendingPace] = useState<Pace | null>(null)
   const [editingName, setEditingName] = useState(false)
+  // profilen: alt spillet vet om deg, som ikke fantes noe sted før
+  const [showProfile, setShowProfile] = useState(false)
   const [confirmGiveUp, setConfirmGiveUp] = useState(false)
   // teller opp når en runde er lagret, så header og ledertavle leses på nytt
   const [profileVersion, setProfileVersion] = useState(0)
@@ -52,6 +55,19 @@ function App() {
   const atRoot = !region && !category && !mode && !showLeaderboard
   // en runde er i gang når tempo er valgt og ledertavla ikke dekker skjermen
   const inGame = Boolean(category && mode && pace && !showLeaderboard)
+
+  /*
+   * Sporet i headeren: hvor i feltboka man står.
+   *
+   * Kategori-, modus- og temposkjermene så identiske ut fra hverandre —
+   * samme bakgrunn, samme plate, samme tilbake-knapp — og ingenting sa om man
+   * var på vei inn i Europa eller i Asia.
+   */
+  const trail = [
+    region && t(region.labelKey),
+    category && t(category.labelKey),
+    mode && t(`mode.${mode}.title`),
+  ].filter((part): part is string => Boolean(part))
 
   // ett steg tilbake: ledertavle > tempo > modus > kategori > region
   const goBack = () => {
@@ -83,11 +99,27 @@ function App() {
           onBack={goBack}
           onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
-          onEditName={() => setEditingName(true)}
+          onEditName={() => setShowProfile(true)}
           profileVersion={profileVersion}
+          trail={trail}
         />
 
-        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/*
+          Overgangen mellom skjermene.
+          Region, kategori, modus, tempo og runden byttet før ut innholdet i
+          `main` uten et bilde imellom — fire nesten like skjermer som klippet
+          brått fra en til neste. Nøkkelen er hvor man står, så React bytter ut
+          treet og motion spiller inn det nye; det er `opacity` og `transform`,
+          altså kompositoren, og `MotionConfig` øverst slår det av under
+          «mindre bevegelse» sammen med resten.
+        */}
+        <fm.main
+          key={`${showLeaderboard ? 'board' : (regionId ?? 'root')}:${categoryId ?? ''}:${mode ?? ''}:${pace ?? ''}`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {showLeaderboard ? (
             <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} />
           ) : !region ? (
@@ -101,9 +133,16 @@ function App() {
                 </h1>
               </div>
               <WorldMapPicker onPick={setRegionId} />
+              {/*
+                Dashbordet viser tavla på tvers av alle regioner.
+                Den stod låst til standardregionen, altså Norge, på en skjerm
+                der ingen region er valgt enda: en spiller som bare spiller
+                Asia så aldri et eneste resultat av sitt eget der. API-et har
+                alltid støttet den regionsløse tavla — ingen skjerm ba om den.
+              */}
               <LeaderboardPanel
                 key={profileVersion}
-                regionId={DEFAULT_REGION_ID}
+                regionId="all"
                 onSeeAll={() => setShowLeaderboard(true)}
               />
               <FooterSection />
@@ -132,7 +171,7 @@ function App() {
               onRunRecorded={() => setProfileVersion((v) => v + 1)}
             />
           )}
-        </main>
+        </fm.main>
 
         {pendingPace && (
           <NamePrompt
@@ -156,6 +195,16 @@ function App() {
               reset()
             }}
             onCancel={() => setConfirmGiveUp(false)}
+          />
+        )}
+
+        {showProfile && (
+          <ProfilePanel
+            onAccount={() => {
+              setShowProfile(false)
+              setEditingName(true)
+            }}
+            onClose={() => setShowProfile(false)}
           />
         )}
 

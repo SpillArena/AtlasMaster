@@ -32,9 +32,7 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
         <p className="eyebrow">
           {t(category.labelKey)} · {t(`mode.${mode}.title`)}
         </p>
-        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
-          {t('pace.title')}
-        </h2>
+        <h2 className="text-h2">{t('pace.title')}</h2>
       </div>
 
       <ul role="radiogroup" aria-label={t('pace.title')} className="grid gap-2.5 sm:grid-cols-3">
@@ -55,7 +53,7 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart }: P
                 animate={{ opacity: 1, y: 0 }}
                 // høg demping: utan henne bruker fjæra over 1,3 s på å roe
                 // seg, og dette er siste steget før start — han skal svare
-                // med ein gong, ikkje duve seg ferdig
+                // med en gang, ikke duve seg ferdig
                 transition={{ delay: i * 0.03, type: 'spring', stiffness: 260, damping: 24 }}
                 whileTap={{ scale: 0.98 }}
                 className={`plate flex h-full w-full flex-col items-start gap-1 p-4 text-left transition-all ${

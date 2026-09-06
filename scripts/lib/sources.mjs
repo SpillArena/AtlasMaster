@@ -1,10 +1,10 @@
 /**
- * Felles verktøy for datasett-byggarane.
+ * Felles verktøy for datasett-byggerne.
  *
- * Geometrien kjem utanfrå — Natural Earth og world-atlas. Namna gjer han
- * ikkje: eit datasett veit ikkje at Tyrkia heiter Turkey på engelsk, og slett
- * ikkje at det heiter Tyrkia på norsk. Byggarane held difor si eiga
- * namneliste og hentar berre koordinatar herifrå.
+ * Geometrien kommer utenfra — Natural Earth og world-atlas. Navnene gjør den
+ * ikke: et datasett vet ikke at Tyrkia heter Turkey på engelsk, og slett
+ * ikke at det heter Tyrkia på norsk. Byggerne holder derfor sin egen
+ * navneliste og henter bare koordinater herfra.
  */
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -19,9 +19,9 @@ const NE_BASE =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson'
 
 /**
- * Hentar eit Natural Earth-datasett, og legg det i node_modules/.cache slik at
- * neste køyring slepp nettet. Filene er 1–3 MB; dei har ingenting i repoet å
- * gjere når berre eit utdrag av dei blir sjekka inn.
+ * Henter et Natural Earth-datasett, og legger det i node_modules/.cache slik at
+ * neste kjøring slipper nettet. Filene er 1–3 MB; de har ingenting i repoet å
+ * gjøre når bare et utdrag av dem blir sjekket inn.
  */
 export async function naturalEarth(name) {
   const file = resolve(CACHE, `${name}.geojson`)
@@ -35,19 +35,36 @@ export async function naturalEarth(name) {
   return JSON.parse(readFileSync(file, 'utf8'))
 }
 
-/** Les eit topojson-datasett frå ein npm-pakke installert med `--no-save`. */
+/**
+ * Samme mønsteret som `naturalEarth` over, for byggere som henter fra en
+ * annen kilde enn Natural Earth og derfor trenger en egen URL og et eget
+ * filnavn i cachen.
+ */
+export async function fetchCached(url, filename) {
+  const file = resolve(CACHE, filename)
+  if (!existsSync(file)) {
+    process.stdout.write(`  henter ${filename} …\n`)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`${filename}: HTTP ${res.status}`)
+    mkdirSync(CACHE, { recursive: true })
+    writeFileSync(file, await res.text())
+  }
+  return JSON.parse(readFileSync(file, 'utf8'))
+}
+
+/** Leser et topojson-datasett fra en npm-pakke installert med `--no-save`. */
 export function fromNodeModules(path) {
   const file = resolve(ROOT, 'node_modules', path)
   if (!existsSync(file)) {
     throw new Error(
-      `Fann ikkje ${path}. Køyr:\n` +
+      `Fant ikke ${path}. Kjør:\n` +
         '  npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3',
     )
   }
   return JSON.parse(readFileSync(file, 'utf8'))
 }
 
-/** Kuttar koordinatpresisjonen — 3 desimalar er ~100 m, meir enn nok her. */
+/** Kutter koordinatpresisjonen — 3 desimaler er ~100 m, mer enn nok her. */
 export function round(value, decimals = 3) {
   const f = 10 ** decimals
   return Math.round(value * f) / f
@@ -62,12 +79,12 @@ export function roundGeometry(geometry, decimals = 3) {
 }
 
 /**
- * Fjernar punkt som avrundinga har gjort identiske.
+ * Fjerner punkt som avrundingen har gjort identiske.
  *
- * Å runde av til 2 desimalar er trygt sjølv om nabolanda deler grense: begge
- * sider snappar til det same rutenettet, så grensa held seg tett. Å tynne ut
- * punkt etter avstand er *ikkje* trygt her — då ville to naboland kasta kvar
- * sine punkt og etterlate ei sprekk mellom seg.
+ * Å runde av til 2 desimaler er trygt selv om nabolandene deler grense: begge
+ * sider snapper til det samme rutenettet, så grensa holder seg tett. Å tynne ut
+ * punkt etter avstand er *ikke* trygt her — da ville to naboland kastet hver
+ * sine punkt og etterlatt en sprekk mellom seg.
  */
 export function dropRepeats(geometry) {
   const walk = (node) => {
@@ -75,14 +92,14 @@ export function dropRepeats(geometry) {
       return node.map(walk).filter((n) => n && n.length > 0)
     }
     const kept = node.filter((c, i) => i === 0 || c[0] !== node[i - 1][0] || c[1] !== node[i - 1][1])
-    // ein ring må framleis vere lukka og ha eit areal
+    // en ring må fortsatt være lukket og ha et areal
     return kept.length < 4 ? null : kept
   }
   const coordinates = walk(geometry.coordinates)
   return coordinates.length > 0 ? { ...geometry, coordinates } : null
 }
 
-/** Fjernar punkt som ligg nærmare kvarandre enn oppløysinga vår ser. */
+/** Fjerner punkt som ligger nærmere hverandre enn oppløsningen vår ser. */
 export function thinLine(coordinates, minStep = 0.01) {
   const kept = [coordinates[0]]
   for (const c of coordinates.slice(1, -1)) {
@@ -96,7 +113,7 @@ export function thinLine(coordinates, minStep = 0.01) {
 export const inBox = ([lon, lat], box) =>
   lon >= box.minLon && lon <= box.maxLon && lat >= box.minLat && lat <= box.maxLat
 
-/** Midtpunktet i ein ring — brukt til å avgjere om ringen høyrer til regionen. */
+/** Midtpunktet i en ring — brukt til å avgjøre om ringen hører til regionen. */
 export function ringCentre(ring) {
   let lon = 0
   let lat = 0
@@ -108,12 +125,12 @@ export function ringCentre(ring) {
 }
 
 /**
- * Behald berre dei polygona som faktisk ligg i regionen.
+ * Behold bare de polygonene som faktisk ligger i regionen.
  *
- * Land ber med seg øyer og oversjøiske område langt utanfor kontinentet sitt.
- * `fitExtent` bryr seg ikkje om at ei øy er liten — han zoomar ut til han får
- * henne med, og fastlandet krympar til ein flekk. Difor blir kvar ring vurdert
- * for seg, og dei som ligg utanfor blir kutta bort.
+ * Land bærer med seg øyer og oversjøiske område langt utenfor kontinentet sitt.
+ * `fitExtent` bryr seg ikke om at en øy er liten — den zoomer ut til den får
+ * den med, og fastlandet krymper til en flekk. Derfor blir hver ring vurdert
+ * for seg, og de som ligger utenfor blir kuttet bort.
  */
 export function clipPolygonToBox(geometry, box, extraTest = () => true) {
   const keep = (ring) => {
@@ -131,15 +148,15 @@ export function clipPolygonToBox(geometry, box, extraTest = () => true) {
 }
 
 /**
- * Rullar ut lengdegradane så ringen blir samanhengande over datolinja.
+ * Ruller ut lengdegradene så ringen blir sammenhengende over datolinja.
  *
- * Russland sin ytterring går austover frå 20°Ø heilt til Tsjuktsjarhalvøya,
- * og der skiftar koordinatane brått frå 179 til −179. For ein klippealgoritme
- * som reknar rett fram i lengd/breidd er det eit sprang tvers over heile
- * kloden, og han lagar skjeringspunkt langs ein kant som ikkje finst. Ved å
- * legge til ±360 der spranget skjer, blir Tsjuktsjarhalvøya liggjande på
- * 180–190 i staden, langt utanfor kvar einaste europeisk eller asiatisk boks,
- * og fell reint bort i klippinga.
+ * Russlands ytterring går østover fra 20°Ø helt til Tsjuktsjarhalvøya,
+ * og der skifter koordinatene brått fra 179 til −179. For en klippealgoritme
+ * som regner rett fram i lengde/bredde er det et sprang tvers over hele
+ * kloden, og den lager skjeringspunkt langs en kant som ikke finnes. Ved å
+ * legge til ±360 der spranget skjer, blir Tsjuktsjarhalvøya liggende på
+ * 180–190 i stedet, langt utenfor hver eneste europeisk eller asiatisk boks,
+ * og faller rent bort i klippinga.
  */
 function unwrapRing(ring) {
   const out = [[...ring[0]]]
@@ -154,17 +171,17 @@ function unwrapRing(ring) {
 }
 
 /**
- * Deler opp dei lange strekka klippinga sjølv har laga.
+ * Deler opp de lange strekkene klippinga selv har laget.
  *
- * d3-geo teiknar kvar kant i eit polygon som ein storsirkel. Ei rett linje
- * langs 72. breiddegrad frå 26°Ø til 46°Ø er ikkje ein storsirkel — buen
- * mellom endepunkta bular nesten tre grader lenger nord, og då dreg kartet
- * med seg tre grader ekstra utsnitt som ingen skal sjå.
+ * d3-geo tegner hver kant i et polygon som en storsirkel. En rett linje
+ * langs 72. breddegrad fra 26°Ø til 46°Ø er ikke en storsirkel — buen
+ * mellom endepunktene buler nesten tre grader lenger nord, og da drar kartet
+ * med seg tre grader ekstra utsnitt som ingen skal se.
  *
- * Berre kantar som ligg *på* boksen blir delte. Ei lang, rett landegrense i
- * kjeldedataa er ei ekte geodetisk linje og skal teiknast som ein storsirkel;
- * å tette henne med punkt ville berre gjort fila større. Bulen veks med
- * kvadratet av lengda, så tre grader mellom punkta held han under ein
+ * Bare kanter som ligger *på* boksen blir delt. En lang, rett landegrense i
+ * kildedataene er en ekte geodetisk linje og skal tegnes som en storsirkel;
+ * å tette den med punkt ville bare gjort fila større. Bulen vokser med
+ * kvadratet av lengden, så tre grader mellom punktene holder den under en
  * tidels tusendel av utsnittet.
  */
 function densifyBoxEdges(ring, box, maxStep) {
@@ -186,11 +203,11 @@ function densifyBoxEdges(ring, box, maxStep) {
 }
 
 /**
- * Klipper éin ring mot ein boks — Sutherland–Hodgman, ei halvflate om gongen.
+ * Klipper én ring mot en boks — Sutherland–Hodgman, én halvflate om gangen.
  *
- * Returnerer null om ringen ligg heilt utanfor. Orienteringa til ringen
- * overlever klippinga: algoritmen går gjennom punkta i same rekkjefølgje og
- * legg berre til skjeringspunkt der kanten kryssar.
+ * Returnerer null om ringen ligger helt utenfor. Orienteringen til ringen
+ * overlever klippingen: algoritmen går gjennom punktene i samme rekkefølge og
+ * legger bare til skjæringspunkt der kanten krysser.
  */
 function clipRing(ring, box) {
   const crossX = (a, b, x) => [x, a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0])]
@@ -202,7 +219,7 @@ function clipRing(ring, box) {
     { inside: (p) => p[1] <= box.maxLat, cut: (a, b) => crossY(a, b, box.maxLat) },
   ]
 
-  // ringen blir opna medan vi jobbar, og lukka att til slutt
+  // ringen blir åpnet mens vi jobber, og lukket igjen til slutt
   let out = ring.slice(0, -1)
   for (const edge of edges) {
     const input = out
@@ -225,17 +242,17 @@ function clipRing(ring, box) {
 }
 
 /**
- * Klipper eit polygon mot ein boks — geometrisk, ikkje ring for ring.
+ * Klipper et polygon mot en boks — geometrisk, ikke ring for ring.
  *
- * `clipPolygonToBox` over avgjer per ring: heile Sibir er inne eller heilt
- * ute. Det held for øyer og oversjøiske område, men ikkje for eit land som
- * ligg i to regionar. Russland høyrer heime i både Europa og Asia, og må
- * difor kunne kuttast tvers gjennom.
+ * `clipPolygonToBox` over avgjør per ring: hele Sibir er inne eller helt
+ * ute. Det holder for øyer og oversjøiske områder, men ikke for et land som
+ * ligger i to regioner. Russland hører hjemme i både Europa og Asia, og må
+ * derfor kunne kuttes tvers gjennom.
  *
- * Å kutte i staden for å utelate er òg det som held datolinja unna: den
- * russiske ytterringen strekk seg forbi 180°, og eit polygon som kryssar
- * antimeridianen blir eit smett tvers over kartet i ei kvar projeksjon.
- * Boksen stoppar geometrien lenge før ho kjem dit.
+ * Å kutte i stedet for å utelate er også det som holder datolinja unna: den
+ * russiske ytterringen strekker seg forbi 180°, og et polygon som krysser
+ * antimeridianen blir et smett tvers over kartet i enhver projeksjon.
+ * Boksen stopper geometrien lenge før den kommer dit.
  */
 export function clipGeometryToBox(geometry, box, maxStep = 3) {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
@@ -245,7 +262,7 @@ export function clipGeometryToBox(geometry, box, maxStep = 3) {
   }
   const kept = []
   for (const polygon of polygons) {
-    // ytterringen først: forsvinn han, har hola inga flate å ligge i
+    // ytterringen først: forsvinner den, har hullene ingen flate å ligge i
     const outer = cut(polygon[0])
     if (!outer) continue
     const rings = [outer]
@@ -262,11 +279,11 @@ export function clipGeometryToBox(geometry, box, maxStep = 3) {
 }
 
 /**
- * Klipper ei linje mot ei eller fleire boksar, og deler henne der ho går ut.
+ * Klipper en linje mot en eller flere bokser, og deler den der den går ut.
  *
- * Ei elv som Columbia startar i Canada. Tek vi berre bort punkta utanfor,
- * blir det att ein rett strek tvers over kartet mellom det siste punktet før
- * grensa og det første etter. Difor blir linja delt i staden.
+ * En elv som Columbia starter i Canada. Tar vi bare bort punktene utenfor,
+ * blir det igjen en rett strek tvers over kartet mellom det siste punktet før
+ * grensa og det første etter. Derfor blir linja delt i stedet.
  */
 export function clipLineToBoxes(coordinates, boxes) {
   const parts = []
@@ -285,12 +302,12 @@ export function clipLineToBoxes(coordinates, boxes) {
   return parts
 }
 
-/** Alle linjestrengane i ein feature, uansett om han er Line- eller MultiLineString. */
+/** Alle linjestrengene i en feature, uansett om den er Line- eller MultiLineString. */
 export function lineStrings(geometry) {
   return geometry.type === 'MultiLineString' ? geometry.coordinates : [geometry.coordinates]
 }
 
-/** Natural Earth har både dobbelt mellomrom og hermeteikn i namna sine. */
+/** Natural Earth har både dobbelt mellomrom og hermetegn i navnene sine. */
 export const normaliseName = (name) => String(name ?? '').replace(/\s+/g, ' ').trim()
 
 export function writeCollection(outPath, features) {

@@ -1,24 +1,24 @@
 /**
- * Trimmar koordinatpresisjonen i dei innsjekka GeoJSON-datasetta.
+ * Trimmer koordinatpresisjonen i de innsjekkede GeoJSON-datasettene.
  *
  *   node scripts/optimise-geo.mjs [--check]
  *
- * Kjelder som Natural Earth og SSB leverer koordinatar med opp til 16
- * desimalar. Det er flyttal-støy, ikkje presisjon: sekstande desimalen av ein
- * lengdegrad er under ein milliardtedels meter. Noreg sine fylke låg på 624 kB
- * av den grunnen åleine — same fila som må lastast ned før nokon kan spele,
- * og same punktmengda nettlesaren må treffe-teste for kvar musrørsle.
+ * Kilder som Natural Earth og SSB leverer koordinater med opp til 16
+ * desimaler. Det er flyttall-støy, ikke presisjon: sekstende desimalen av en
+ * lengdegrad er under en milliardtedels meter. Norges fylke lå på 624 kB
+ * av den grunnen alene — samme fila som må lastes ned før noen kan spille,
+ * og samme punktmengden nettleseren må treffe-teste for hver musbevegelse.
  *
- * Vi skriv tre desimalar ≈ 110 m. Lerretet er 900 einingar høgt og zoomar
- * maksimalt åtte gonger; for Noreg, som er ~1800 km høgt, blir det rundt 250 m
- * per piksel på det næraste. Ein feil på 110 m er då under ein halv piksel —
- * usynleg, sjølv heilt innzooma.
+ * Vi skriver tre desimaler ≈ 110 m. Lerretet er 900 enheter høyt og zoomer
+ * maksimalt åtte ganger; for Norge, som er ~1800 km høyt, blir det rundt 250 m
+ * per piksel på det nærmeste. En feil på 110 m er da under en halv piksel —
+ * usynlig, selv helt innzoomet.
  *
- * MERK — avrundinga er topologitrygg. To fylke som deler ei grense har
- * identiske koordinatar på begge sider frå før, og identiske tal rundar likt.
- * Grensa blir difor verande delt, utan sprekker mellom naboar.
+ * MERK — avrundingen er topologitrygg. To fylke som deler en grense har
+ * identiske koordinater på begge sider fra før, og identiske tall runder likt.
+ * Grensa blir derfor værende delt, uten sprekker mellom naboer.
  *
- * `--check` skriv berre kva som ville skjedd, og endrar ingen filer.
+ * `--check` skriver bare hva som ville skjedd, og endrer ingen filer.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -30,16 +30,16 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const check = process.argv.includes('--check')
 
-/** Desimalar på lengd/breidd. Tre ≈ 110 m; sjå kommentaren over. */
+/** Desimaler på lengde/bredde. Tre ≈ 110 m; se kommentaren over. */
 const DECIMALS = 3
 const factor = 10 ** DECIMALS
 
 const round = (n) => Math.round(n * factor) / factor
 
 /**
- * Rundar av, og fjernar punkt som fell saman etter avrundinga. Ein ring må
- * framleis vere lukka og ha minst fire punkt, elles blir han verande urørt —
- * ein trekant med samanfallande hjørne er ikkje eit polygon lenger.
+ * Runder av, og fjerner punkt som faller sammen etter avrundingen. En ring må
+ * fortsatt være lukket og ha minst fire punkt, ellers blir den værende urørt —
+ * en trekant med sammenfallende hjørner er ikke et polygon lenger.
  */
 function thin(coords) {
   if (typeof coords[0] === 'number') return [round(coords[0]), round(coords[1])]
@@ -51,7 +51,7 @@ function thin(coords) {
   const closed = out[0][0] === out[out.length - 1][0] && out[0][1] === out[out.length - 1][1]
   if (closed) {
     if (dedup.length < 4) return out
-    // siste punkt må framleis vere det første
+    // siste punkt må fortsatt være det første
     const last = dedup[dedup.length - 1]
     if (last[0] !== dedup[0][0] || last[1] !== dedup[0][1]) dedup.push([...dedup[0]])
     return dedup
@@ -68,6 +68,11 @@ for (const file of globSync('src/data/*/*.json', { cwd: root }).sort()) {
   const path = resolve(root, file)
   const raw = readFileSync(path, 'utf8')
   const data = JSON.parse(raw)
+
+  // src/data/*/ rommar meir enn geometri: world/flags.json er ei id→landkode-
+  // tabell. Globben tek henne med, og utan denne linja stoppar heile
+  // rørledninga på ei fil som aldri hadde koordinatar å runde av.
+  if (!Array.isArray(data.features)) continue
 
   let before = 0
   let after = 0

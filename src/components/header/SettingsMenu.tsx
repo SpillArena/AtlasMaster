@@ -11,6 +11,7 @@ import { useGameSettings } from '../../contexts/useGameSettings'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { forgetProgress } from '../../game/progress'
 import { forgetLeaderboard } from '../../game/leaderboard'
+import { forgetSession } from '../../game/auth'
 import { playSfx } from '../../game/sfx'
 
 function MoonIcon() {
@@ -191,6 +192,9 @@ export default function SettingsMenu() {
     clearStoredData()
     forgetProgress()
     forgetLeaderboard()
+    // teiknet ligger i localStorage som alt annet; å slette dataene skal
+    // faktisk logge deg ut, ikke bare glemme hva du het
+    forgetSession()
     // last på nytt så headeren, ledertavla og nivået starter fra blanke ark
     window.location.reload()
   }

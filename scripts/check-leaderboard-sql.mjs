@@ -1,25 +1,45 @@
 /**
- * Røyktest av leiartavle-skjemaet mot ekte SQLite.
+ * Røyktest av ledertavle-skjemaet mot ekte SQLite.
  *
  *   node --experimental-sqlite scripts/check-leaderboard-sql.mjs
  *
- * D1 er SQLite, så migrasjonane og spørjingane kan verifiserast lokalt utan
+ * D1 er SQLite, så migrasjonene og spørringene kan verifiseres lokalt uten
  * å røre produksjonsdatabasen. Testen bryr seg om to ting spesielt: at rader
- * som fanst FØR regionane blir liggande att som norske runder etter 0002, og
- * at rader som fanst før modusane fekk kvar sin verdi blir merkte som
- * poengversjon 1 etter 0003 — ikkje sletta, ikkje omrekna, berre merkte.
+ * som fantes FØR regionene blir liggende igjen som norske runder etter 0002, og
+ * at rader som fantes før modusene fikk hver sin verdi blir merket som
+ * poengversjon 1 etter 0003 — ikke slettet, ikke omregnet, bare merket.
  */
 
 import { DatabaseSync } from 'node:sqlite'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  fetchTop as realFetchTop,
+  parseEntry,
+  parseLimit,
+  rankOf as realRankOf,
+} from '../functions/api/leaderboard/index.js'
+import {
+  issueToken,
+  onRequestPost as authPost,
+  verifyToken,
+} from '../functions/api/auth/index.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const db = new DatabaseSync(':memory:')
 
+/**
+ * Kjører en migrasjonsfil, én setning om gangen.
+ *
+ * Linjekommentarene blir strøket først. Splittingen er naiv — den deler på
+ * semikolon — og et semikolon inne i en kommentar delte derfor kommentaren i
+ * to, og andre halvdelen ble prøvd kjørt som SQL. Migrasjonene her er tungt
+ * kommentert, så det er en felle som ligger og venter på neste som skriver en
+ * helsetning med semikolon i.
+ */
 const runSql = (file) => {
-  const sql = readFileSync(resolve(here, '../migrations', file), 'utf8')
+  const sql = readFileSync(resolve(here, '../migrations', file), 'utf8').replace(/--[^\n]*/g, '')
   for (const stmt of sql.split(';')) {
     if (stmt.trim()) db.exec(stmt)
   }
@@ -30,10 +50,10 @@ const check = (label, actual, expected) => {
   const ok = JSON.stringify(actual) === JSON.stringify(expected)
   if (!ok) failures++
   console.log(`${ok ? 'ok  ' : 'FAIL'}  ${label}`)
-  if (!ok) console.log(`        venta ${JSON.stringify(expected)}, fekk ${JSON.stringify(actual)}`)
+  if (!ok) console.log(`        ventet ${JSON.stringify(expected)}, fikk ${JSON.stringify(actual)}`)
 }
 
-// --- 0001: skjemaet slik det såg ut før regionane ---
+// --- 0001: skjemaet slik det så ut før regionene ---
 runSql('0001_create_leaderboard.sql')
 
 const legacy = db.prepare(`
@@ -48,7 +68,7 @@ legacy.run('old-2', '2026-01-02T00:00:00Z', 'Ola', 'fjell', 'type', 'blitz', 400
 runSql('0002_add_region.sql')
 
 check(
-  'gamle rader blir backfilla som norway',
+  'gamle rader blir backfylt som norway',
   db.prepare('SELECT region, COUNT(*) AS n FROM leaderboard_entries GROUP BY region').all(),
   [{ region: 'norway', n: 2 }],
 )
@@ -65,8 +85,14 @@ db.prepare(`
 // --- 0003: legg til poengversjon ---
 runSql('0003_add_scoring_version.sql')
 
+// --- 0004: indeksene spørringen faktisk trenger, og en død indeks ut ---
+runSql('0004_leaderboard_pace_index.sql')
+
+// --- 0005: kontoer ---
+runSql('0005_create_players.sql')
+
 check(
-  'rader frå før modusverdiane blir merkte som versjon 1',
+  'rader fra før modusverdiene blir merket som versjon 1',
   db.prepare('SELECT scoring_version AS v, COUNT(*) AS n FROM leaderboard_entries GROUP BY v').all(),
   [{ v: 1, n: 3 }],
 )
@@ -77,62 +103,60 @@ const SELECT_COLUMNS = `
     best_streak AS bestStreak, elapsed_ms AS elapsedMs,
     scoring_version AS scoringVersion`
 
-/** Same spørjing som Pages-funksjonen byggjer. */
-function fetchTop(region, category, mode, limit) {
-  const filters = []
-  const binds = []
-  if (region) {
-    filters.push('region = ?')
-    binds.push(region)
-  }
-  if (category) {
-    filters.push('category = ?')
-    binds.push(category)
-  }
-  if (mode) {
-    filters.push('mode = ?')
-    binds.push(mode)
-  }
-  const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
-  binds.push(limit)
-  return db
-    .prepare(
-      `SELECT ${SELECT_COLUMNS}
-       FROM leaderboard_entries
-       ${where}
-       GROUP BY username, region, category, mode
-       HAVING score = MAX(score)
-       ORDER BY score DESC, timestamp DESC, id DESC
-       LIMIT ?`,
-    )
-    .all(...binds)
+/**
+ * D1-fasade over node:sqlite.
+ *
+ * Spørringen stod skrevet av på nytt her før — en kopi av den i
+ * Pages-funksjonen, som testet at kopien var seg selv lik. Den fanget ikke at
+ * tempoet manglet fra grupperingen, for kopien manglet det samme.
+ *
+ * D1 og node:sqlite har ulik form på API-et: D1 kjeder `.bind()` og gir
+ * `{ results }`, node:sqlite tar bindingene rett i `.all()`. Denne vesle
+ * fasaden er alt som skal til for at testen kjører den *ekte* koden.
+ */
+const d1 = {
+  prepare(sql) {
+    const stmt = db.prepare(sql)
+    return {
+      bind(...binds) {
+        return {
+          all: async () => ({ results: stmt.all(...binds) }),
+          first: async () => stmt.get(...binds) ?? null,
+          run: async () => ({ success: true, meta: stmt.run(...binds) }),
+        }
+      },
+    }
+  },
 }
 
+const fetchTop = (region, category, mode, limit, pace = null) =>
+  realFetchTop(d1, { region, category, mode, pace, limit })
+
 check(
-  'Noreg-tavla viser berre norske runder',
-  fetchTop('norway', null, null, 25).map((r) => r.category).sort(),
+  'Norge-tavla viser bare norske runder',
+  (await fetchTop('norway', null, null, 25)).map((r) => r.category).sort(),
   ['fjell', 'fylker'],
 )
 
 check(
-  'Europa-tavla viser berre europeiske runder',
-  fetchTop('europe', null, null, 25).map((r) => r.category),
+  'Europa-tavla viser bare europeiske runder',
+  (await fetchTop('europe', null, null, 25)).map((r) => r.category),
   ['countries'],
 )
 
 check(
   'region + kategori filtrerer til éi rad',
-  fetchTop('norway', 'fylker', null, 25).map((r) => r.id),
+  (await fetchTop('norway', 'fylker', null, 25)).map((r) => r.id),
   ['old-1'],
 )
 
 check(
-  'same spelar kan toppe begge regionar utan kollisjon',
-  fetchTop(null, null, null, 25).filter((r) => r.username === 'Kari').map((r) => r.region).sort(),
+  'samme spiller kan toppe begge regioner uten kollisjon',
+  (await fetchTop(null, null, null, 25)).filter((r) => r.username === 'Kari').map((r) => r.region).sort(),
   ['europe', 'norway'],
 )
 
-// beste resultat per spelar+region+kategori+modus
+// beste resultat per spiller+region+kategori+modus
 db.prepare(`
   INSERT INTO leaderboard_entries
     (id, timestamp, username, category, region, mode, pace, score,
@@ -142,16 +166,16 @@ db.prepare(`
 )
 
 check(
-  'berre spelaren sitt beste resultat blir vist',
-  fetchTop('europe', 'countries', null, 25).map((r) => r.score),
+  'bare spillerens beste resultat blir vist',
+  (await fetchTop('europe', 'countries', null, 25)).map((r) => r.score),
   [5000],
 )
 
 /*
- * Ei skriverunde i same kategori. Poenga er rekna etter dei nye reglane, der
- * skrivemodus er verdt halvannan gong ei klikkerunde, så ho legg seg over
- * klikkeresultatet på ei blanda tavle. Filteret er det som gjer at dei to
- * ikkje blir rangerte mot kvarandre.
+ * En skriverunde i samme kategori. Poengene er regnet etter de nye reglene, der
+ * skrivemodus er verdt halvannen gang en klikkerunde, så den legger seg over
+ * klikkeresultatet på en blandet tavle. Filteret er det som gjør at de to
+ * ikke blir rangert mot hverandre.
  */
 db.prepare(`
   INSERT INTO leaderboard_entries
@@ -162,22 +186,242 @@ db.prepare(`
 )
 
 check(
-  'modusfilteret held skriverunder utanfor klikketavla',
-  fetchTop('europe', 'countries', 'click', 25).map((r) => r.id),
+  'modusfilteret holder skriverunder utenfor klikketavla',
+  (await fetchTop('europe', 'countries', 'click', 25)).map((r) => r.id),
   ['new-1'],
 )
 
 check(
-  'skriverunda har si eiga tavle',
-  fetchTop('europe', 'countries', 'type', 25).map((r) => r.id),
+  'skriverunda har sin egen tavle',
+  (await fetchTop('europe', 'countries', 'type', 25)).map((r) => r.id),
   ['new-3'],
 )
 
 check(
-  'nye rader ber den nye poengversjonen',
-  fetchTop('europe', 'countries', 'type', 25).map((r) => r.scoringVersion),
+  'nye rader bærer den nye poengversjonen',
+  (await fetchTop('europe', 'countries', 'type', 25)).map((r) => r.scoringVersion),
   [2],
 )
 
-console.log(failures === 0 ? '\nAlle sjekkar gjekk gjennom.' : `\n${failures} sjekk(ar) feila.`)
+/*
+ * Tempoet som egen øving.
+ *
+ * Samme spiller, samme kategori, samme modus — men rolig (×0,8) og lyn (×1,4).
+ * Uten tempoet i grupperingen ble lynrunda stående alene i cella, og den
+ * rolige runda forsvant fra tavla uten at noen hadde tapt noe.
+ */
+const paced = db.prepare(`
+  INSERT INTO leaderboard_entries
+    (id, timestamp, username, category, region, mode, pace, score,
+     correct_count, total, mistakes, best_streak, elapsed_ms, scoring_version)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+paced.run('pace-calm', '2026-03-01T00:00:00Z', 'Siri', 'capitals', 'europe', 'click', 'relaxed', 500, 30, 39, 2, 12, 90000, 2)
+paced.run('pace-fast', '2026-03-02T00:00:00Z', 'Siri', 'capitals', 'europe', 'click', 'blitz', 900, 30, 39, 2, 12, 40000, 2)
+
+check(
+  'rolig og lyn er to øvinger, ikke én',
+  (await fetchTop('europe', 'capitals', 'click', 25)).map((r) => r.id),
+  ['pace-fast', 'pace-calm'],
+)
+
+check(
+  'tempofilteret henter bare den rolige runda',
+  (await fetchTop('europe', 'capitals', 'click', 25, 'relaxed')).map((r) => r.id),
+  ['pace-calm'],
+)
+
+/* Fortsatt én rad per spiller innenfor én og samme øving. */
+paced.run('pace-fast-2', '2026-03-03T00:00:00Z', 'Siri', 'capitals', 'europe', 'click', 'blitz', 1200, 33, 39, 1, 15, 38000, 2)
+check(
+  'beste lynrunda vinner over den forrige lynrunda',
+  (await fetchTop('europe', 'capitals', 'click', 25, 'blitz')).map((r) => [r.id, r.score]),
+  [['pace-fast-2', 1200]],
+)
+
+/* Sortering: høyest poengsum først, uansett hvor raden kom inn. */
+check(
+  'tavla er sortert høyest først',
+  (await fetchTop('europe', null, null, 25)).map((r) => r.score),
+  [...(await fetchTop('europe', null, null, 25)).map((r) => r.score)].sort((a, b) => b - a),
+)
+
+/*
+ * `?limit=-1` ga Math.min(-1, 100) = -1, og SQLite leser en negativ LIMIT som
+ * ingen grense: taket var bare en anbefaling.
+ */
+check('limit −1 blir 1, ikke hele tabellen', parseLimit('-1'), 1)
+check('limit 0 blir 1', parseLimit('0'), 1)
+check('limit 10.5 blir 10', parseLimit('10.5'), 10)
+check('limit 9999 blir kappet til taket', parseLimit('9999'), 100)
+check('limit uten verdi blir standarden', parseLimit(null), 25)
+check('limit som ikke er et tall blir standarden', parseLimit('mange'), 25)
+check(
+  'en negativ limit henter ikke mer enn én rad',
+  (await fetchTop('europe', null, null, parseLimit('-1'))).length,
+  1,
+)
+
+/*
+ * Modusen må være en kategorien faktisk tilbyr. `worldFlags` kan bare
+ * spilles i flaggmodus; en skriverunde der kunne aldri filtreres fram igjen.
+ */
+const submission = (over) => ({
+  region: 'world',
+  category: 'worldFlags',
+  mode: 'flag',
+  pace: 'normal',
+  score: 100,
+  correctCount: 5,
+  total: 10,
+  mistakes: 1,
+  bestStreak: 3,
+  elapsedMs: 20000,
+  ...over,
+})
+check('flaggmodus er lov i flaggkategorien', parseEntry(submission(), 'Siri').error ?? 'ok', 'ok')
+check(
+  'skrivemodus er ikke lov i flaggkategorien',
+  parseEntry(submission({ mode: 'type' }), 'Siri').error,
+  'Mode not available for this category',
+)
+check(
+  'flaggmodus er ikke lov i en vanlig kartkategori',
+  parseEntry(submission({ region: 'norway', category: 'fylker' }), 'Siri').error,
+  'Mode not available for this category',
+)
+check(
+  'ukjent kategori i en kjent region blir avvist',
+  parseEntry(submission({ category: 'fylker' }), 'Siri').error,
+  'Invalid category',
+)
+
+/* Plasseringen innsenderen får tilbake. */
+check(
+  'plasseringen er regnet mot spillernes beste',
+  await realRankOf(d1, {
+    region: 'europe',
+    category: 'capitals',
+    mode: 'click',
+    pace: 'blitz',
+    score: 1200,
+  }),
+  1,
+)
+check(
+  'en dårligere poengsum får plassen bak',
+  await realRankOf(d1, {
+    region: 'europe',
+    category: 'capitals',
+    mode: 'click',
+    pace: 'blitz',
+    score: 10,
+  }),
+  2,
+)
+
+/* Indeksene fra 0004 skal finnes, og den avløste fra 0001 skal være borte. */
+const indexes = db
+  .prepare(`SELECT name FROM sqlite_master WHERE type = 'index' ORDER BY name`)
+  .all()
+  .map((r) => r.name)
+check('grupperingsindeksen finnes', indexes.includes('idx_leaderboard_group_best'), true)
+check(
+  'filterindeksen med tempo finnes',
+  indexes.includes('idx_leaderboard_region_category_mode_pace'),
+  true,
+)
+check(
+  'den avløste indeksen fra 0001 er borte',
+  indexes.includes('idx_leaderboard_category_score'),
+  false,
+)
+
+/*
+ * Kontoene, kjørt mot det ekte endepunktet.
+ *
+ * PBKDF2 og HMAC finnes i node:crypto sitt WebCrypto-lag akkurat som i
+ * Cloudflare-runtimen, så hele registrer-og-logg-inn-veien kan kjøres her
+ * med den samme koden som står i produksjon.
+ */
+const SECRET = 'test-secret-not-a-real-one'
+const authEnv = { DB: d1, AUTH_SECRET: SECRET }
+const callAuth = async (body, env = authEnv) => {
+  const response = await authPost({
+    env,
+    request: new Request('https://example.test/api/auth', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  })
+  return { status: response.status, body: await response.json() }
+}
+
+const registered = await callAuth({ action: 'register', username: 'Kartleser', pin: '4711' })
+check('registrering lykkes', registered.status, 200)
+check(
+  'tegnet fra registreringen er gyldig',
+  await verifyToken(SECRET, registered.body.token),
+  'Kartleser',
+)
+
+check(
+  'samme navn kan ikke registreres to ganger',
+  (await callAuth({ action: 'register', username: 'Kartleser', pin: '9999' })).status,
+  409,
+)
+check(
+  'navn er ikke skiftesensitive',
+  (await callAuth({ action: 'register', username: 'kartleser', pin: '9999' })).status,
+  409,
+)
+
+check(
+  'rett PIN logger inn',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' })).status,
+  200,
+)
+check(
+  'feil PIN blir avvist',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '0000' })).body.error,
+  'bad_credentials',
+)
+check(
+  'ukjent navn gir samme svar som feil PIN',
+  (await callAuth({ action: 'login', username: 'Finnesikke', pin: '4711' })).body.error,
+  'bad_credentials',
+)
+
+/* Femte feil på rad stenger kontoen — det er dette som gjør fire siffer verdt noe. */
+for (let i = 0; i < 4; i++) await callAuth({ action: 'login', username: 'Kartleser', pin: '0000' })
+check(
+  'kontoen blir stengt etter fem feil',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' })).status,
+  429,
+)
+
+check('for kort PIN blir avvist', (await callAuth({ action: 'register', username: 'Ny', pin: '12' })).body.error, 'bad_pin')
+check('PIN med bokstaver blir avvist', (await callAuth({ action: 'register', username: 'Ny', pin: '12a4' })).body.error, 'bad_pin')
+check(
+  'brukernavn med kontrolltegn blir avvist',
+  (await callAuth({ action: 'register', username: 'Ny\u0000namn', pin: '1234' })).body.error,
+  'bad_username',
+)
+check(
+  'uten nøkkel svarer tjenesten at den ikke er satt opp',
+  (await callAuth({ action: 'login', username: 'Kartleser', pin: '4711' }, { DB: d1 })).status,
+  503,
+)
+
+/* Tegnet: signaturen dekker både navnet og utløpstida. */
+const token = await issueToken(SECRET, 'Kartleser')
+check('et tuklet tegn blir forkastet', await verifyToken(SECRET, token.slice(0, -1) + 'x'), null)
+check('feil nøkkel forkaster tegnet', await verifyToken('en annen nøkkel', token), null)
+check(
+  'et utgått tegn blir forkastet',
+  await verifyToken(SECRET, token, Date.now() + 400 * 24 * 60 * 60 * 1000),
+  null,
+)
+check('et tegn uten signatur blir forkastet', await verifyToken(SECRET, 'bare-tekst'), null)
+
+console.log(failures === 0 ? '\nAlle sjekker gikk gjennom.' : `\n${failures} sjekk(er) feilet.`)
 process.exit(failures === 0 ? 0 : 1)

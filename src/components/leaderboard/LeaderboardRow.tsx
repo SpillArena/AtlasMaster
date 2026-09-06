@@ -18,24 +18,34 @@ interface Props {
   place: number
   /** 'compact' brukes på dashbordet, der plassen er trangere */
   variant?: 'full' | 'compact'
+  /** spillerens egen rad — se kommentaren under */
+  isMe?: boolean
 }
 
-/** Én rad på ledertavla — samme rad på dashbordet og på full tavle. */
-export function LeaderboardRow({ entry, place, variant = 'full' }: Props) {
+/**
+ * Én rad på ledertavla — samme rad på dashbordet og på full tavle.
+ *
+ * Egen rad er merket. Det eneste som skilte rader fra hverandre før var
+ * medaljefargen på de tre øverste, så en spiller på plass fjorten hadde ingen
+ * måte å finne seg selv i lista — og `getName()` lå ett importsteg unna.
+ */
+export function LeaderboardRow({ entry, place, variant = 'full', isMe = false }: Props) {
   const { t } = useTranslation()
   const cat = getCategory(entry.regionId, entry.categoryId)
   const pct = Math.round(hitRate(entry.correctCount, entry.mistakes) * 100)
   const tone = RANK_TONE[place]
   const compact = variant === 'compact'
 
+  const edge = isMe ? 'var(--accent)' : tone
   return (
     <div
       className={`flex items-center gap-3 ${compact ? 'px-1 py-2' : 'plate p-3'}`}
-      style={
-        !compact && tone
-          ? { borderColor: `color-mix(in srgb, ${tone} 45%, transparent)` }
-          : undefined
-      }
+      style={{
+        ...(!compact && edge
+          ? { borderColor: `color-mix(in srgb, ${edge} ${isMe ? 70 : 45}%, transparent)` }
+          : undefined),
+        ...(isMe ? { background: 'color-mix(in srgb, var(--accent) 10%, transparent)' } : undefined),
+      }}
     >
       <span
         className="numeric w-6 shrink-0 text-center font-bold"

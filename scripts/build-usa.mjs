@@ -1,22 +1,22 @@
 /**
- * Genererer datasetta til USA-regionen under src/data/usa/.
+ * Genererer datasettene til USA-regionen under src/data/usa/.
  *
  *   npm i --no-save us-atlas@3 topojson-client@3
  *   npm run data:usa
  *
- * Resultatet er sjekka inn. Kjør på nytt berre når lista over statar, byar,
- * elver eller fjell skal endrast.
+ * Resultatet er sjekket inn. Kjør på nytt bare når lista over stater, byer,
+ * elver eller fjell skal endres.
  *
- * Alle 50 statane er med — også Alaska og Hawaii. Det går fordi regionen
- * brukar `albersUsa`, ei samansett projeksjon som flyttar dei to inn i kvar
- * sin innfelt rute nede til venstre. Ei vanleg projeksjon hadde måtta velje:
- * anten eit kart der dei 48 er spelbare og dei to manglar, eller eit kart som
- * spenner over eit halvt jordklode-omløp for å få Alaska med.
+ * Alle 50 statene er med — også Alaska og Hawaii. Det går fordi regionen
+ * bruker `albersUsa`, en sammensatt projeksjon som flytter de to inn i hver
+ * sin innfelte rute nede til venstre. En vanlig projeksjon hadde måttet velge:
+ * enten et kart der de 48 er spillbare og de to mangler, eller et kart som
+ * spenner over et halvt jordklode-omløp for å få Alaska med.
  *
- * Territoria (Puerto Rico, Guam, Jomfruøyene, Amerikansk Samoa, Nord-
- * Marianene) er ikkje med: `albersUsa` har ingen rute for dei, og geometrien
- * deira ville forsvunne sporlaust. Washington D.C. er heller ikkje ein
- * klikkbar «stat» — 0,1° på tvers er ikkje eit trykkmål — men byen ligg i
+ * Territoriene (Puerto Rico, Guam, Jomfruøyene, Amerikansk Samoa, Nord-
+ * Marianene) er ikke med: `albersUsa` har ingen rute for dem, og geometrien
+ * deres ville forsvunnet sporløst. Washington D.C. er heller ikke en
+ * klikkbar «stat» — 0,1° på tvers er ikke et trykkmål — men byen ligger i
  * by-kategorien.
  */
 
@@ -39,21 +39,21 @@ import {
 const OUT = resolve(ROOT, 'src/data/usa')
 
 /**
- * Dei tre rutene `albersUsa` faktisk teiknar. Alt utanfor dei blir stille
- * borte i projeksjonen, så elvene blir klipte mot akkurat desse — då blir ei
- * elv delt der ho renn ut av landet, i staden for å få ein rett strek tvers
- * over kartet mellom siste og første synlege punkt.
+ * De tre rutene `albersUsa` faktisk tegner. Alt utenfor dem blir stille
+ * borte i projeksjonen, så elvene blir klippet mot akkurat disse — da blir en
+ * elv delt der den renner ut av landet, i stedet for å få en rett strek tvers
+ * over kartet mellom siste og første synlige punkt.
  */
 const US_BOXES = [
-  { minLon: -125.1, maxLon: -66.9, minLat: 24.4, maxLat: 49.5 }, // dei 48
+  { minLon: -125.1, maxLon: -66.9, minLat: 24.4, maxLat: 49.5 }, // de 48
   { minLon: -172, maxLon: -129, minLat: 51, maxLat: 72 }, // Alaska
   { minLon: -161, maxLon: -154.5, minLat: 18.7, maxLat: 22.5 }, // Hawaii
 ]
 
-/** FIPS-kodar som ikkje er statar. DC og territoria fell bort her. */
+/** FIPS-koder som ikke er stater. DC og territoriene faller bort her. */
 const NOT_A_STATE = new Set(['11', '60', '66', '69', '72', '78'])
 
-/** By → delstaten han ligg i, for å skilje dei mange like bynamna frå kvarandre. */
+/** By → delstaten den ligger i, for å skille de mange like bynavnene fra hverandre. */
 const CITIES = [
   ['New York', 'New York'],
   ['Los Angeles', 'California'],
@@ -84,10 +84,10 @@ const CITIES = [
 ]
 
 /**
- * Elver, med Natural Earth sine segmentnamn.
+ * Elver, med Natural Earths segmentnavn.
  *
- * Same delinga som i Asia: ei elv ligg i datasettet som fleire strekningar
- * med kvart sitt lokale namn.
+ * Samme delingen som i Asia: en elv ligger i datasettet som flere strekninger
+ * med hvert sitt lokale navn.
  */
 const RIVERS = [
   { id: 'Mississippi', name: 'Mississippi', parts: ['Mississippi'] },
@@ -106,7 +106,7 @@ const RIVERS = [
   { id: 'Potomac', name: 'Potomac', parts: ['Potomac', 'S. Branch Potomac'] },
 ]
 
-/** Fjell, med namnet dei har i Natural Earth sitt høgdepunkt-datasett. */
+/** Fjell, med navnet de har i Natural Earths høydepunkt-datasett. */
 const PEAKS = [
   'Denali',
   'Mount Whitney',
@@ -129,12 +129,12 @@ function buildStates() {
   for (const f of states.features) {
     const id = String(f.id)
     if (NOT_A_STATE.has(id)) continue
-    // 10m-oppløysing er langt finare enn 900 px høgd kan vise. Avrundinga til
-    // 2 desimalar (~1 km) snappar alle statane til det same rutenettet, så
-    // felles grenser held seg tett.
+    // 10m-oppløsning er langt finere enn 900 px høyde kan vise. Avrundingen til
+    // 2 desimaler (~1 km) snapper alle statene til det samme rutenettet, så
+    // felles grenser holder seg tett.
     const geometry = dropRepeats(roundGeometry(f.geometry, 2))
     if (!geometry) {
-      console.warn(`  ! ${f.properties.name} vart tom etter avrunding`)
+      console.warn(`  ! ${f.properties.name} ble tom etter avrunding`)
       continue
     }
     features.push({
@@ -146,7 +146,7 @@ function buildStates() {
 
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
   writeCollection(resolve(OUT, 'states.json'), features)
-  if (features.length !== 50) console.warn(`  ! venta 50 statar, fekk ${features.length}`)
+  if (features.length !== 50) console.warn(`  ! ventet 50 stater, fikk ${features.length}`)
 }
 
 async function buildCities() {
@@ -161,7 +161,7 @@ async function buildCities() {
         normaliseName(f.properties.NAME) === name,
     )
     if (!hit) {
-      console.warn(`  ! fann ikkje ${name} (${state})`)
+      console.warn(`  ! fant ikke ${name} (${state})`)
       continue
     }
     features.push({
@@ -198,7 +198,7 @@ async function buildRivers() {
       }
     }
     if (parts.length === 0) {
-      console.warn(`  ! ingen segment for ${river.name}`)
+      console.warn(`  ! ingen segmenter for ${river.name}`)
       continue
     }
     features.push({
@@ -227,7 +227,7 @@ async function buildPeaks() {
   for (const name of PEAKS) {
     const hit = byName.get(name)
     if (!hit) {
-      console.warn(`  ! fann ikkje ${name}`)
+      console.warn(`  ! fant ikke ${name}`)
       continue
     }
     features.push({

@@ -18,6 +18,8 @@ import { recordRun, type RunResult } from '../../game/progress'
 import { SCORING_VERSION } from '../../game/scoring'
 import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
+import { rankFor } from '../../game/rank'
+import type { CloudOutcome } from './ResultScreen'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { MapCanvas } from './MapCanvas'
 import { GameHUD } from './GameHUD'
@@ -37,10 +39,10 @@ interface Props {
 }
 
 /**
- * Kor lenge det rette svaret står framme etter eit bomskot, i millisekund.
+ * Hvor lenge det rette svaret står framme etter et bomskudd, i millisekund.
  *
- * Lang nok til at auget rekk å finne staden på kartet og knyte namnet til
- * han; kort nok til at ei runde på femti stader ikkje blir ei venteliste.
+ * Lang nok til at øyet rekker å finne stedet på kartet og knytte navnet til
+ * det; kort nok til at en runde på femti steder ikke blir en venteliste.
  */
 const REVEAL_MS = 1200
 
@@ -134,6 +136,7 @@ function Game({
   onLeaderboard: () => void
   onRunRecorded: () => void
 }) {
+  const { t } = useTranslation()
   const { data, base, features, geom, projection, emblems } = loaded
   const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
@@ -160,22 +163,22 @@ function Game({
   }, [state.award?.n])
 
   /*
-   * Feil svar: buzz, og ristinga skjer i HUD-en (sjå `flashKey` under).
-   * Kartflata nikka her før. Etter «Modern Atlas» står kartet stille — det er
-   * hovudpersonen, og tilbakemeldinga høyrer heime i panelet der svaret blei
-   * gjeve.
+   * Feil svar: buzz, og ristingen skjer i HUD-en (se `flashKey` under).
+   * Kartflata nikket her før. Etter «Modern Atlas» står kartet stille — det er
+   * hovedpersonen, og tilbakemeldingen hører hjemme i panelet der svaret ble
+   * gitt.
    */
   useEffect(() => {
     if (!state.flash) return
     playSfx('wrong')
-    // kjøres for hvert nye bomskot
+    // kjøres for hvert nye bomskudd
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flash?.n])
 
   /*
-   * Etter eit bomskot står det rette svaret framme ei lita stund før køen går
-   * vidare. Motoren kan ikkje halde ei klokke sjølv — ein reduserar veit ikkje
-   * kva tid det er — så pausen ligg her.
+   * Etter et bomskudd står det rette svaret framme en liten stund før køen går
+   * videre. Motoren kan ikke holde en klokke selv — en reduserer vet ikke
+   * hva tid det er — så pausen ligger her.
    */
   useEffect(() => {
     if (state.phase !== 'reveal') return
@@ -183,6 +186,8 @@ function Game({
     return () => window.clearTimeout(id)
   }, [state.phase, state.reveal?.n, resume])
 
+  // hva den globale tavla svarte: plassering, eller hvorfor den ikke tok imot
+  const [cloud, setCloud] = useState<CloudOutcome | null>(null)
   // lagre resultat til ledertavle og profil én gang når runden er ferdig
   const savedRef = useRef(false)
   useEffect(() => {
@@ -191,7 +196,9 @@ function Game({
     playSfx('finish')
 
     const elapsedMs = (state.finishedAt ?? Date.now()) - state.startedAt
-    const name = getName().trim() || 'Anonym'
+    // t() og ikke en hardkodet norsk streng: «Anonym» stod i den engelske
+    // bygget også, og havnet slik på den globale tavla
+    const name = getName().trim() || t('nav.anonymous')
     addEntry({
       name,
       score: state.points,
@@ -210,8 +217,14 @@ function Game({
     // den globale tavla får resultatet bare når spilleren har sagt ja —
     // den lokale runden er uansett lagret over
     if (consent === 'accepted') {
+      /*
+       * Resultatet av innsendingen ble kastet før — `void submitScore(...)`.
+       * En avvist innsending og en død tjener så like ut, og begge endte med
+       * at spilleren fikk en helt vanlig resultatskjerm og aldri dukket opp på
+       * tavla, uten et ord om hvorfor. Svaret bærer også plasseringen runden
+       * fikk, som er det man vil vite.
+       */
       void submitScore({
-        username: name,
         category: categoryId,
         region: regionId,
         mode,
@@ -222,9 +235,30 @@ function Game({
         mistakes: state.mistakes,
         bestStreak: state.bestStreak,
         elapsedMs,
+      }).then((result) => {
+        if (result.ok) setCloud({ rank: result.data.rank })
+        else setCloud({ rank: null, problem: result.reason })
       })
     }
-    setRun(recordRun(regionId, categoryId, mode, state.points))
+    setRun(
+      recordRun({
+        regionId,
+        categoryId,
+        mode,
+        pace: state.pace,
+        score: state.points,
+        correctCount,
+        total: state.total,
+        mistakes: state.mistakes,
+        bestStreak: state.bestStreak,
+        rank: rankFor({
+          correctCount,
+          total: state.total,
+          mistakes: state.mistakes,
+          bestStreak: state.bestStreak,
+        }),
+      }),
+    )
     onRunRecorded()
     // kjøres kun ved overgang til 'finished'
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -232,16 +266,17 @@ function Game({
 
   const handleRestart = () => {
     savedRef.current = false
+    setCloud(null)
     setRun(null)
     restart()
   }
 
   /*
-   * Fasiten på slutten: kva som rauk, og kor mange forsøk det kosta.
+   * Fasiten på slutten: hva som røk, og hvor mange forsøk det kostet.
    *
-   * Eit sted hamnar her både når det blei bomma på og seinare teke, og når
-   * spelaren gav opp — det er stadene runden avdekte som ikkje sat, og dei er
-   * det einaste ein spelar faktisk kan gjere noko med til neste gong.
+   * Et sted havner her både når det ble bommet på og senere tatt, og når
+   * spilleren ga opp — det er stedene runden avdekket som ikke satt, og de er
+   * det eneste en spiller faktisk kan gjøre noe med til neste gang.
    */
   const missed = useMemo(
     () =>
@@ -254,7 +289,7 @@ function Game({
     [state.missed, state.attempts, state.status, features],
   )
 
-  // stabil referanse, elles ville HUD-en teikna seg på nytt for kvart klokketikk
+  // stabil referanse, ellers ville HUD-en tegnet seg på nytt for hvert klokketikk
   const choices = useMemo(
     () =>
       state.choices.map((id) => {
@@ -299,10 +334,10 @@ function Game({
         />
 
         {/*
-          Resultatflata låg med `backdrop-filter` over kartet. Konfettien over
-          henne rører seg, og kvar ramme tvinga då nettlesaren til å sløre
-          heile kartutsnittet på nytt. Ei nesten ugjennomsiktig flate gjev same
-          lesing utan den kostnaden.
+          Resultatflata lå med `backdrop-filter` over kartet. Konfettien over
+          den rører seg, og hver ramme tvang da nettleseren til å sløre
+          hele kartutsnittet på nytt. En nesten ugjennomsiktig flate gir samme
+          lesing uten den kostnaden.
         */}
         {state.phase === 'finished' && (
           <div
@@ -310,6 +345,7 @@ function Game({
             style={{ background: 'color-mix(in srgb, var(--bg) 96%, transparent)' }}
           >
             <ResultScreen
+              cloud={cloud}
               total={state.total}
               correctCount={correctCount}
               mistakes={state.mistakes}
@@ -336,9 +372,9 @@ function Game({
           targetKey={target?.id ?? ''}
           revealId={state.reveal?.id ?? null}
           /*
-           * Ikkje i skrivemodus. Der står landet allereie markert på kartet,
-           * og eit flagg ved sida av ville vore fasiten for alle som kan
-           * flagg — oppgåva er å hugse namnet, ikkje å kjenne att flagget.
+           * Ikke i skrivemodus. Der står landet allerede markert på kartet,
+           * og et flagg ved siden av ville vært fasiten for alle som kan
+           * flagg — oppgaven er å huske navnet, ikke å kjenne igjen flagget.
            */
           emblems={mode === 'type' ? null : emblems}
           onChoose={guess}

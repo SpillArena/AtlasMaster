@@ -2,13 +2,13 @@ import type { FeatureCollection } from 'geojson'
 import type { Category, Region } from './types'
 
 /**
- * Registeret over spillbare regioner. Dette er den einaste staden som må
- * endrast for å opne eit nytt kontinent — legg inn GeoJSON under
- * `src/data/<region>/`, skriv ein `Region` her, og resten av spelet føl med.
+ * Registeret over spillbare regioner. Dette er det eneste stedet som må
+ * endres for å åpne et nytt kontinent — legg inn GeoJSON under
+ * `src/data/<region>/`, skriv en `Region` her, og resten av spillet følger med.
  *
- * Kvar `load` er ein dynamisk import, så datasetta blir kodesplitta og henta
- * først når nokon faktisk vel kategorien. Europa-omrisset åleine er 208 kB —
- * det skal ikkje ligge i hovudbundelen for ein som berre spelar Noreg.
+ * Hver `load` er en dynamisk import, så datasettene blir kodesplittet og hentet
+ * først når noen faktisk velger kategorien. Europa-omrisset alene er 208 kB —
+ * det skal ikke ligge i hovedbundelen for en som bare spiller Norge.
  */
 
 const json = (loader: () => Promise<{ default: unknown }>) => async () =>
@@ -19,14 +19,25 @@ const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
 const usStates = json(() => import('../data/usa/states.json'))
 const worldCountries = json(() => import('../data/world/countries.json'))
+/**
+ * Verdenskartet i to oppløsninger.
+ *
+ * `countries` er spillbildet: 50m-geometri der man kan zoome inn på
+ * Sognefjorden. `outline` er det samme kartet med en firedel av punktene, og
+ * er det landingssiden og bakgrunnen tegner — der er hele kloden ni hundre
+ * piksler bred, og resten er detaljer ingen skjerm viser. Forskjellen er
+ * fire hundre kilobyte hver besøkende slipper å laste ned før noe er valgt.
+ * Begge kommer fra scripts/build-world.mjs og deler id-er.
+ */
+const worldOutline = json(() => import('../data/world/outline.json'))
 
 /**
- * MERK — kategori-id-ane til Noreg er med vilje norske og uendra
- * (`fylker`, `storbyer`, `elver`, `fjell`). Dei ligg lagra som `category` på
- * kvar rad i D1-leiartavla frå før regionane fanst. Døyper vi dei om, mistar
- * alle eksisterande resultat kategorien sin. Europa får difor sine eigne
- * id-ar i staden for å dele desse — noko som uansett er rettare: eit fylke
- * er ikkje eit land.
+ * MERK — kategori-id-ene til Norge er med vilje norske og uendret
+ * (`fylker`, `storbyer`, `elver`, `fjell`). De ligger lagret som `category` på
+ * hver rad i D1-ledertavla fra før regionene fantes. Døper vi dem om, mister
+ * alle eksisterende resultat kategorien sin. Europa får derfor sine egne
+ * id-er i stedet for å dele disse — noe som uansett er riktigere: et fylke
+ * er ikke et land.
  */
 const norwayCategories: Category[] = [
   {
@@ -114,10 +125,10 @@ const europeCategories: Category[] = [
 ]
 
 /**
- * MERK — kategori-id-ane må vere unike på tvers av *alle* regionar, ikkje
- * berre innanfor sin eigen. Flis-teksten blir slått opp som `tile.<id>`, så
- * to regionar med kvar sin «countries» ville delt same skildring. Difor er
- * Asia og USA sine prefiksa, medan Europa fekk dei korte namna først.
+ * MERK — kategori-id-ene må være unike på tvers av *alle* regioner, ikke
+ * bare innenfor sin egen. Flis-teksten blir slått opp som `tile.<id>`, så
+ * to regioner med hver sin «countries» ville delt samme beskrivelse. Derfor er
+ * Asia og USA sine prefikset, mens Europa fikk de korte navnene først.
  */
 const asiaCategories: Category[] = [
   {
@@ -242,7 +253,7 @@ export const regions: Region[] = [
     labelKey: 'region.norway',
     code: 'NO',
     gradient: 'from-[#1d4ed8] via-[#172554] to-[#080d1f]',
-    // Standardparallellar 60/70 og rotasjon -15° gjev det nord-strekte
+    // Standardparalleller 60/70 og rotasjon -15° gir det nord-strukne
     // landet rett form.
     projection: { kind: 'conicConformal', parallels: [60, 70], rotate: -15 },
     outline: norwayCounties,
@@ -253,8 +264,8 @@ export const regions: Region[] = [
     labelKey: 'region.europe',
     code: 'EU',
     gradient: 'from-violet-700 via-[#3b1178] to-[#150a2b]',
-    // ETRS89-LCC (EPSG:3034): standardparallellar 35/65, senterlengd 10°Ø.
-    // Same projeksjon som EU sjølv brukar til kontinentkart.
+    // ETRS89-LCC (EPSG:3034): standardparalleller 35/65, senterlengde 10°Ø.
+    // Samme projeksjon som EU selv bruker til kontinentkart.
     projection: { kind: 'conicConformal', parallels: [35, 65], rotate: -10 },
     outline: europeCountries,
     categories: europeCategories,
@@ -264,9 +275,9 @@ export const regions: Region[] = [
     labelKey: 'region.asia',
     code: 'AS',
     gradient: 'from-[#c2410c] via-[#7c2d12] to-[#2a1206]',
-    // Asia spenner frå ekvator til 55°N og over 125 lengdegrader. Ein kjegle
-    // gjer Indonesia til ein banan i den eine enden av kartet; ei azimutal
-    // projeksjon sentrert midt i regionen held forma i alle retningar.
+    // Asia spenner fra ekvator til 55°N og over 125 lengdegrader. En kjegle
+    // gjør Indonesia til en banan i den ene enden av kartet; en azimutal
+    // projeksjon sentrert midt i regionen holder formen i alle retninger.
     projection: { kind: 'azimuthalEqualArea', centre: [87, 22] },
     outline: asiaCountries,
     categories: asiaCategories,
@@ -289,12 +300,12 @@ export const regions: Region[] = [
     // Natural Earth 1 — kompromissprojeksjonen laget nettopp for verdenskart:
     // polene krympes, formene holder seg, og ingenting strekkes ut mot kantene.
     projection: { kind: 'naturalEarth' },
-    outline: worldCountries,
+    outline: worldOutline,
     categories: worldCategories,
   },
 ]
 
-/** Regionen spelet startar i når ingenting er valt. */
+/** Regionen spillet starter i når ingenting er valgt. */
 export const DEFAULT_REGION_ID = 'norway'
 
 export function getRegion(id: string): Region | undefined {

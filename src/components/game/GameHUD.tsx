@@ -19,10 +19,10 @@ interface Props {
   /** nøkkel som endres per nytt mål — nullstiller skrive-input */
   targetKey: string
   /**
-   * Id-en til det rette svaret medan det blir avslørt etter eit bomskot.
-   * null resten av tida. HUD-en held forma si i staden for å byte innhald:
-   * ei rad knappar som forsvinn og kjem tilbake ville dratt heile flata opp
-   * og ned for kvart bomskot.
+   * Id-en til det rette svaret mens det blir avslørt etter et bomskudd.
+   * null resten av tida. HUD-en holder formen sin i stedet for å bytte innhold:
+   * en rad knapper som forsvinner og kommer tilbake ville dratt hele flata opp
+   * og ned for hvert bomskudd.
    */
   revealId: string | null
   /** hvilket merkesett navnene skal vises med, eller null — se game/flags.ts */
@@ -32,17 +32,17 @@ interface Props {
   onSkip: () => void
   onGiveUp: () => void
   /**
-   * Tel opp for kvart bomskot. Ristinga høyrer heime her og ikkje på kartet:
-   * kartet er hovudpersonen og skal stå stille, tilbakemeldinga skjer i
-   * panelet der svaret blei gjeve.
+   * Teller opp for hvert bomskudd. Ristingen hører hjemme her og ikke på kartet:
+   * kartet er hovedpersonen og skal stå stille, tilbakemeldingen skjer i
+   * panelet der svaret ble gitt.
    */
   flashKey: number
 }
 
 /**
- * Memoisert: HUD-en er uendra mellom kvart klokketikk i toppbjelken, og han
- * ber både framer-motion-knappar og eit tekstfelt som ikkje har noko å tene
- * på å bli avstemt ti gonger i sekundet.
+ * Memoisert: HUD-en er uendret mellom hvert klokketikk i toppbjelken, og den
+ * bærer både framer-motion-knapper og et tekstfelt som ikke har noe å tjene
+ * på å bli avstemt ti ganger i sekundet.
  */
 export const GameHUD = memo(function GameHUD({
   mode,
@@ -61,9 +61,9 @@ export const GameHUD = memo(function GameHUD({
   const revealing = revealId !== null
 
   /*
-   * Klassen må fjernast og leggjast på att med ein reflow imellom for å
-   * starte keyframen på nytt; ein ny `key` ville rive ned heile HUD-en —
-   * inkludert tekstfeltet spelaren står og skriv i — for kvart bomskot.
+   * Klassen må fjernes og legges på igjen med en reflow imellom for å
+   * starte keyframen på nytt; en ny `key` ville rive ned hele HUD-en —
+   * inkludert tekstfeltet spilleren står og skriver i — for hvert bomskudd.
    */
   const panelRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -97,9 +97,9 @@ export const GameHUD = memo(function GameHUD({
               style={{ color: revealing ? 'var(--info)' : 'var(--text)' }}
             >
               {/*
-                Flagget står ved sida av namnet, ikkje i staden for det. Det
-                er ei ekstra kopling å hengje kunnskapen på — og for dei
-                landa vi ikkje kan teikne truverdig, står namnet åleine.
+                Flagget står ved siden av navnet, ikke i stedet for det. Det
+                er en ekstra kobling å henge kunnskapen på — og for de
+                landene vi ikke kan tegne troverdig, står navnet alene.
               */}
               {emblems && (
                 <FlagBadge set={emblems} featureId={targetKey} className="h-6 w-9 sm:h-8 sm:w-12" />
@@ -221,10 +221,10 @@ export const GameHUD = memo(function GameHUD({
 })
 
 /**
- * Fasitnamnet i skrivemodus, i staden for tekstfeltet.
+ * Fasitnavnet i skrivemodus, i stedet for tekstfeltet.
  *
- * Same høgd og same kant som feltet det byter ut — flata under kartet skal
- * ikkje hoppe fordi du bomma.
+ * Samme høyde og samme kant som feltet det bytter ut — flata under kartet skal
+ * ikke hoppe fordi du bommet.
  */
 function RevealedName({ name }: { name: string }) {
   return (

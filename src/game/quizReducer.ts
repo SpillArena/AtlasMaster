@@ -2,13 +2,13 @@ import { MAX_ATTEMPTS, REQUEUE_GAP, penaltyForMiss, pointsForHit } from './scori
 import { usesChoices, type Mode, type Pace, type QuizFeature } from './types'
 
 /**
- * Spelmotoren, utan React.
+ * Spillmotoren, uten React.
  *
- * Reduseraren er reine funksjonar av tilstand og handling, og er skild frå
- * kroken med vilje: reglane for kva som skjer når nokon bommar — kva som blir
- * lagt tilbake i køen, kva eit løyst sted får lov til å gjere — er dei
- * viktigaste i spelet, og dei skal kunne køyrast og verifiserast utan ein
- * nettlesar. Sjå scripts/check-engine.mjs.
+ * Reduseren er rene funksjoner av tilstand og handling, og er skilt fra
+ * kroken med vilje: reglene for hva som skjer når noen bommer — hva som blir
+ * lagt tilbake i køen, hva et løst sted får lov til å gjøre — er de
+ * viktigste i spillet, og de skal kunne kjøres og verifiseres uten en
+ * nettleser. Se scripts/check-engine.mjs.
  */
 
 export type GuessStatus = 'correct' | 'revealed'
@@ -24,8 +24,8 @@ export interface Award {
 }
 
 /**
- * `reveal` er fasen mellom eit bomskot og neste spørsmål: det rette svaret
- * lyser opp på kartet, og ingenting tek imot klikk før det er over.
+ * `reveal` er fasen mellom et bomskudd og neste spørsmål: det rette svaret
+ * lyser opp på kartet, og ingenting tar imot klikk før det er over.
  */
 export type Phase = 'playing' | 'reveal' | 'finished'
 
@@ -41,11 +41,11 @@ export interface EngineState {
   choices: string[]
   /** transient feil-blink: id + teller for re-animasjon */
   flash: { id: string; n: number } | null
-  /** det rette svaret, vist etter eit bomskot */
+  /** det rette svaret, vist etter et bomskudd */
   reveal: { id: string; n: number } | null
-  /** kor mange gonger kvart sted er bomma på */
+  /** hvor mange ganger hvert sted er bommet på */
   attempts: Record<string, number>
-  /** stader som er bomma på minst éin gong, i den rekkjefølgja dei rauk */
+  /** steder som er bommet på minst én gang, i den rekkefølgen de røk */
   missed: string[]
   mistakes: number
   total: number
@@ -166,11 +166,11 @@ function advance(
 }
 
 /**
- * Set opp neste spørsmål frå ein ferdig kø.
+ * Setter opp neste spørsmål fra en ferdig kø.
  *
- * Køen kan vere tom — då er runden ferdig. Alternativa blir laga på nytt her
- * og berre her, så flervalgsmodus aldri kan bli ståande med alternativa til
- * eit spørsmål som er passert.
+ * Køen kan være tom — da er runden ferdig. Alternativene blir laget på nytt her
+ * og bare her, så flervalgsmodus aldri kan bli stående med alternativene til
+ * et spørsmål som er passert.
  */
 function nextQuestion(
   state: EngineState,
@@ -217,13 +217,13 @@ function scoreHit(state: EngineState, features: QuizFeature[]): EngineState {
 /**
  * Feil svar.
  *
- * Rekka ryker, feiltellaren går opp, og poengsummen får eit trekk — men aldri
- * under null; ein spelar skal ikkje kunne ende ei runde i minus.
+ * Rekka ryker, feiltelleren går opp, og poengsummen får et trekk — men aldri
+ * under null; en spiller skal ikke kunne ende en runde i minus.
  *
- * Runden stoppar ikkje her. Spelet går inn i `reveal`: det rette svaret lyser
- * opp på kartet, og først når spelaren har fått sjå det går køen vidare. Det
- * er det Seterra gjer, og det er skilnaden på ein quiz og ei øving — du får
- * vite kva det *var*, ikkje berre at du tok feil.
+ * Runden stopper ikke her. Spillet går inn i `reveal`: det rette svaret lyser
+ * opp på kartet, og først når spilleren har fått se det går køen videre. Det
+ * er det Seterra gjør, og det er forskjellen på en quiz og en øving — du får
+ * vite hva det *var*, ikke bare at du tok feil.
  */
 function scoreMiss(state: EngineState, flashId: string): EngineState {
   const target = state.queue[0]
@@ -241,10 +241,10 @@ function scoreMiss(state: EngineState, flashId: string): EngineState {
 }
 
 /**
- * Legg eit bomma sted tilbake i køen, `REQUEUE_GAP` spørsmål fram i tid.
+ * Legg et bommet sted tilbake i køen, `REQUEUE_GAP` spørsmål fram i tid.
  *
- * Køen kan vere kortare enn det — mot slutten av runden er det kanskje berre
- * eitt sted att — og då hamnar det bakarst.
+ * Køen kan være kortere enn det — mot slutten av runden er det kanskje bare
+ * ett sted igjen — og da havner det bakerst.
  */
 function requeue(rest: string[], id: string): string[] {
   const at = Math.min(REQUEUE_GAP, rest.length)
@@ -278,14 +278,14 @@ export function reducer(
   const target = state.queue[0]
 
   /*
-   * Medan det rette svaret er framme tek spelet berre imot CONTINUE. Klikk på
-   * kartet i den luka skal ikkje kunne bli eit nytt bomskot på eit sted som
-   * allereie er avslørt.
+   * Mens det rette svaret er framme tar spillet bare imot CONTINUE. Klikk på
+   * kartet i den luka skal ikke kunne bli et nytt bomskudd på et sted som
+   * allerede er avslørt.
    */
   if (state.phase === 'reveal') {
     if (action.t !== 'CONTINUE') return state
     const rest = state.queue.slice(1)
-    // tredje bomskotet på same stad: spelet gjev han opp for deg
+    // tredje bomskuddet på samme sted: spillet gir det opp for deg
     if ((state.attempts[target] ?? 0) >= MAX_ATTEMPTS) {
       return {
         ...nextQuestion(state, features, rest),
@@ -308,11 +308,11 @@ export function reducer(
 
     case 'GUESS':
       /*
-       * Eit løyst sted er ute av spelet. Kartet tek det ut av treff-testinga
-       * med `pointer-events: none`, men den regelen gjeld berre peikaren:
-       * tastatur, hjelpeteknologi og ei framtidig kontrollflate når fram
-       * uansett. Regelen om at eit svart sted aldri kan koste poeng høyrer
-       * heime her, i motoren, ikkje i eit stilark.
+       * Et løst sted er ute av spillet. Kartet tar det ut av treff-testingen
+       * med `pointer-events: none`, men den regelen gjelder bare peikeren:
+       * tastatur, hjelpeteknologi og en framtidig kontrollflate når fram
+       * uansett. Regelen om at et svart sted aldri kan koste poeng hører
+       * hjemme her, i motoren, ikke i et stilark.
        */
       if (state.status[action.id]) return state
       return action.id === target ? scoreHit(state, features) : scoreMiss(state, action.id)

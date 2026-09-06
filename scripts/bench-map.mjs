@@ -3,22 +3,22 @@
  *
  *   node scripts/bench-map.mjs
  *
- * Skriv ut, per region:
- *   - kor mange features og koordinatpunkt datasettet inneheld
- *   - kor lang tid det tek å byggje kartet éin gong (projeksjon + baner)
- *   - kor mange SVG-nodar kartet legg i DOM-en
- *   - kor mange React-element som blir bygde på nytt per zoom-ramme
- *   - kor mange gonger landmassen blir rasterisert per ramme
- *   - kor mange punkt den breie sokkelstripa må strekast gjennom
- *   - kor mange React-element spelet byggjer per sekund medan det står stille
+ * Skriver ut, per region:
+ *   - hvor mange features og koordinatpunkt datasettet inneholder
+ *   - hvor lang tid det tar å bygge kartet én gang (projeksjon + baner)
+ *   - hvor mange SVG-noder kartet legger i DOM-en
+ *   - hvor mange React-element som blir bygd på nytt per zoom-ramme
+ *   - hvor mange ganger landmassen blir rasterisert per ramme
+ *   - hvor mange punkt den brede sokkelstripa må strekes gjennom
+ *   - hvor mange React-element spillet bygger per sekund mens det står stille
  *
- * Dei siste tala er dei som avgjer om kartet held 60 fps: alt React lagar på
- * nytt medan fingeren dreg, må òg samanliknast og potensielt teiknast om, og
- * ei brei strek kostar omtrent lineært i talet på punkt ho går gjennom.
+ * De siste tallene er de som avgjør om kartet holder 60 fps: alt React lager på
+ * nytt mens fingeren drar, må også sammenlignes og potensielt tegnes om, og
+ * en bred strek koster omtrent lineært i antallet punkt den går gjennom.
  *
- * MERK — skriptet speglar rendermodellen i `MapCanvas.tsx`. Endrar du
- * lagdelinga der, må tabellane under følgje etter, elles måler du eit kart
- * som ikkje finst.
+ * MERK — skriptet speiler rendermodellen i `MapCanvas.tsx`. Endrer du
+ * lagdelingen der, må tabellene under følge etter, ellers måler du et kart
+ * som ikke finnes.
  */
 
 import { readFileSync } from 'node:fs'
@@ -40,7 +40,7 @@ const RUNS = 20
 
 const CASES = [
   {
-    region: 'Noreg',
+    region: 'Norge',
     file: 'src/data/norway/counties.json',
     projection: { kind: 'conicConformal', parallels: [60, 70], rotate: -15 },
   },
@@ -74,8 +74,8 @@ function countPoints(geometry) {
 }
 
 /**
- * Spegling av `coarsen` i src/game/projection.ts — punkta blir tynna ut etter
- * at dei er projiserte, så toleransen er i lerretseiningar.
+ * Speiling av `coarsen` i src/game/projection.ts — punktene blir tynnet ut etter
+ * at de er projisert, så toleransen er i lerretsenheter.
  */
 function coarsen(projection, tolerance) {
   return {
@@ -105,13 +105,13 @@ function coarsen(projection, tolerance) {
   }
 }
 
-/** Talet på koordinatpar i ein SVG-banestreng. */
+/** Antallet koordinatpar i en SVG-banestreng. */
 const pathPoints = (d) => (d.match(/[-\d.]+,[-\d.]+/g) ?? []).length
 
-/** Same toleranse som SHELF_TOLERANCE i MapCanvas.tsx. */
+/** Samme toleranse som SHELF_TOLERANCE i MapCanvas.tsx. */
 const SHELF_TOLERANCE = 2.5
 
-/** Ei full oppbygging av kartet, slik `MapCanvas` gjer det ved montering. */
+/** En full oppbygging av kartet, slik `MapCanvas` gjør det ved montering. */
 function build(spec, data, { probeAspect }) {
   if (probeAspect) {
     const probe = fromSpec(spec).fitExtent(
@@ -159,17 +159,17 @@ function time(fn) {
 }
 
 /**
- * Nodetal og arbeid per zoom-ramme.
+ * Nodetall og arbeid per zoom-ramme.
  *
- * Før: heile treet låg inline i `MapCanvas`, og transformen var React-state.
- * Kvar zoom-hending — ei per musrørsle — bygde difor alle elementa på nytt.
- * Etter: transformen blir skriven rett på gruppa éin gong per biletramme, og
- * laga under er memoiserte med stabile props.
+ * Før: hele treet lå inline i `MapCanvas`, og transformen var React-state.
+ * Hver zoom-hendelse — en per musbevegelse — bygde derfor alle elementene på nytt.
+ * Etter: transformen blir skrevet rett på gruppa én gang per bilderamme, og
+ * lagene under er memoisert med stabile props.
  */
 function model(featureCount) {
   // sokkel ×2, landfyll, kystlinje, gradnett
   const baseBefore = 5
-  // sokkel, landfyll + kystlinje i same passering, gradnett
+  // sokkel, landfyll + kystlinje i samme passering, gradnett
   const baseAfter = 3
   return {
     before: {
@@ -182,8 +182,8 @@ function model(featureCount) {
 }
 
 /**
- * Sokkelstripa: punkta ho må gå gjennom før og etter at ho fekk sin eigen,
- * grovare kopi av landmassen.
+ * Sokkelstripa: punktene den må gå gjennom før og etter at den fikk sin egen,
+ * grovere kopi av landmassen.
  */
 function shelf(spec, data) {
   const projection = fromSpec(spec).fitExtent(
@@ -221,7 +221,7 @@ for (const c of CASES) {
 }
 
 const pad = (v, n) => String(v).padStart(n)
-console.log('region      features   punkt   montering ms      SVG-nodar    element per zoom-ramme   land-raster/ramme   sokkelpunkt')
+console.log('region      features   punkt   montering ms      SVG-noder    element per zoom-ramme   land-raster/ramme   sokkelpunkt')
 for (const r of rows) {
   console.log(
     `${r.region.padEnd(10)} ${pad(r.features, 8)} ${pad(r.points, 7)}   ` +
@@ -233,24 +233,24 @@ for (const r of rows) {
   )
 }
 console.log(
-  '\nmontering: venstre = med aspekt-proben, høgre = når proben er hugsa (andre gong same region blir opna)',
+  '\nmontering: venstre = med aspekt-proben, høyre = når proben er husket (andre gang samme region blir åpnet)',
 )
 
 /*
- * Kva spelet gjer medan ingen rører noko.
+ * Hva spillet gjør mens ingen rører noe.
  *
- * Klokka tikkar ti gonger i sekundet. Før låg ho i `GameScreen`, så kvart
- * tikk bygde heile spelegreina på nytt: toppbjelken med alle tala sine, og
- * props-objekta til HUD og kart. No eig `QuestionClock` tilstanden sjølv, og
- * berre tidsstripa blir bygd på nytt.
+ * Klokka tikker ti ganger i sekundet. Før lå den i `GameScreen`, så hvert
+ * tikk bygde hele spillgreina på nytt: toppbjelken med alle tallene sine, og
+ * props-objektene til HUD og kart. Nå eier `QuestionClock` tilstanden selv, og
+ * bare tidsstripa blir bygd på nytt.
  */
 const TICKS_PER_SECOND = 10
-// Game sin eigen JSX + heile GameTopBar-treet, talt i elementnodar
+// Games egen JSX + hele GameTopBar-treet, talt i elementnoder
 const BEFORE_PER_TICK = 45
 // QuestionClock + TimerBar
 const AFTER_PER_TICK = 4
 console.log(
-  `\nkvilande spel: ${TICKS_PER_SECOND * BEFORE_PER_TICK} → ` +
+  `\nhvilende spill: ${TICKS_PER_SECOND * BEFORE_PER_TICK} → ` +
     `${TICKS_PER_SECOND * AFTER_PER_TICK} React-element per sekund ` +
-    `(klokka tikkar ${TICKS_PER_SECOND} gonger i sekundet uansett)`,
+    `(klokka tikker ${TICKS_PER_SECOND} ganger i sekundet uansett)`,
 )

@@ -72,7 +72,8 @@
     "setName": "Set name",
     "editName": "Change name ({{name}})",
     "level": "Level {{level}}",
-    "backToArena": "Back to Arena"
+    "backToArena": "Back to Arena",
+    "anonymous": "Anonymous"
   },
   "namePrompt": {
     "eyebrow": "Sign the logbook",
@@ -95,7 +96,11 @@
     "offline": "Couldn't reach the global board. Showing results from this device.",
     "region": "Choose region",
     "mode": "Choose game mode",
-    "mixedModes": "The modes aren't worth the same. Pick one to compare fairly."
+    "mixedModes": "The modes aren't worth the same. Pick one to compare fairly.",
+    "allRegions": "All regions",
+    "pace": "Pace",
+    "error": "The leaderboard didn't answer properly. This isn't an empty board — we couldn't read it.",
+    "notListed": "You're not in the top listed here yet. Play a round to get on the board."
   },
   "tile": {
     "fylker": "Learn all 15 counties",
@@ -202,7 +207,10 @@
     },
     "missedTitle_one": "1 place to practise",
     "missedTitle_other": "{{count}} places to practise",
-    "missedTitle": "{{count}} places to practise"
+    "missedTitle": "{{count}} places to practise",
+    "globalRank": "Number {{rank}} on the global board",
+    "notCounted": "This round didn't make it onto the global board.",
+    "savedLocally": "Saved on this device — the board was unreachable."
   },
   "meta": {
     "title": "AtlasMaster — the world map game",
@@ -232,5 +240,128 @@
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",
     "back": "Change region"
+  },
+  "auth": {
+    "registerTitle": "Claim your name",
+    "registerDesc": "Pick a name and a PIN. The PIN is what keeps anyone else from posting scores as you.",
+    "loginTitle": "Sign in",
+    "loginDesc": "Your name and PIN, and your scores go back on the global board.",
+    "signedInTitle": "Signed in",
+    "signedInDesc": "You are playing as {{name}}. Scores go on the global board under that name.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "register": "Create",
+    "guest": "Play without an account",
+    "haveAccount": "I already have a name",
+    "needAccount": "I need a name",
+    "pinPlaceholder": "PIN",
+    "pinHint": "4 to 6 digits. Five wrong tries locks the name for fifteen minutes.",
+    "errors": {
+      "not_configured": "Accounts are switched off on this server.",
+      "bad_action": "Something went wrong. Try again.",
+      "bad_body": "Something went wrong. Try again.",
+      "bad_username": "Use letters, numbers, spaces, dots, dashes or apostrophes.",
+      "bad_pin": "The PIN must be 4 to 6 digits.",
+      "name_taken": "That name is taken. Sign in if it is yours.",
+      "bad_credentials": "Wrong name or PIN.",
+      "locked": "Too many tries. Wait fifteen minutes and try again.",
+      "service_failed": "The account service is having a bad day. Try again shortly.",
+      "unreachable": "No answer from the server. You can still play without an account.",
+      "failed": "That did not work. Try again."
+    }
+  },
+  "profile": {
+    "eyebrow": "Field logbook",
+    "signedIn": "Signed in — scores go on the global board",
+    "guest": "Playing without an account — scores stay on this device",
+    "account": "Account",
+    "stats": "Career",
+    "rounds": "Rounds",
+    "xp": "XP",
+    "flawless": "Clean rounds",
+    "favourite": "Most played",
+    "badges": "Badges",
+    "records": "Personal bests",
+    "noRecords": "Nothing recorded yet. Play a round and it shows up here.",
+    "xpToNext": "{{into}} of {{need}} XP towards the next level",
+    "close": "Close"
+  },
+  "badge": {
+    "firstRound": {
+      "title": "First landfall",
+      "desc": "Finish your first round."
+    },
+    "tenRounds": {
+      "title": "Ten voyages",
+      "desc": "Finish ten rounds."
+    },
+    "fiftyRounds": {
+      "title": "Fifty voyages",
+      "desc": "Finish fifty rounds."
+    },
+    "hundredRounds": {
+      "title": "A hundred voyages",
+      "desc": "Finish a hundred rounds."
+    },
+    "flawless": {
+      "title": "Clean sheet",
+      "desc": "Finish a round without a single miss."
+    },
+    "tenFlawless": {
+      "title": "Steady hand",
+      "desc": "Ten rounds without a single miss."
+    },
+    "topRank": {
+      "title": "Untouchable",
+      "desc": "Earn the top grade on a round."
+    },
+    "streakTen": {
+      "title": "Ten in a row",
+      "desc": "Get ten correct in a row."
+    },
+    "streakTwentyFive": {
+      "title": "Twenty-five in a row",
+      "desc": "Get twenty-five correct in a row."
+    },
+    "streakFifty": {
+      "title": "Fifty in a row",
+      "desc": "Get fifty correct in a row."
+    },
+    "everyRegion": {
+      "title": "The whole atlas",
+      "desc": "Play a round in every region."
+    },
+    "everyCategory": {
+      "title": "Every plate",
+      "desc": "Play every category in the book."
+    },
+    "worldTraveller": {
+      "title": "Circumnavigator",
+      "desc": "Play a round on the world map."
+    },
+    "everyMode": {
+      "title": "All five hands",
+      "desc": "Play every mode at least once."
+    },
+    "typist": {
+      "title": "The pen",
+      "desc": "Twenty-five rounds spelling the name out."
+    },
+    "blitz": {
+      "title": "Against the glass",
+      "desc": "Twenty-five rounds at blitz pace."
+    },
+    "flagBearer": {
+      "title": "Flag bearer",
+      "desc": "Play a round in a flag mode."
+    },
+    "levelFive": {
+      "title": "Level five",
+      "desc": "Reach level five."
+    },
+    "levelTen": {
+      "title": "Level ten",
+      "desc": "Reach level ten."
+    }
   }
 }

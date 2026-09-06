@@ -22,9 +22,7 @@ export function CategoryPicker({ region, onPick }: Props) {
     <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-4 px-4 py-6">
       <div>
         <p className="eyebrow">{t(region.labelKey)}</p>
-        <h2 className="font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl">
-          {t('cat.subtitle')}
-        </h2>
+        <h2 className="text-h2">{t('cat.subtitle')}</h2>
       </div>
 
       <ul className="grid grid-cols-1 gap-4 pb-2 min-[360px]:grid-cols-2">

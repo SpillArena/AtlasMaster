@@ -11,9 +11,7 @@ function initialLanguage(): string {
   const saved = readPreference(STORAGE_KEY)
   if (saved === 'no' || saved === 'en') return saved
   const browser = typeof navigator === 'undefined' ? '' : navigator.language.toLowerCase()
-  return browser.startsWith('nb') || browser.startsWith('nn') || browser.startsWith('no')
-    ? 'no'
-    : 'en'
+  return browser.startsWith('nb') || browser.startsWith('no') ? 'no' : 'en'
 }
 
 i18n.use(initReactI18next).init({

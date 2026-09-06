@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // brødtekst: humanistisk sans, roleg og lesbar
+        // brødtekst: humanistisk sans, rolig og lesbar
         sans: [
           '"Instrument Sans"',
           'ui-sans-serif',
@@ -17,7 +17,7 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        // display: titlar, region- og kategorinamn — Fraunces, høg kontrast, feltbok-ånd
+        // display: titler, region- og kategorinavn — Fraunces, høy kontrast, feltbok-ånd
         display: ['"Fraunces"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
         // hud: alle tal — poeng, combo, klokke. Ledger-mono, tabulær
         hud: ['"Spline Sans Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
@@ -35,14 +35,14 @@ export default {
         ink: 'var(--text)',
         'ink-muted': 'var(--text-muted)',
         'ink-subtle': 'var(--text-subtle)',
-        // handoff-tokens under sine eigne namn, for nye komponentar
+        // handoff-tokens under sine egne navn, for nye komponenter
         primary: 'var(--color-primary)',
         land: 'var(--color-land)',
         water: 'var(--color-water)',
         grid: 'var(--color-grid)',
       },
-      // eigne namn, ikkje overstyring av rounded-sm/md/lg: dei står i bruk
-      // over heile appen og skal halde fram med å tyde det dei alltid har.
+      // egne navn, ikke overstyring av rounded-sm/md/lg: de står i bruk
+      // over hele appen og skal fortsette å bety det de alltid har.
       borderRadius: {
         atlas: 'var(--radius-md)',
         'atlas-lg': 'var(--radius-lg)',
@@ -68,24 +68,17 @@ export default {
           '0%, 100%': { opacity: '0.35' },
           '50%': { opacity: '0.9' },
         },
-        // lakkseglet blir pressa ned
-        'stamp-press': {
-          '0%': { transform: 'scale(2.1) rotate(-14deg)', opacity: '0' },
-          '60%': { transform: 'scale(0.94) rotate(-7deg)', opacity: '1' },
-          '100%': { transform: 'scale(1) rotate(-6deg)', opacity: '1' },
-        },
-        // signalbluss som stig
-        'flare-rise': {
-          '0%': { transform: 'translateY(6px) scale(0.9)', opacity: '0' },
-          '100%': { transform: 'translateY(-2px) scale(1)', opacity: '1' },
-        },
       },
+      // MERK — `stamp-press` og `flare-rise` stod også her, med nøyaktig samme
+      // keyframes som i index.css. To definisjoner av samme animasjon er én for
+      // mange: den ene blir endret, den andre ikke, og hvilken av dem som vinner
+      // kommer an på hvilken rekkefølge lagene havner i. De bor i index.css sammen
+      // med resten av kartanimasjonene; klassene heter `.stamp-press` og
+      // `.flare-rise`, ikke `animate-`.
       animation: {
         'combo-pop': 'combo-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
         sheen: 'sheen 0.9s ease-out',
         breathe: 'breathe 2.4s ease-in-out infinite',
-        'stamp-press': 'stamp-press 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
-        'flare-rise': 'flare-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },
