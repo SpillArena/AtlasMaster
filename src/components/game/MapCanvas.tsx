@@ -47,6 +47,18 @@ const SHELF_TOLERANCE = 2.5
 /** Kva tilstand ei feature er i akkurat no — styrer farge og klikkbarheit. */
 type ShapeState = 'idle' | 'correct' | 'revealed' | 'wrong' | 'target'
 
+/**
+ * Ei projisert flate, med det `SmallTargets` treng for å måle henne: midtpunkt
+ * og største utstrekning, i lerretseiningar.
+ */
+interface MeasuredPath {
+  id: string
+  d: string
+  cx: number
+  cy: number
+  size: number
+}
+
 const STATE_COLOR: Record<ShapeState, string> = {
   correct: 'var(--success)',
   revealed: 'var(--info)',
@@ -179,11 +191,22 @@ export const MapCanvas = memo(function MapCanvas({
       return { paths: [], points, basePaths, land, shelf, graticule, centers, W }
     }
 
-    const paths = features.map((f) => {
-      centers[f.id] = path.centroid(f.geometry) as [number, number]
-      return { id: f.id, d: path(f.geometry) ?? '' }
+    /*
+     * Kor stor flata blir på lerretet, og halve avstanden til næraste nabo.
+     * Begge blir målte her fordi dei berre endrar seg med projeksjonen — ikkje
+     * med zoomen. `SmallTargets` bruker dei to tala til å avgjere kven som er
+     * for liten til å kunne trykkjast på; sjå kommentaren der.
+     */
+    const measured = features.map((f) => {
+      const c = path.centroid(f.geometry) as [number, number]
+      centers[f.id] = c
+      const [[x0, y0], [x1, y1]] = path.bounds(f.geometry)
+      // ei tom eller ugyldig geometri får uendeleg storleik: då blir ho aldri
+      // rekna som for liten, og ingen usynleg flate blir lagd ut for henne
+      const size = Number.isFinite(x0) ? Math.max(x1 - x0, y1 - y0) : Infinity
+      return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size }
     })
-    return { paths, points: [], basePaths, land, shelf, graticule, centers, W }
+    return { paths: measured, points: [], basePaths, land, shelf, graticule, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom])
 
   /**
@@ -327,6 +350,23 @@ export const MapCanvas = memo(function MapCanvas({
         <g ref={layerRef}>
           <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
 
+          {/*
+            Usynlege trykkmål for dei minste landa. Laget ligg *under*
+            ShapeLayer med vilje — same grunn som elvebanda: eit presist trykk
+            rett på Italia skal alltid gje Italia, og berre klikk som bommar på
+            alle synlege flater fell ned hit.
+          */}
+          {geom === 'polygon' && (
+            <SmallTargets
+              paths={paths}
+              status={status}
+              live={interactive && !disabled}
+              k={k}
+              unitsPerPx={unitsPerPx}
+              onPick={onPick}
+            />
+          )}
+
           {geom !== 'point' && (
             <ShapeLayer
               paths={paths}
@@ -418,6 +458,95 @@ function stateOf(
 }
 
 /**
+ * Usynlege trykkmål for flater som er for små til å kunne trykkjast på.
+ *
+ * Malta er 0,39 grader brei. På eit Europa-kart som spenner 72 grader blir
+ * øya tre-fire piksler — teikna, men i praksis utrefsbar, og det er nettopp
+ * difor mikrostatane har vore haldne utanfor datasetta med vilje. Ei flate
+ * som er mindre enn trykkmålet får difor ein usynleg sirkel på storleik med
+ * fingertuppen, akkurat som byane i `PointLayer`.
+ *
+ * To ting held sirklane frå å stele klikk. Laget ligg under dei synlege
+ * flatene, så eit trykk som treffer Italia er Italia — berre bomskot ned i
+ * havet fell hit. Og radien veks aldri forbi halve avstanden til næraste
+ * nabo, så to små naboland kan ikkje dekkje kvarandre.
+ *
+ * Laget er skilt frå `ShapeLayer` fordi det er det einaste som treng å vite om
+ * zoomen. Hadde dei vore eitt, måtte alle dei hundre banene til ShapeLayer
+ * blitt avstemte på nytt for kvart zoom-steg.
+ */
+const SmallTargets = memo(function SmallTargets({
+  paths,
+  status,
+  live,
+  k,
+  unitsPerPx,
+  onPick,
+}: {
+  paths: MeasuredPath[]
+  status: Record<string, 'correct' | 'revealed'>
+  live: boolean
+  k: number
+  unitsPerPx: number
+  onPick: (id: string) => void
+}) {
+  // same tre skansane som i ShapeLayer — sjå kommentaren der
+  const handleClick = useCallback(
+    (event: React.MouseEvent<SVGGElement>) => {
+      const id = (event.target as Element).getAttribute?.('data-id')
+      if (id && !status[id]) onPick(id)
+    },
+    [status, onPick],
+  )
+
+  /** fingertuppen målt i lerretseiningar ved gjeldande zoom */
+  const reach = (HIT_PX * unitsPerPx) / k
+
+  /*
+   * Kven som treng hjelp, og kor stor hjelpa kan bli.
+   *
+   * Avstanden blir målt berre mot dei andre små flatene, ikkje mot alle. Ein
+   * sirkel som ligg *under* dei synlege banene kan ikkje stele eit klikk frå
+   * Italia uansett kor stor han er — Italia tek imot sitt eige klikk først.
+   * Det einaste to sirklar kan kollidere med, er kvarandre.
+   *
+   * Målt mot alle vart Vatikanstaten kapa av midtpunktet til Italia, som ligg
+   * eit par hundre kilometer unna, og sat att med ei treffflate på fjorten
+   * piksler — like liten som landet var frå før.
+   */
+  const small = live
+    ? paths.filter(
+        (p) => p.size < 2 * reach && !status[p.id] && Number.isFinite(p.cx) && Number.isFinite(p.cy),
+      )
+    : []
+
+  if (!small.length) return null
+
+  return (
+    <g onClick={handleClick}>
+      {small.map((p) => {
+        let gap = Infinity
+        for (const q of small) {
+          if (q === p) continue
+          gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
+        }
+        return (
+          <circle
+            key={`hit-${p.id}`}
+            data-id={p.id}
+            cx={p.cx}
+            cy={p.cy}
+            r={Math.max(p.size / 2, Math.min(reach, gap))}
+            fill="transparent"
+            className="cursor-pointer"
+          />
+        )
+      })}
+    </g>
+  )
+})
+
+/**
  * Polygon- og linje-features (fylke, land, elver).
  *
  * Laget tek imot klikk på gruppenivå og les `data-id` frå det som faktisk
@@ -435,7 +564,7 @@ const ShapeLayer = memo(function ShapeLayer({
   live,
   onPick,
 }: {
-  paths: { id: string; d: string }[]
+  paths: MeasuredPath[]
   isLine: boolean
   status: Record<string, 'correct' | 'revealed'>
   flashId: string | null

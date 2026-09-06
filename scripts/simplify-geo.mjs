@@ -41,6 +41,16 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const check = process.argv.includes('--check')
 
+/**
+ * Filer nemnde på kommandolinja vinn over lista under.
+ *
+ * Forenklinga kan ikkje køyrast to gonger på same fila — andre runden et av
+ * det første runden lét stå. Når berre eitt datasett er bygd på nytt, må
+ * difor berre det eine forenklast, og då er `node scripts/simplify-geo.mjs
+ * src/data/europe/countries.json` det trygge kallet.
+ */
+const only = process.argv.slice(2).filter((a) => !a.startsWith('--'))
+
 const LEVELS = [0.5, 0.6, 0.7, 0.8, 0.9]
 
 /** Berre flatene. Punkt har ingenting å forenkle, og elvane er små alt. */
@@ -49,6 +59,7 @@ const FILES = [
   'src/data/europe/countries.json',
   'src/data/asia/countries.json',
   'src/data/usa/states.json',
+  'src/data/world/countries.json',
 ]
 
 /**
@@ -58,6 +69,37 @@ const FILES = [
  * spelet utan at nokon oppdagar det før ein spelar klikkar i tomt hav.
  */
 const MAX_AREA_LOSS = 0.15
+
+/**
+ * Terskel for kor mykje av kystlinja ein feature får miste.
+ *
+ * Areal åleine er ein blind målestokk for ei kystlinje. Ein fjord er ei tynn
+ * revne — Sognefjorden er sytten mil lang og fire kilometer brei — så å stryke
+ * han kostar nesten ikkje areal i det heile, men tek bort nettopp det som gjer
+ * kysten til ein norsk kyst. Forenklinga fjernar punkt etter kor lite areal
+ * dei bidreg med, og går difor rett i fjordane først.
+ *
+ * Omkrinsen fangar det arealet ikkje ser. Ein tjuandedel er sett med målestokk:
+ * kartet blir teikna 900 einingar høgt, så fem prosent av ei norsk kystlinje er
+ * framleis under ein piksel per fjord. Ti prosent — det første forsøket — gav
+ * eit Europa med færre punkt enn det som alt låg i repoet.
+ */
+const MAX_EDGE_LOSS = 0.05
+
+/**
+ * Kor liten ein feature må vere for å sleppe forenkling heilt, målt som
+ * diagonalen i omslutningsboksen, i grader.
+ *
+ * `quantile` set éin vektterskel for heile topologien. Ei atoll-øy har små
+ * trekantar over alt og ryk difor først, same kor varsamt nivået er valt:
+ * Amerikansk Samoa misser halve arealet på nivået der Russland enno er
+ * urørt. Slike flater har inga støy å fjerne — dei *er* minstedetaljen — så
+ * dei blir haldne utanfor og lagde tilbake urørte etterpå.
+ *
+ * Éin grad er rundt elleve mil. Alt under det er ei øygruppe eller ein
+ * bystat, og vog uansett ingenting i filstorleiken.
+ */
+const MIN_SIMPLIFY_SPAN = 1
 
 const ringArea = (ring) => {
   let sum = 0
@@ -70,6 +112,20 @@ const ringArea = (ring) => {
 function area(geometry) {
   const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   return polys.reduce((sum, poly) => sum + poly.reduce((s, ring) => s + ringArea(ring), 0), 0)
+}
+
+const ringLength = (ring) => {
+  let sum = 0
+  for (let i = 0, n = ring.length - 1; i < n; i++) {
+    sum += Math.hypot(ring[i + 1][0] - ring[i][0], ring[i + 1][1] - ring[i][1])
+  }
+  return sum
+}
+
+/** Samla kystlinje — alle ringar, i grader. Berre relative tal blir brukte. */
+function perimeter(geometry) {
+  const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
+  return polys.reduce((sum, poly) => sum + poly.reduce((s, ring) => s + ringLength(ring), 0), 0)
 }
 
 const count = (c) => (typeof c[0] === 'number' ? 1 : c.reduce((n, x) => n + count(x), 0))
@@ -123,29 +179,82 @@ function densifyParallels(fc) {
   return added
 }
 
+/**
+ * Den største einskildringen i ein feature, målt som diagonalen i
+ * omslutningsboksen sin, i grader.
+ *
+ * Målet er per ring og ikkje per feature med vilje. Fransk Polynesia spenner
+ * over to tusen kilometer hav, men kvar einaste øy er ein prikk: heile
+ * feature-en er minstedetalj, sjølv om boksen rundt henne er stor. Det er
+ * ringen, ikkje spreiinga, som seier om det finst noko å forenkle.
+ */
+function span(geometry) {
+  let largest = 0
+  const walk = (node) => {
+    if (typeof node[0][0] !== 'number') {
+      node.forEach(walk)
+      return
+    }
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    for (const [x, y] of node) {
+      minX = Math.min(minX, x)
+      minY = Math.min(minY, y)
+      maxX = Math.max(maxX, x)
+      maxY = Math.max(maxY, y)
+    }
+    largest = Math.max(largest, Math.hypot(maxX - minX, maxY - minY))
+  }
+  walk(geometry.coordinates)
+  return largest
+}
+
 let failed = false
 
 /** Forenklar éin gong på eitt nivå, og seier frå kva som eventuelt røk. */
 function attempt(src, keep) {
-  const topo = presimplify(topology({ layer: src }))
-  const out = feature(simplify(topo, quantile(topo, keep)), 'layer')
+  // dei minste flatene står over — sjå MIN_SIMPLIFY_SPAN
+  const big = []
+  const index = []
+  src.features.forEach((f, i) => {
+    if (span(f.geometry) >= MIN_SIMPLIFY_SPAN) {
+      big.push(f)
+      index.push(i)
+    }
+  })
 
-  if (out.features.length !== src.features.length) {
-    return { problem: `${src.features.length} → ${out.features.length} features` }
+  const topo = presimplify(topology({ layer: { type: 'FeatureCollection', features: big } }))
+  const simplified = feature(simplify(topo, quantile(topo, keep)), 'layer')
+
+  if (simplified.features.length !== big.length) {
+    return { problem: `${big.length} → ${simplified.features.length} features` }
   }
+
+  const out = { ...src, features: src.features.slice() }
+  index.forEach((at, i) => {
+    out.features[at] = simplified.features[i]
+  })
   for (let i = 0; i < src.features.length; i++) {
-    const before = area(src.features[i].geometry)
-    const after = area(out.features[i].geometry)
-    const loss = before === 0 ? 0 : 1 - after / before
-    if (loss > MAX_AREA_LOSS) {
-      const name = src.features[i].properties?.name ?? src.features[i].properties?.id
-      return { problem: `«${name}» mista ${(loss * 100).toFixed(0)} % av arealet` }
+    const name = src.features[i].properties?.name ?? src.features[i].properties?.id
+
+    const beforeArea = area(src.features[i].geometry)
+    const areaLoss = beforeArea === 0 ? 0 : 1 - area(out.features[i].geometry) / beforeArea
+    if (areaLoss > MAX_AREA_LOSS) {
+      return { problem: `«${name}» mista ${(areaLoss * 100).toFixed(0)} % av arealet` }
+    }
+
+    const beforeEdge = perimeter(src.features[i].geometry)
+    const edgeLoss = beforeEdge === 0 ? 0 : 1 - perimeter(out.features[i].geometry) / beforeEdge
+    if (edgeLoss > MAX_EDGE_LOSS) {
+      return { problem: `«${name}» mista ${(edgeLoss * 100).toFixed(0)} % av kystlinja` }
     }
   }
   return { out }
 }
 
-for (const file of FILES) {
+for (const file of only.length ? only : FILES) {
   const path = resolve(root, file)
   const raw = readFileSync(path, 'utf8')
   const src = JSON.parse(raw)

@@ -35,6 +35,23 @@ export async function naturalEarth(name) {
   return JSON.parse(readFileSync(file, 'utf8'))
 }
 
+/**
+ * Same mønsteret som `naturalEarth` over, for byggjarar som hentar frå ei
+ * anna kjelde enn Natural Earth og difor treng ein eigen URL og eit eige
+ * filnamn i cachen.
+ */
+export async function fetchCached(url, filename) {
+  const file = resolve(CACHE, filename)
+  if (!existsSync(file)) {
+    process.stdout.write(`  henter ${filename} …\n`)
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`${filename}: HTTP ${res.status}`)
+    mkdirSync(CACHE, { recursive: true })
+    writeFileSync(file, await res.text())
+  }
+  return JSON.parse(readFileSync(file, 'utf8'))
+}
+
 /** Les eit topojson-datasett frå ein npm-pakke installert med `--no-save`. */
 export function fromNodeModules(path) {
   const file = resolve(ROOT, 'node_modules', path)

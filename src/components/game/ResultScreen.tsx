@@ -20,6 +20,19 @@ export interface MissedItem {
   solved: boolean
 }
 
+/**
+ * Hva den globale tavla svarte på innsendingen.
+ *
+ * `rank` er plassen runden fikk i sin egen øvelse — region, kategori, modus og
+ * tempo. `problem` er satt når tavla ikke tok imot: enten fordi ingen svarte,
+ * eller fordi tjeneren sa nei. De to var umulige å skille før, og begge endte
+ * med at spilleren aldri dukket opp på tavla uten et ord om hvorfor.
+ */
+export interface CloudOutcome {
+  rank: number | null
+  problem?: 'unreachable' | 'rejected'
+}
+
 interface Props {
   total: number
   /** antall faktisk riktige (oppgitt teller ikke) */
@@ -34,6 +47,8 @@ interface Props {
   elapsedMs: number
   /** hva runden gjorde med profilen — null til den er lagret */
   run: RunResult | null
+  /** hva den globale tavla svarte — null til svaret er der, eller uten samtykke */
+  cloud?: CloudOutcome | null
   onRetry: () => void
   onMenu: () => void
   onLeaderboard: () => void
@@ -74,6 +89,7 @@ export function ResultScreen({
   missed,
   elapsedMs,
   run,
+  cloud,
   onRetry,
   onMenu,
   onLeaderboard,
@@ -146,6 +162,22 @@ export function ResultScreen({
             >
               {t('result.newRecord')}
             </motion.p>
+          )}
+
+          {/*
+            Plassen runden fikk på den globale tavla. Tavla viser tjuefem
+            rader; en spiller som havner på plass sekstitre hadde ingen måte å
+            se det på — resultatskjermen sa bare at runden var over.
+          */}
+          {cloud?.rank != null && (
+            <p className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+              {t('result.globalRank', { rank: cloud.rank })}
+            </p>
+          )}
+          {cloud?.problem && (
+            <p role="status" className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+              {t(cloud.problem === 'rejected' ? 'result.notCounted' : 'result.savedLocally')}
+            </p>
           )}
         </div>
 
@@ -309,8 +341,15 @@ function Stat({
 }) {
   return (
     <div className="panel flex flex-col items-center gap-1 rounded-2xl p-3">
+      {/*
+        `.flare-rise` — signalblusset som stiger — har ligget i index.css siden
+        temaet ble skrevet og har aldri vært brukt av noe. Det hører hjemme
+        akkurat her: tallet kommer opp av ruta i stedet for å stå der ferdig.
+        Ren CSS på transform og opacity, så det er gratis, og
+        `.reduce-motion` slår det av med resten.
+      */}
       <Icon name={icon} className="h-5 w-5" style={{ color: tone }} />
-      <dd className="numeric order-1 m-0 text-xl font-bold">{value}</dd>
+      <dd className="numeric flare-rise order-1 m-0 text-xl font-bold">{value}</dd>
       <dt className="stat-label order-2">{label}</dt>
     </div>
   )

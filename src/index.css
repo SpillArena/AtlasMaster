@@ -36,14 +36,6 @@
 
     /* --- typografi --- */
     --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --text-h1-size: 34px;
-    --text-h1-line: 40px;
-    --text-h2-size: 25px;
-    --text-h2-line: 32px;
-    --text-body-size: 16px;
-    --text-body-line: 24px;
-    --text-small-size: 14px;
-    --text-small-line: 20px;
     --text-caption-size: 12px;
     --text-caption-line: 16px;
 
@@ -96,6 +88,19 @@
     --map-land: var(--color-land);
     --map-border: #7a6b47;
 
+    /* --- slitasje: det som gjør papiret gammelt ---
+       Fire lag, og de gjør hver sin jobb. Fibrene er trykket selve arket har.
+       Flekkene er årene i en kjeller. Bretten er der kartet har vært foldet
+       fire ganger og lagt i en lomme. Riften er der det har røket. */
+    --paper-fibre: rgba(84, 62, 26, 0.055);
+    --paper-blotch: rgba(120, 92, 40, 0.05);
+    --foxing: rgba(146, 100, 40, 0.13);
+    --crease: rgba(88, 68, 30, 0.14);
+    --crease-lit: rgba(255, 250, 235, 0.5);
+    --tear-edge: #cdbf9c;
+    --tear-shadow: rgba(60, 44, 16, 0.3);
+    --tear-gap: rgba(74, 58, 28, 0.14);
+
     /* blekk til de håndtegnede lagene */
     --ink: #211f17;
     --ink-soft: color-mix(in srgb, var(--ink) 55%, transparent);
@@ -146,6 +151,17 @@
 
     --map-idle: rgba(235, 226, 205, 0.1);
 
+    /* Mørk modus snur lyset: bretten fanger lampen i stedet for å skygge, og
+       riften viser bordet under i stedet for lyset gjennom. */
+    --paper-fibre: rgba(0, 0, 0, 0.2);
+    --paper-blotch: rgba(0, 0, 0, 0.16);
+    --foxing: rgba(206, 158, 82, 0.07);
+    --crease: rgba(0, 0, 0, 0.34);
+    --crease-lit: rgba(206, 158, 82, 0.13);
+    --tear-edge: #4a422e;
+    --tear-shadow: rgba(0, 0, 0, 0.6);
+    --tear-gap: rgba(0, 0, 0, 0.4);
+
     --ink: #ebe2cd;
     --paper-grain: rgba(0, 0, 0, 0.22);
     --stitch: color-mix(in srgb, var(--color-primary) 45%, transparent);
@@ -175,6 +191,56 @@
   ::selection {
     background: var(--accent);
     color: var(--color-surface);
+  }
+
+  /*
+   * Pekeren: en pennesplitt.
+   *
+   * Hele appen er en feltbok, og markøren var det siste stedet operativsystemet
+   * fortsatt tegnet 2010-tallet inn i den. Splitten er den samme formen i begge
+   * tilstander — bare fyllet skifter, fra papir til messing — så hotspotten
+   * ligger i samme spiss uansett, og man aldri må lete etter hvor pekeren
+   * faktisk peker.
+   *
+   * Lyst fyll med mørk kontur leses på både papir og lampelys, så det trengs
+   * ikke to sett for de to temaene.
+   *
+   * Tre forbehold er bakt inn. Nøkkelordet etter URL-en er ikke pynt: klarer
+   * ikke nettleseren å laste bildet, står det fortsatt en fungerende peker der.
+   * `pointer: fine` holder hele greia unna berøringsskjermer, der det ikke
+   * finnes noen markør å bytte ut. Og skrivefelt beholder operativsystemets
+   * egen tekstmarkør — den er en presisjonsindikator folk leser posisjon ut av,
+   * ikke dekor.
+   */
+  @media (pointer: fine) {
+    :root {
+      --cursor-nib: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23f5eedd' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23a9772f' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+      --cursor-nib-brass: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23c9a15a' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23fff3d4' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='20.5' cy='20.5' r='2.6' fill='%23fff3d4' stroke='%23211f17' stroke-width='1.2'/%3E%3C/svg%3E");
+    }
+
+    body {
+      cursor: var(--cursor-nib) 3 2, default;
+    }
+
+    a,
+    button,
+    summary,
+    label[for],
+    [role='button'],
+    .cursor-pointer,
+    select {
+      cursor: var(--cursor-nib-brass) 3 2, pointer;
+    }
+
+    :disabled,
+    [aria-disabled='true'] {
+      cursor: var(--cursor-nib) 3 2, not-allowed;
+    }
+
+    input,
+    textarea {
+      cursor: text;
+    }
   }
 }
 
@@ -273,36 +339,117 @@
     padding: 0 0.9rem;
   }
 
-  /* Papirkorn — legg på store flater som skal kjennes trykt. */
+  /*
+   * Papirkorn — legg på store flater som skal kjennes trykt.
+   *
+   * Tre lag i stedet for ett. Prikkrasteret er trykket, og var alt som var her
+   * før; de to skrå strekene er fibrene i arket, og de brede feltene er
+   * ujevnheten i massen. Alle tre er gradienter, så det er null forespørsler,
+   * null piksler å laste, og laget koster ingenting etter første maling.
+   */
   .grain {
-    background-image: radial-gradient(var(--paper-grain) 1px, transparent 1.2px);
-    background-size: 4px 4px;
+    background-image:
+      radial-gradient(var(--paper-grain) 1px, transparent 1.2px),
+      repeating-linear-gradient(
+        58deg,
+        var(--paper-fibre) 0 1px,
+        transparent 1px 4px
+      ),
+      repeating-linear-gradient(
+        -34deg,
+        var(--paper-fibre) 0 1px,
+        transparent 1px 7px
+      ),
+      radial-gradient(120% 90% at 12% 8%, var(--paper-blotch), transparent 55%),
+      radial-gradient(90% 120% at 88% 82%, var(--paper-blotch), transparent 60%);
+    background-size:
+      4px 4px,
+      auto,
+      auto,
+      auto,
+      auto;
   }
 
-  /* Tekststiler fra handoff-en. */
+  /*
+   * Aldersflekker. Papir som har ligget lenge får rustbrune prikker der
+   * soppen har stått — «foxing» er ordet. Uregelmessig plassert med vilje:
+   * et jevnt mønster leses som en tekstur, en ujevn samling som alder.
+   */
+  .foxed {
+    position: relative;
+  }
+  .foxed::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      radial-gradient(6px 5px at 18% 24%, var(--foxing), transparent 70%),
+      radial-gradient(4px 6px at 74% 16%, var(--foxing), transparent 70%),
+      radial-gradient(9px 7px at 62% 71%, var(--foxing), transparent 72%),
+      radial-gradient(3px 3px at 33% 82%, var(--foxing), transparent 70%),
+      radial-gradient(5px 4px at 89% 54%, var(--foxing), transparent 70%),
+      radial-gradient(7px 9px at 8% 63%, var(--foxing), transparent 74%);
+  }
+
+  /*
+   * Brettene. Et kart som har vært i en lomme er foldet fire ganger, og
+   * folden holder seg: en tynn skygge på den ene siden av linja og et
+   * lysstrøk på den andre, som papir som ikke helt vil legge seg flatt igjen.
+   */
+  .creased {
+    position: relative;
+  }
+  .creased::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      linear-gradient(90deg, transparent calc(33.33% - 1px), var(--crease) 33.33%, var(--crease-lit) calc(33.33% + 1px), transparent calc(33.33% + 2px)),
+      linear-gradient(90deg, transparent calc(66.66% - 1px), var(--crease) 66.66%, var(--crease-lit) calc(66.66% + 1px), transparent calc(66.66% + 2px)),
+      linear-gradient(0deg, transparent calc(50% - 1px), var(--crease) 50%, var(--crease-lit) calc(50% + 1px), transparent calc(50% + 2px));
+  }
+
+  /*
+   * Revet kant.
+   *
+   * Masken er ett statisk SVG med feTurbulence bakt inn: nettleseren
+   * rasteriserer det én gang og bruker det som maske etterpå, så det koster
+   * ingenting per bilde — til forskjell fra en `filter:` på selve elementet,
+   * som må regnes om hver gang noe under flytter seg.
+   */
+  .torn {
+    --torn: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='240' preserveAspectRatio='none'%3E%3Cfilter id='t' x='-12%25' y='-12%25' width='124%25' height='124%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028 0.07' numOctaves='4' seed='11'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='13' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='9' y='9' width='302' height='222' rx='6' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+    -webkit-mask-image: var(--torn);
+    mask-image: var(--torn);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  /*
+   * Tekststiler fra handoff-en.
+   *
+   * `.text-h1` og `.text-h2` var faste størrelser — 34/40px og 25/32px — og
+   * stod ubrukte i heile spelet: kvar skjermtittel skreiv i staden ut
+   * `font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl` for
+   * hand, likt på fire skjermar. Ein fast storleik kunne ikkje ha erstatta den
+   * strengen — han manglar responssteget til `sm`, og hadde gjort
+   * mobiltitlane større enn dei skal vere. Klassane ber difor steget sjølve
+   * no, og er nøyaktig den same Tailwind-oppskrifta att, berre samla på éin
+   * stad: `.text-h2` er 24px som stig til 30px ved `sm`, det skjermtitlane
+   * alt gjorde; `.text-h1` er steget over, til bruk der ein tittel skal vege
+   * tyngre enn ein skjermtittel.
+   */
   .text-h1 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: var(--text-h1-size);
-    line-height: var(--text-h1-line);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    @apply font-display text-3xl font-semibold tracking-[-0.01em] sm:text-4xl;
   }
   .text-h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: var(--text-h2-size);
-    line-height: var(--text-h2-line);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-  }
-  .text-body {
-    font-size: var(--text-body-size);
-    line-height: var(--text-body-line);
-    font-weight: 400;
-  }
-  .text-small {
-    font-size: var(--text-small-size);
-    line-height: var(--text-small-line);
-    font-weight: 400;
+    @apply font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl;
   }
   .text-caption {
     font-size: var(--text-caption-size);
@@ -487,6 +634,130 @@
 }
 .panel-in {
   animation: panel-in var(--duration-in) var(--ease-out) both;
+}
+
+/*
+ * Kompasset på landingssiden.
+ *
+ * Stilene lå i en `<style>`-blokk inne i komponenten, som ble skrevet inn i
+ * DOM-en på nytt ved hver montering — og med hardkodede farger, så
+ * instrumentet var det ene stedet i appen som ikke visste at det finnes et
+ * mørkt tema. Her ligger de én gang, og fargene er tokens.
+ */
+.pirate-compass {
+  border-radius: 50%;
+  user-select: none;
+  isolation: isolate;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.35));
+}
+
+.pirate-compass__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pirate-compass__label {
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  fill: #163f45;
+  letter-spacing: 0;
+  paint-order: stroke;
+  stroke: rgba(245, 225, 178, 0.35);
+  stroke-width: 1.4px;
+}
+
+.pirate-compass__label--cardinal {
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.pirate-compass__label--cardinal.is-north {
+  fill: #9e2d1e;
+  font-size: 31px;
+}
+
+.pirate-compass__label--minor {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
+.pirate-compass__degree {
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-size: 9px;
+  font-weight: 700;
+  fill: #6c4923;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
+.pirate-compass__needleWrap {
+  transform-origin: center;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pirate-compass__fleur {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+}
+
+/* messingkuppelen: ett lysstrøk over glasset, ikke en tegning av glasset */
+.pirate-compass__dome {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(52% 42% at 32% 24%, rgba(255, 252, 240, 0.34), transparent 70%),
+    radial-gradient(120% 120% at 70% 88%, rgba(30, 18, 4, 0.22), transparent 62%);
+}
+
+/*
+ * Nålen som driver.
+ *
+ * En magnetnål står aldri helt stille — den vandrer et par grader rundt nord.
+ * Fire grader er nok til at instrumentet leses som levende og lite nok til at
+ * ingen tar det for en peiling. Ren `transform`, altså kompositoren, og den
+ * står av seg selv under «mindre bevegelse».
+ */
+@keyframes compass-adrift {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+.pirate-compass__needleWrap.is-adrift {
+  animation: compass-adrift 9s ease-in-out infinite;
+}
+
+/* i mørk modus er messingen lampelyst, ikke dagslys */
+.dark .pirate-compass {
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.6));
+}
+.dark .pirate-compass__dome {
+  background:
+    radial-gradient(52% 42% at 32% 24%, rgba(255, 240, 200, 0.16), transparent 70%),
+    radial-gradient(120% 120% at 70% 88%, rgba(0, 0, 0, 0.4), transparent 62%);
+}
+
+/*
+ * Kronometeret de siste sekundene. Puls på `transform` og `opacity` — begge
+ * går til kompositoren, så ingenting av dette rører hovedtråden i det sekundet
+ * spillet skal kjennes raskest.
+ */
+@keyframes chrono-urgent {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+.chrono-urgent {
+  animation: chrono-urgent 1s ease-in-out infinite;
 }
 
 /* bomskudd: HUD-en rister, ikke kartet */

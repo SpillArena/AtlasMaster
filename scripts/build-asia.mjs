@@ -48,12 +48,17 @@ const BOX = { minLon: 25, maxLon: 150, minLat: -12, maxLat: 56 }
 /**
  * ISO 3166-1 numerisk → [norsk namn, engelsk namn].
  *
- * Bahrain, Singapore og Maldivane er utelatne. I 50m-oppløysing er dei nokre
- * få piksler breie — i klikkemodus ville dei vore reine flaksetreff, same
- * grunnen til at mikrostatane i Europa ikkje er med.
+ * Bahrain, Singapore og Maldivane var utelatne her før, fordi dei er nokre få
+ * piksler breie og i klikkemodus ville vore reine flaksetreff. Feilen låg i
+ * kartet, ikkje i lista: flatene hadde ikkje noko minstemål for trykk.
+ * `SmallTargets` i components/game/MapCanvas.tsx gjev dei det no, og då er
+ * grunnen til å halde dei ute borte. Sjå same notatet i
+ * build-europe-countries.mjs.
  */
 const COUNTRIES = new Map([
   [4, ['Afghanistan', 'Afghanistan']], [31, ['Aserbajdsjan', 'Azerbaijan']],
+  [48, ['Bahrain', 'Bahrain']], [462, ['Maldivane', 'Maldives']],
+  [702, ['Singapore', 'Singapore']],
   [50, ['Bangladesh', 'Bangladesh']], [51, ['Armenia', 'Armenia']],
   [64, ['Bhutan', 'Bhutan']], [96, ['Brunei', 'Brunei']],
   [104, ['Myanmar', 'Myanmar']], [116, ['Kambodsja', 'Cambodia']],

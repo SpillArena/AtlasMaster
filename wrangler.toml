@@ -14,3 +14,18 @@ binding = "DB"
 database_name = "atlasmaster-leaderboard"
 database_id = "65fe0353-af3a-4faf-b5e0-f5de2242c3d3"
 migrations_dir = "migrations"
+
+# AUTH_SECRET er ikkje her med vilje.
+#
+# Han signerer innloggingsteikna (functions/api/auth/), og eit signeringsnøkkel
+# i ei fil som ligg i git er ikkje ein nøkkel. Han skal settast som ein
+# krypterert variabel på Pages-prosjektet:
+#
+#   npx wrangler pages secret put AUTH_SECRET
+#
+# Lokalt: legg AUTH_SECRET=... i .dev.vars, som .gitignore alt held utanfor.
+#
+# UTAN HAN kan ingen teikn signerast, og både /api/auth og innsending av poeng
+# svarar 503. Det er med vilje: å falle tilbake på noko som ser ut til å virke
+# ville gitt kontoar som ikkje vernar noko. Rundene blir framleis lagra lokalt,
+# så spelet virkar — den globale tavla tek berre ikkje imot.

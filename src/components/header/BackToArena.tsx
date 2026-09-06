@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import logo from '../../assets/logo.png'
 import { Icon } from '../Icon'
 
 interface Props {
@@ -72,16 +71,17 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
         style={pillStyle}
       >
         <Arrow />
-        {/* width/height held av plassen før fila er lasta — elles hoppar headeren */}
-        <img
-          src={logo}
-          alt=""
-          aria-hidden="true"
-          width={96}
-          height={96}
-          className="h-4 w-auto object-contain"
-        />
-        <span className="hidden text-sm sm:inline">Spillarena</span>
+        {/*
+          Merket til Spillarena stod her som et bilde — en lilla-magenta
+          spillkontroll på en messingpille. Det var den ene mettede fargen i
+          hele appen, og den satt i det øverste venstre hjørnet der blikket
+          lander først. Navnet gjør samme jobben og gjør den i temaets egen
+          skrift; det er ordet folk leter etter, ikke ikonet. Bildet var også
+          en forespørsel og en mulig layout-hopp mindre i headeren.
+        */}
+        <span className="font-display text-sm font-semibold tracking-tight sm:text-base">
+          Spillarena
+        </span>
       </a>
     )
   }

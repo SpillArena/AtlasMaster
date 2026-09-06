@@ -126,6 +126,19 @@ export interface Region {
 }
 
 /**
+ * Er denne flata et svar, eller bare kulisse?
+ *
+ * Verdenskartet tegner mer enn det spør om. Grønland, Vest-Sahara, Fransk
+ * Polynesia og de andre territoriene må være der — et verdenskart med hull
+ * der Grønland skal ligge er et feil verdenskart — men de er ingen å gjette
+ * på; se `playable` i scripts/build-world.mjs. Alle andre datasett setter
+ * ikke flagget, og da er alt et svar, slik det alltid har vært.
+ */
+function isPlayable(f: FeatureCollection['features'][number]): boolean {
+  return f.properties?.playable !== false
+}
+
+/**
  * Trekk ut spill-features fra en rå GeoJSON FeatureCollection.
  *
  * Stedsnavn er ikke egennavn på tvers av språk — Tyskland/Germany,
@@ -136,7 +149,7 @@ export interface Region {
  */
 export function toQuizFeatures(fc: FeatureCollection, lang = 'no'): QuizFeature[] {
   const preferEnglish = lang.startsWith('en')
-  return fc.features.map((f) => {
+  return fc.features.filter(isPlayable).map((f) => {
     const no = String(f.properties?.name ?? '')
     const en = f.properties?.nameEn ? String(f.properties.nameEn) : ''
     return {
