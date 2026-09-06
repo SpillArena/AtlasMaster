@@ -2,19 +2,19 @@
  * Genererer src/data/europe/countries.json fra Natural Earth (via world-atlas).
  *
  * Kjøres sjelden — resultatet er sjekket inn. Kjør på nytt bare når
- * landlista eller oppløsninga skal endrast:
+ * landlista eller oppløsningen skal endres:
  *
  *   npm i --no-save world-atlas@2 topojson-client@3
  *   node scripts/build-europe-countries.mjs
  *
- * Tre ting gjer kartet spelbart i staden for berre korrekt:
+ * Tre ting gjør kartet spillbart i stedet for bare korrekt:
  *
- * 1. Tyrkia og Kasakhstan er utelatne. Geometrien deira strekk seg djupt inn
- *    i Asia, og `fitExtent` ville zooma ut til heile Eurasia for å få dei med.
- * 2. Øyer og oversjøiske område utanfor Europa-boksen blir kutta ring for
- *    ring — Kanariøyane, Azorane, Fransk Guyana og Svalbard. Utan dette
- *    krympar fastlandet til ein flekk midt i eit tomt hav.
- * 3. Russland blir *kutta*, ikkje utelate. Sjå RUSSIA under.
+ * 1. Tyrkia og Kasakhstan er utelatt. Geometrien deres strekker seg dypt inn
+ *    i Asia, og `fitExtent` ville zoomet ut til hele Eurasia for å få dem med.
+ * 2. Øyer og oversjøiske områder utenfor Europa-boksen blir kuttet ring for
+ *    ring — Kanariøyene, Azorene, Fransk Guyana og Svalbard. Uten dette
+ *    krymper fastlandet til en flekk midt i et tomt hav.
+ * 3. Russland blir *kuttet*, ikke utelatt. Se RUSSIA under.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
@@ -28,11 +28,11 @@ const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '../src/data/europe/countries.json')
 
 /**
- * ISO 3166-1 numerisk → [norsk namn, engelsk namn].
+ * ISO 3166-1 numerisk → [norsk navn, engelsk navn].
  *
- * Landsnamn er ikkje proprium på tvers av språk — Tyskland/Germany,
- * Hellas/Greece. Begge blir skrivne til GeoJSON-en, og spelet vel etter
- * aktivt språk. Skrivemodus godtek begge, så ingen mistar poeng på å svare
+ * Landsnavn er ikke proprium på tvers av språk — Tyskland/Germany,
+ * Hellas/Greece. Begge blir skrevet til GeoJSON-en, og spillet velger etter
+ * aktivt språk. Skrivemodus godtar begge, så ingen mister poeng på å svare
  * på «feil» språk.
  */
 const EUROPE = new Map([
@@ -56,7 +56,7 @@ const EUROPE = new Map([
   [752, ['Sverige', 'Sweden']], [756, ['Sveits', 'Switzerland']],
   [804, ['Ukraina', 'Ukraine']], [807, ['Nord-Makedonia', 'North Macedonia']],
   [643, ['Russland', 'Russia']],
-  // mikrostatane — sjå kommentaren under
+  // mikrostatene — se kommentaren under
   [20, ['Andorra', 'Andorra']], [336, ['Vatikanstaten', 'Vatican City']],
   [438, ['Liechtenstein', 'Liechtenstein']], [492, ['Monaco', 'Monaco']],
   [674, ['San Marino', 'San Marino']],
@@ -64,47 +64,47 @@ const EUROPE = new Map([
 ])
 
 /**
- * Russland er det einaste landet som blir kutta tvers gjennom.
+ * Russland er det eneste landet som blir kuttet tvers gjennom.
  *
- * Ringtesten dei andre landa går gjennom spør om midtpunktet i ein ring ligg
- * i Europa. For Russland svarer han «nei» — tyngdepunktet i ytterringen ligg
- * i Sibir — og landet forsvinn heilt. Det er slik det har vore til no, og
- * grunnen til at Russland ikkje har vore eit svar i nokon av dei to
- * regionane.
+ * Ringtesten de andre landene går gjennom spør om midtpunktet i en ring ligger
+ * i Europa. For Russland svarer den «nei» — tyngdepunktet i ytterringen ligger
+ * i Sibir — og landet forsvinner helt. Det er slik det har vært til nå, og
+ * grunnen til at Russland ikke har vært et svar i noen av de to
+ * regionene.
  *
- * Landet blir i staden klipt geometrisk mot den *same* boksen resten av
- * Europa held seg innanfor. Då endrar utsnittet seg nesten ikkje — den
- * austlegaste andre geometrien er Ukraina på 40°Ø — og den russiske flata
- * fyller hjørnet nordaust, med kanten sin akkurat der kartet uansett sluttar.
+ * Landet blir i stedet klippet geometrisk mot den *samme* boksen resten av
+ * Europa holder seg innenfor. Da endrer utsnittet seg nesten ikke — den
+ * østligste andre geometrien er Ukraina på 40°Ø — og den russiske flata
+ * fyller hjørnet nordøst, med kanten sin akkurat der kartet uansett slutter.
  *
- * Kuttet er òg det som held datolinja unna: den russiske ytterringen går
- * forbi 180°, og eit polygon som kryssar antimeridianen legg seg som ei
- * stripe tvers over heile kartet. Her stoppar geometrien på 46°Ø.
+ * Kuttet er også det som holder datolinja unna: den russiske ytterringen går
+ * forbi 180°, og et polygon som krysser antimeridianen legger seg som en
+ * stripe tvers over hele kartet. Her stopper geometrien på 46°Ø.
  */
 const RUSSIA = 643
 
 /**
- * Mikrostatane var utelatne her før, og grunngjevinga var god: dei er nokre få
- * piksler breie, og i klikkemodus ville dei vore reine flaksetreff.
+ * Mikrostatene var utelatt her før, og begrunnelsen var god: de er noen få
+ * piksler brede, og i klikkemodus ville de vært rene flaksetreff.
  *
- * Det var ikkje datasettet som var feil, men kartet. Polygona hadde ikkje noko
- * minstemål for trykk — elvane hadde eit usynleg band og byane ein usynleg
+ * Det var ikke datasettet som var feil, men kartet. Polygonene hadde ikke noe
+ * minstemål for trykk — elvene hadde et usynlig band og byene en usynlig
  * sirkel, flatene ingenting. `SmallTargets` i components/game/MapCanvas.tsx
- * gjev no kvar flate som er mindre enn fingertuppen ei usynleg treffflate, og
- * då er ikkje San Marino vanskelegare å treffe enn Oslo er. Grunnen til å
- * halde dei ute er borte, og Europa har alle landa sine.
+ * gir nå hver flate som er mindre enn fingertuppen en usynlig treffflate, og
+ * da er ikke San Marino vanskeligere å treffe enn Oslo er. Grunnen til å
+ * holde dem ute er borte, og Europa har alle landene sine.
  *
- * Kosovo har ingen offisiell numerisk kode og blir kjend att på namnet.
+ * Kosovo har ingen offisiell numerisk kode og blir kjent igjen på navnet.
  */
 const KOSOVO = { id: 'XK', name: 'Kosovo', nameEn: 'Kosovo' }
 
-/** Ringar med midtpunkt utanfor denne boksen blir forkasta. */
+/** Ringer med midtpunkt utenfor denne boksen blir forkastet. */
 const BOX = { minLon: -26, maxLon: 46, minLat: 33, maxLat: 72 }
 
 /**
- * Azorane og Madeira ligg innanfor boksen i lengdegrad, men er hundrevis av
- * kilometer ut i Atlanterhavet. Utan denne regelen dreg dei heile kartet
- * vestover. Island (lat 63–67) må overleve, difor breiddegrad-kravet.
+ * Azorene og Madeira ligger innenfor boksen i lengdegrad, men er hundrevis av
+ * kilometer ut i Atlanterhavet. Uten denne regelen drar de hele kartet
+ * vestover. Island (lat 63–67) må overleve, derfor breddegrad-kravet.
  */
 function isAtlanticOutlier(lon, lat) {
   return lon < -20 && lat < 55
@@ -125,7 +125,7 @@ function ringCentreInBox(ring) {
   )
 }
 
-/** Behald berre dei polygona som faktisk ligg i Europa. */
+/** Behold bare de polygonene som faktisk ligger i Europa. */
 function clipToEurope(geometry) {
   if (geometry.type === 'Polygon') {
     return ringCentreInBox(geometry.coordinates[0]) ? geometry : null
@@ -137,7 +137,7 @@ function clipToEurope(geometry) {
     : { type: 'MultiPolygon', coordinates: kept }
 }
 
-/** Kuttar koordinatpresisjonen — 3 desimalar er ~100 m, meir enn nok her. */
+/** Kutter koordinatpresisjonen — 3 desimaler er ~100 m, mer enn nok her. */
 function round(value) {
   return Math.round(value * 1000) / 1000
 }
@@ -165,7 +165,7 @@ for (const f of world.features) {
   const [name, nameEn] = kosovo ? [KOSOVO.name, KOSOVO.nameEn] : EUROPE.get(code)
   const clipped = code === RUSSIA ? clipGeometryToBox(f.geometry, BOX) : clipToEurope(f.geometry)
   if (!clipped) {
-    console.warn(`  ! ${name} fell utanfor Europa-boksen — hoppa over`)
+    console.warn(`  ! ${name} falt utenfor Europa-boksen — hoppet over`)
     continue
   }
 
@@ -180,18 +180,18 @@ features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb')
 
 mkdirSync(dirname(OUT), { recursive: true })
 /*
- * d3-geo les eit polygon sfærisk: kva side av ringen som er «inne» følgjer av
- * kva veg han går. Ein ytterring som går feil veg blir teikna som *resten av
- * kloden*, og kartet blir eit einsfarga rektangel. Klippinga over held
- * orienteringa, men kjelda treng ikkje ha vore konsistent i utgangspunktet,
- * så heile samlinga blir normalisert til med klokka rundt ytterringen — den
- * konvensjonen d3 reknar med.
+ * d3-geo leser et polygon sfærisk: hvilken side av ringen som er «inne» følger av
+ * hvilken vei den går. En ytterring som går feil vei blir tegnet som *resten av
+ * kloden*, og kartet blir et ensfarget rektangel. Klippingen over holder
+ * orienteringen, men kilden trenger ikke ha vært konsistent i utgangspunktet,
+ * så hele samlingen blir normalisert til med klokka rundt ytterringen — den
+ * konvensjonen d3 regner med.
  */
 const collection = rewind({ type: 'FeatureCollection', features }, true)
 writeFileSync(OUT, JSON.stringify(collection))
 
-console.log(`Skreiv ${features.length} land til ${OUT}`)
+console.log(`Skrev ${features.length} land til ${OUT}`)
 if (missing.size > 0) {
   const names = [...missing].map((c) => `${EUROPE.get(c)[0]} (${c})`).join(', ')
-  console.warn(`Fanst ikkje i datasettet: ${names}`)
+  console.warn(`Fantes ikke i datasettet: ${names}`)
 }

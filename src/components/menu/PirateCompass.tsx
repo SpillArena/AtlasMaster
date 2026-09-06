@@ -296,32 +296,34 @@ export default function PirateCompass({
                     })}
                 </g>
 
-                <g transform="translate(200 200)">
+                <g>
                     {/*
                       Uten en peiling driver nålen sakte rundt nord — en
                       magnetnål står aldri helt stille. Med en peiling slår
                       driften av, og overgangen i stilarket tar nåla dit.
+                      Nåla dreier om selve senteret (200 200) — samme punkt
+                      som driften i stilarket bruker.
                     */}
                     <g
-                        transform={`rotate(${pointing ? heading : 0})`}
+                        transform={`rotate(${pointing ? heading : 0} 200 200)`}
                         className={`pirate-compass__needleWrap${pointing ? "" : " is-adrift"}`}
                     >
                         {showNeedle && (
                             <>
                                 <path
-                                    d="M 0 -132 L 12 -8 L 0 -24 L -12 -8 Z"
+                                    d="M 200 68 L 212 192 L 200 176 L 188 192 Z"
                                     fill="url(#pc-needle-red)"
                                     stroke="#45150f"
                                     strokeWidth="2"
                                 />
                                 <path
-                                    d="M 0 132 L 10 10 L 0 26 L -10 10 Z"
+                                    d="M 200 332 L 210 210 L 200 226 L 190 210 Z"
                                     fill="url(#pc-needle-light)"
                                     stroke="#5b4627"
                                     strokeWidth="2"
                                 />
                                 <path
-                                    d="M -4 -118 L 0 -145 L 4 -118"
+                                    d="M 196 82 L 200 55 L 204 82"
                                     fill="#e8d7a4"
                                     stroke="#5b4322"
                                     strokeWidth="1.5"

@@ -124,10 +124,10 @@ export function Leaderboard({ regionId }: Props) {
 
       {/*
         Modus-filter.
-        Modusane er ikkje like mykje verdt — å skrive namnet gjev halvannan
-        gong det å klikke — så ei blanda tavle rangerer ikkje like øvingar mot
-        kvarandre. «Alle» er framleis der for den som vil sjå heile lista, men
-        multiplikatoren står på kvar knapp så det er tydeleg kva som skil dei.
+        Modusene er ikke like mye verdt — å skrive navnet gir halvannen
+        gang det å klikke — så en blandet tavle rangerer ikke like øvinger mot
+        hverandre. «Alle» er fortsatt der for den som vil se hele lista, men
+        multiplikatoren står på hver knapp så det er tydelig hva som skiller dem.
       */}
       <nav aria-label={t('leaderboard.mode')} className="mb-4 flex flex-wrap gap-2">
         <Chip active={mode === 'all'} onClick={() => setMode('all')}>

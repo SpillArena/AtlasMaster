@@ -57,7 +57,7 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
 
   /*
    * Uten konto: navnet lagres på enheten, og runden blir liggende der.
-   * Innsendingen til den globale tavla krever et signert teikn, så den
+   * Innsendingen til den globale tavla krever et signert tegn, så den
    * hoppes over — se submitScore i game/scoreApi.ts.
    */
   const playAsGuest = () => {

@@ -435,15 +435,15 @@
    * Tekststiler fra handoff-en.
    *
    * `.text-h1` og `.text-h2` var faste størrelser — 34/40px og 25/32px — og
-   * stod ubrukte i heile spelet: kvar skjermtittel skreiv i staden ut
+   * stod ubrukte i hele spillet: hver skjermtittel skrev i stedet ut
    * `font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl` for
-   * hand, likt på fire skjermar. Ein fast storleik kunne ikkje ha erstatta den
-   * strengen — han manglar responssteget til `sm`, og hadde gjort
-   * mobiltitlane større enn dei skal vere. Klassane ber difor steget sjølve
-   * no, og er nøyaktig den same Tailwind-oppskrifta att, berre samla på éin
-   * stad: `.text-h2` er 24px som stig til 30px ved `sm`, det skjermtitlane
-   * alt gjorde; `.text-h1` er steget over, til bruk der ein tittel skal vege
-   * tyngre enn ein skjermtittel.
+   * hånd, likt på fire skjermer. En fast størrelse kunne ikke ha erstattet den
+   * strengen — den mangler responssteget til `sm`, og hadde gjort
+   * mobiltitlene større enn de skal være. Klassene bærer derfor steget selv
+   * nå, og er nøyaktig den samme Tailwind-oppskriften igjen, bare samlet på ett
+   * sted: `.text-h2` er 24px som stiger til 30px ved `sm`, det skjermtitlene
+   * allerede gjorde; `.text-h1` er steget over, til bruk der en tittel skal veie
+   * tyngre enn en skjermtittel.
    */
   .text-h1 {
     @apply font-display text-3xl font-semibold tracking-[-0.01em] sm:text-4xl;
@@ -654,7 +654,7 @@
 .pirate-compass__svg {
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .pirate-compass__label {
@@ -692,7 +692,8 @@
 }
 
 .pirate-compass__needleWrap {
-  transform-origin: center;
+  transform-box: view-box;
+  transform-origin: 200px 200px;
   transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 

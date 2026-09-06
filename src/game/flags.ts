@@ -1,57 +1,57 @@
 /**
- * Flagg, teikna av spelet sjølv.
+ * Flagg, tegnet av spillet selv.
  *
- * KVIFOR IKKJE EMOJI. Unicode har eit flagg for kvar ISO 3166-1-kode, og det
- * er den lettaste løysinga som finst — to teikn per land. Windows har berre
- * aldri levert flagga: Segoe UI Emoji teiknar dei ikkje, så eit norsk flagg
- * blir «NO» i to bokstavar på den vanlegaste skrivebordsplattforma i landet.
- * Eit hint som forsvinn for halvparten av spelarane er ikkje eit hint.
+ * HVORFOR IKKE EMOJI. Unicode har et flagg for hver ISO 3166-1-kode, og det
+ * er den letteste løsningen som finnes — to tegn per land. Windows har bare
+ * aldri levert flaggene: Segoe UI Emoji tegner dem ikke, så et norsk flagg
+ * blir «NO» i to bokstaver på den vanligste skrivebordsplattformen i landet.
+ * Et hint som forsvinner for halvparten av spillerne er ikke et hint.
  *
- * KVIFOR IKKJE BILETE. Eit ferdig flaggsett er tusenvis av filer eller ein
- * pakke på fleire hundre kilobyte, og alternativet — å peike på nokon andre
- * sin tenar — sender spelarane sine kart- og landval til ein tredjepart og
- * fell saman den dagen den tenaren gjer det.
+ * HVORFOR IKKE BILDER. Et ferdig flaggsett er tusenvis av filer eller en
+ * pakke på flere hundre kilobyte, og alternativet — å peke på noen andres
+ * tjener — sender spillernes kart- og landvalg til en tredjepart og
+ * faller sammen den dagen den tjeneren gjør det.
  *
- * KVIFOR EI SKILDRING. Dei fleste europeiske flagg *er* geometri: to eller
- * tre band, eit nordisk kors, eit kvitt kors på raudt. Skildringa under er
- * nokre få hundre byte for heile Europa, og teiknaren i FlagBadge gjer henne
- * om til SVG utan ei einaste nettverkshenting.
+ * HVORFOR EN BESKRIVELSE. De fleste europeiske flagg *er* geometri: to eller
+ * tre bånd, et nordisk kors, et hvitt kors på rødt. Beskrivelsen under er
+ * noen få hundre byte for hele Europa, og tegneren i FlagBadge gjør den
+ * om til SVG uten en eneste nettverkshenting.
  *
- * KVA SOM MANGLAR. Flagg med våpenskjold, segl eller silhuettar er ikkje her:
+ * HVA SOM MANGLER. Flagg med våpenskjold, segl eller silhuetter er ikke her:
  * Albania, Bosnia-Hercegovina, Hviterussland, Kypros, Moldova, Montenegro,
- * Nord-Makedonia, Serbia, Slovakia og Slovenia. Å teikne dei som reine band
- * ville vore verre enn ingenting — Slovenia, Slovakia og Russland ville fått
- * *same* flagg. Dei står difor utan, og flagget er med vilje eit tillegg til
- * namnet og aldri det einaste haldepunktet: `flagFor` gjev null, og
- * `FlagBadge` teiknar ingenting.
+ * Nord-Makedonia, Serbia, Slovakia og Slovenia. Å tegne dem som rene bånd
+ * ville vært verre enn ingenting — Slovenia, Slovakia og Russland ville fått
+ * *samme* flagg. De står derfor uten, og flagget er med vilje et tillegg til
+ * navnet og aldri det eneste holdepunktet: `flagFor` gir null, og
+ * `FlagBadge` tegner ingenting.
  *
- * KVA MED FYLKESVÅPEN OG DELSTATSFLAGG. Delstatsflagga er fri gjengiving, men
- * berre eit fåtal av dei er geometri: dei fleste ber eit segl med tekst,
- * figurar og årstal, og eit segl kan ikkje skildrast i nokre få tal. Dei sju
- * som *kan* teiknast står her; resten står utan, på same vilkår som dei
+ * HVA MED FYLKESVÅPEN OG DELSTATSFLAGG. Delstatsflaggene er fri gjengivelse, men
+ * bare et fåtall av dem er geometri: de fleste bærer et segl med tekst,
+ * figurer og årstall, og et segl kan ikke beskrives i noen få tall. De sju
+ * som *kan* tegnes står her; resten står uten, på samme vilkår som de
  * europeiske.
  *
- * Dei norske fylkesvåpna er ikkje her, og det er eit rettsleg val og ikkje
- * eit teknisk. Offentlege våpen i Noreg er verna: bruk krev løyve frå
- * fylkeskommunen som eig våpenet, og eit spel er ikkje unnateke. Å teikne dei
- * på nytt gjer dei ikkje frie — det er motivet som er verna, ikkje fila. Vi
- * hentar dei difor korkje frå ein tredjepart eller frå eiga hand.
+ * De norske fylkesvåpnene er ikke her, og det er et rettslig valg og ikke
+ * et teknisk. Offentlige våpen i Norge er vernet: bruk krever løyve fra
+ * fylkeskommunen som eier våpenet, og et spill er ikke unntatt. Å tegne dem
+ * på nytt gjør dem ikke frie — det er motivet som er vernet, ikke fila. Vi
+ * henter dem derfor verken fra en tredjepart eller fra egen hånd.
  *
- * Nøklane er den same id-en som features i datasettet ber: ISO 3166-1
- * numerisk for landa, FIPS for delstatane. Dei to overlappar — «40» er både
- * Østerrike og Oklahoma — så oppslaget går alltid gjennom eit sett.
+ * Nøklene er den samme id-en som features i datasettet bærer: ISO 3166-1
+ * numerisk for landene, FIPS for delstatene. De to overlapper — «40» er både
+ * Østerrike og Oklahoma — så oppslaget går alltid gjennom et sett.
  */
 
-/** Band på tvers eller på langs, med valfri vekt per band. */
+/** Bånd på tvers eller på langs, med valgfri vekt per bånd. */
 export interface BandsFlag {
   kind: 'bands'
   dir: 'h' | 'v'
   colors: string[]
-  /** relativ breidd per band; utelate = like breie */
+  /** relativ bredde per bånd; utelatt = like brede */
   weights?: number[]
 }
 
-/** Nordisk kors — forskyve mot stanga, med valfri indre stripe. */
+/** Nordisk kors — forskjøvet mot stanga, med valgfri indre stripe. */
 export interface NordicFlag {
   kind: 'nordic'
   field: string
@@ -66,12 +66,12 @@ export interface CrossFlag {
   cross: string
 }
 
-/** Ni striper og eit kors i øvre hjørne (Hellas). */
+/** Ni striper og et kors i øvre hjørne (Hellas). */
 export interface GreeceFlag {
   kind: 'greece'
 }
 
-/** To vassrette felt og ein kile frå stanga (Tsjekkia). */
+/** To vannrette felt og en kile fra stanga (Tsjekkia). */
 export interface WedgeFlag {
   kind: 'wedge'
   top: string
@@ -84,14 +84,14 @@ export interface UnionFlag {
   kind: 'union'
 }
 
-/** Tre band og eit sjakkbrett (Kroatia). */
+/** Tre bånd og et sjakkbrett (Kroatia). */
 export interface CroatiaFlag {
   kind: 'croatia'
 }
 
 /**
- * Delstatsflagg med kvar si eiga form. Kvart av dei er eit oppsett som ikkje
- * går att nokon annan stad, så dei ber berre namnet sitt.
+ * Delstatsflagg med hver sin egen form. Hvert av dem er et oppsett som ikke
+ * går igjen noen annen plass, så de bærer bare navnet sitt.
  */
 export interface StateFlag {
   kind: 'texas' | 'alabama' | 'alaska' | 'hawaii' | 'colorado' | 'arizona' | 'newMexico'
@@ -122,7 +122,7 @@ const nordic = (field: string, cross: string, inner?: string): NordicFlag => ({
 })
 
 const EUROPE_FLAGS: Record<string, FlagSpec> = {
-  // --- vassrette band ---
+  // --- vannrette bånd ---
   40: bands('h', ['#ed2939', '#ffffff', '#ed2939']), // Østerrike
   100: bands('h', ['#ffffff', '#00966e', '#d62612']), // Bulgaria
   208: nordic('#c8102e', '#ffffff'), // Danmark
@@ -138,7 +138,7 @@ const EUROPE_FLAGS: Record<string, FlagSpec> = {
   724: bands('h', ['#aa151b', '#f1bf00', '#aa151b'], [1, 2, 1]), // Spania
   804: bands('h', ['#0057b7', '#ffd700']), // Ukraina
 
-  // --- loddrette band ---
+  // --- loddrette bånd ---
   56: bands('v', ['#000000', '#fae042', '#ed2939']), // Belgia
   250: bands('v', ['#002395', '#ffffff', '#ed2939']), // Frankrike
   372: bands('v', ['#169b62', '#ffffff', '#ff883e']), // Irland
@@ -153,7 +153,7 @@ const EUROPE_FLAGS: Record<string, FlagSpec> = {
   578: nordic('#ba0c2f', '#ffffff', '#00205b'), // Norge
   752: nordic('#005293', '#fecb00'), // Sverige
 
-  // --- eigne former ---
+  // --- egne former ---
   191: { kind: 'croatia' }, // Kroatia
   203: { kind: 'wedge', top: '#ffffff', bottom: '#d7141a', wedge: '#11457e' }, // Tsjekkia
   300: { kind: 'greece' }, // Hellas
@@ -162,11 +162,11 @@ const EUROPE_FLAGS: Record<string, FlagSpec> = {
 }
 
 /**
- * Dei sju delstatsflagga som er rein geometri. Nøkkelen er FIPS-koden.
+ * De sju delstatsflaggene som er ren geometri. Nøkkelen er FIPS-koden.
  *
- * Dei 43 andre ber eit segl, ein figur eller ei tekstlinje. Maryland sitt
+ * De 43 andre bærer et segl, en figur eller en tekstlinje. Marylands
  * kors bottony, Californias bjørn, Wyomings bison og alt som har «The Great
- * Seal of the State of …» skrive rundt kanten høyrer til ei anna sorts
+ * Seal of the State of …» skrevet rundt kanten hører til en annen sorts
  * ressurs enn denne fila.
  */
 const US_STATE_FLAGS: Record<string, FlagSpec> = {
@@ -180,10 +180,10 @@ const US_STATE_FLAGS: Record<string, FlagSpec> = {
 }
 
 /**
- * Kva sett eit merke skal slåast opp i.
+ * Hvilket sett et merke skal slås opp i.
  *
- * Id-ane frå to datasett kan vere like utan å tyde det same, så settet er
- * ikkje ein bekvemmelegheit — det er det som gjer oppslaget eintydig.
+ * Id-ene fra to datasett kan være like uten å bety det samme, så settet er
+ * ikke en bekvemmelighet — det er det som gjør oppslaget entydig.
  */
 export type EmblemSet = 'europe' | 'usStates' | 'world'
 
@@ -197,16 +197,16 @@ const SETS: Partial<Record<EmblemSet, Record<string, FlagSpec>>> = {
 // finnes når scripts/check-geo.mjs laster denne fila under node.
 
 /**
- * Merket til eit sted, eller null når vi ikkje har eit truverdig eitt.
+ * Merket til et sted, eller null når vi ikke har et troverdig ett.
  *
- * Null er eit fullgodt svar. Kallaren teiknar ingenting og går vidare — eit
- * manglande merke skal aldri kunne stoppe eit svar.
+ * Null er et fullgodt svar. Kalleren tegner ingenting og går videre — et
+ * manglende merke skal aldri kunne stoppe et svar.
  */
 export function flagFor(set: EmblemSet, featureId: string): FlagSpec | null {
   return SETS[set]?.[featureId] ?? null
 }
 
-/** Kor mange av stadene i eit datasett vi faktisk kan teikne. Brukt av testar. */
+/** Hvor mange av stedene i et datasett vi faktisk kan tegne. Brukt av tester. */
 export function flagCoverage(
   set: EmblemSet,
   ids: string[],

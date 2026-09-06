@@ -2,30 +2,30 @@ name = "atlasmaster"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./dist"
 
-# `atlasmaster-leaderboard` er ein ny database, oppretta då norgesmester vart
-# fjerna. D1 kan ikkje døypast om, så omdøypinga måtte gjerast som ny database
-# pluss kopiering av radene — dei 19 radene frå den gamle tavla ligg her, og
-# `region` er fylt med 'norway' slik migrasjon 0002 legg opp til.
+# `atlasmaster-leaderboard` er en ny database, opprettet da norgesmester ble
+# fjernet. D1 kan ikke døpes om, så omdøpingen måtte gjøres som ny database
+# pluss kopiering av radene — de 19 radene fra den gamle tavla ligger her, og
+# `region` er fylt med 'norway' slik migrasjon 0002 legger opp til.
 #
-# `database_id` er det som faktisk bind appen til dataene. Endrar du den, peikar
-# leiartavla på ein annan (tom) database.
+# `database_id` er det som faktisk binder appen til dataene. Endrer du den, peker
+# ledertavla på en annen (tom) database.
 [[d1_databases]]
 binding = "DB"
 database_name = "atlasmaster-leaderboard"
 database_id = "65fe0353-af3a-4faf-b5e0-f5de2242c3d3"
 migrations_dir = "migrations"
 
-# AUTH_SECRET er ikkje her med vilje.
+# AUTH_SECRET er ikke her med vilje.
 #
-# Han signerer innloggingsteikna (functions/api/auth/), og eit signeringsnøkkel
-# i ei fil som ligg i git er ikkje ein nøkkel. Han skal settast som ein
-# krypterert variabel på Pages-prosjektet:
+# Den signerer innloggingstegnene (functions/api/auth/), og en signeringsnøkkel
+# i en fil som ligger i git er ikke en nøkkel. Den skal settes som en
+# kryptert variabel på Pages-prosjektet:
 #
 #   npx wrangler pages secret put AUTH_SECRET
 #
-# Lokalt: legg AUTH_SECRET=... i .dev.vars, som .gitignore alt held utanfor.
+# Lokalt: legg AUTH_SECRET=... i .dev.vars, som .gitignore allerede holder utenfor.
 #
-# UTAN HAN kan ingen teikn signerast, og både /api/auth og innsending av poeng
-# svarar 503. Det er med vilje: å falle tilbake på noko som ser ut til å virke
-# ville gitt kontoar som ikkje vernar noko. Rundene blir framleis lagra lokalt,
-# så spelet virkar — den globale tavla tek berre ikkje imot.
+# UTEN DEN kan ingen tegn signeres, og både /api/auth og innsending av poeng
+# svarer 503. Det er med vilje: å falle tilbake på noe som ser ut til å virke
+# ville gitt kontoer som ikke verner noe. Rundene blir fortsatt lagret lokalt,
+# så spillet virker — den globale tavla tar bare ikke imot.

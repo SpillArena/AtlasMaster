@@ -1,51 +1,51 @@
 /**
- * Kontoar for AtlasMaster: brukarnamn og PIN.
+ * Kontoer for AtlasMaster: brukernavn og PIN.
  *
  * POST /api/auth  { action: 'register' | 'login', username, pin }
  *   → 200 { username, token, expiresAt }
  *   → 4xx { error: <kode> }
  *
- * Feilkodene er stabile strengar og ikkje setningar. Klienten skal kunne
- * omsetje dei; ei engelsk setning frå ein Worker kan han berre vise fram.
+ * Feilkodene er stabile strenger og ikke setninger. Klienten skal kunne
+ * oversette dem; en engelsk setning fra en Worker kan den bare vise fram.
  *
- * KVIFOR I DET HEILE. Tavla identifiserte ein spelar med ein streng frå eit
- * tekstfelt. Kven som helst kunne sende inn eit resultat under kva namn som
- * helst, og sidan spørjinga held éi rad per brukarnamn, ville ein høgare falsk
- * poengsum ERSTATTE raden til den verkelege spelaren i staden for å leggje seg
- * ved sida av. Ein topplassering var ikkje verd noko, fordi ho ikkje var
- * knytt til nokon.
+ * HVORFOR I DET HELE. Tavla identifiserte en spiller med en streng fra et
+ * tekstfelt. Hvem som helst kunne sende inn et resultat under hvilket navn som
+ * helst, og siden spørringen holder én rad per brukernavn, ville en høyere falsk
+ * poengsum ERSTATTE raden til den virkelige spilleren i stedet for å legge seg
+ * ved siden av. En topplassering var ikke verdt noe, fordi den ikke var
+ * knyttet til noen.
  *
- * KVA EIN PIN FAKTISK VERNAR. Fire til seks siffer er ti tusen til ein million
- * moglege verdiar. Ingen nøkkelutleiingsfunksjon gjer det talet stort. Det som
- * stoppar gjeting er GRENSA PÅ FORSØK — fem feil, så er kontoen stengd eit
- * kvarter — og nøkkelutleiinga er der for det andre tilfellet: lek databasen
- * ut, skal ikkje alle PIN-ane vere lesbare med eitt oppslag. Begge trengst;
- * ingen av dei aleine er nok. Dette er ein spelkonto på ei poengtavle, ikkje
- * ein bankkonto, og det er det tryggingsnivået som er valt.
+ * HVA EN PIN FAKTISK VERNER. Fire til seks siffer er ti tusen til en million
+ * mulige verdier. Ingen nøkkelutledningsfunksjon gjør det tallet stort. Det som
+ * stopper gjeting er GRENSA PÅ FORSØK — fem feil, så er kontoen stengt et
+ * kvarter — og nøkkelutledningen er der for det andre tilfellet: lekker databasen
+ * ut, skal ikke alle PIN-ene være lesbare med ett oppslag. Begge trengs;
+ * ingen av dem alene er nok. Dette er en spillkonto på en poengtavle, ikke
+ * en bankkonto, og det er det sikkerhetsnivået som er valgt.
  */
 
 const PIN_MIN = 4
 const PIN_MAX = 6
 const USERNAME_MAX = 20
 
-/** Kor lenge ei innlogging varer. */
+/** Hvor lenge en innlogging varer. */
 const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
-/** Feil på rad før kontoen blir stengd, og kor lenge han er stengd. */
+/** Feil på rad før kontoen blir stengt, og hvor lenge den er stengt. */
 const MAX_FAILED = 5
 const LOCKOUT_MS = 15 * 60 * 1000
 
 /**
  * Rundar i PBKDF2.
  *
- * Talet er sett av CPU-taket i ein Pages Function, ikkje av kryptografi:
- * hundre tusen rundar er vanleg for passord, men brukar titals millisekund, og
- * gratisplanen gjev ti. Tjuefem tusen ligg innanfor og er framleis fire
- * tideler av eit sekund for kvar million gjetingar på ein lekk database.
+ * Tallet er satt av CPU-taket i en Pages Function, ikke av kryptografi:
+ * hundre tusen runder er vanlig for passord, men bruker titalls millisekund, og
+ * gratisplanen gir ti. Tjuefem tusen ligger innenfor og er fortsatt fire
+ * tideler av et sekund for hver million gjetinger på en lekk database.
  *
- * For ein PIN på fire siffer er dette uansett det minst viktige leddet — sjå
- * merknaden om forsøksgrensa øvst. Talet kan settast opp om prosjektet ein dag
- * ligg på ein betalt plan.
+ * For en PIN på fire siffer er dette uansett det minst viktige leddet — se
+ * merknaden om forsøksgrensa øverst. Tallet kan settes opp om prosjektet en dag
+ * ligger på en betalt plan.
  */
 const PBKDF2_ROUNDS = 25000
 
@@ -70,11 +70,11 @@ const fromBase64Url = (text) => {
 }
 
 /**
- * Samanlikning som brukar like lang tid uansett kvar det første avviket er.
+ * Sammenligning som bruker like lang tid uansett hvor det første avviket er.
  *
- * `a === b` på ein signatur fortel ein tolmodig angripar kor mange teikn som
- * stemte, eitt teikn om gongen. Det er ein lang veg frå praktisk her, men det
- * er ei linje kode.
+ * `a === b` på en signatur forteller en tålmodig angriper hvor mange tegn som
+ * stemte, ett tegn om gangen. Det er en lang vei fra praktisk her, men det
+ * er en linje kode.
  */
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false
@@ -107,18 +107,18 @@ async function hmac(secret, message) {
 }
 
 /**
- * Eit teikn er `base64url(payload).signatur`.
+ * Et tegn er `base64url(payload).signatur`.
  *
- * Payloaden er lesbar for alle — han er ikkje hemmeleg, berre signert. Det som
- * ikkje kan forfalskast er signaturen, og han dekkjer både namnet og
- * utløpstida, så korkje kven du er eller kor lenge kan endrast utan nøkkelen.
+ * Payloaden er lesbar for alle — den er ikke hemmelig, bare signert. Det som
+ * ikke kan forfalskes er signaturen, og den dekker både navnet og
+ * utløpstida, så verken hvem du er eller hvor lenge kan endres uten nøkkelen.
  */
 export async function issueToken(secret, username, now = Date.now()) {
   const payload = toBase64Url(encoder.encode(JSON.stringify({ u: username, e: now + TOKEN_TTL_MS })))
   return `${payload}.${await hmac(secret, payload)}`
 }
 
-/** Brukarnamnet i eit gyldig teikn, eller null. Kastar aldri. */
+/** Brukernavnet i et gyldig tegn, eller null. Kaster aldri. */
 export async function verifyToken(secret, token, now = Date.now()) {
   if (!secret || typeof token !== 'string') return null
   const dot = token.indexOf('.')
@@ -139,8 +139,8 @@ function validate(username, pin) {
   if (typeof username !== 'string') return 'bad_username'
   const trimmed = username.trim()
   if (!trimmed || trimmed.length > USERNAME_MAX) return 'bad_username'
-  // ingen kontroll- eller formateringsteikn: eit namn på ei tavle skal vere
-  // det same namnet uansett kva som renderer det
+  // ingen kontroll- eller formateringstegn: et navn på en tavle skal være
+  // det samme navnet uansett hva som renderer det
   if (!/^[\p{L}\p{N} ._'-]+$/u.test(trimmed)) return 'bad_username'
   if (typeof pin !== 'string' || !new RegExp(`^\\d{${PIN_MIN},${PIN_MAX}}$`).test(pin)) {
     return 'bad_pin'
@@ -152,9 +152,9 @@ export async function onRequestPost(context) {
   const { env, request } = context
 
   /*
-   * Utan nøkkel kan ingen teikn signerast, og då er det einaste ærlege svaret
-   * at tenesta ikkje er sett opp. Å falle tilbake på noko som ser ut til å
-   * virke ville gitt kontoar ingen ting vernar.
+   * Uten nøkkel kan ingen tegn signeres, og da er det eneste ærlige svaret
+   * at tjenesten ikke er satt opp. Å falle tilbake på noe som ser ut til å
+   * virke ville gitt kontoer ingen ting verner.
    */
   if (!env.AUTH_SECRET) {
     return json({ error: 'not_configured' }, 503)
@@ -202,8 +202,8 @@ export async function onRequestPost(context) {
     }
 
     /*
-     * «Finst ikkje» og «feil PIN» får same svar med vilje. Skil ein dei, blir
-     * innloggingsskjemaet ei liste over kven som spelar.
+     * «Finnes ikke» og «feil PIN» får samme svar med vilje. Skiller en dem, blir
+     * innloggingsskjemaet en liste over hvem som spiller.
      */
     if (!existing) return json({ error: 'bad_credentials' }, 401)
 
@@ -214,8 +214,8 @@ export async function onRequestPost(context) {
     const attempted = await hashPin(pin, existing.pin_salt)
     if (!timingSafeEqual(attempted, existing.pin_hash)) {
       const failed = (existing.failed ?? 0) + 1
-      // femte feil stenger kontoen eit kvarter — det er dette, og ikkje
-      // rundetalet i PBKDF2, som gjer ein PIN på fire siffer verd noko
+      // femte feil stenger kontoen et kvarter — det er dette, og ikke
+      // rundetallet i PBKDF2, som gjør en PIN på fire siffer verdt noe
       const lockedUntil =
         failed >= MAX_FAILED ? new Date(now.getTime() + LOCKOUT_MS).toISOString() : null
       await env.DB.prepare(`UPDATE players SET failed = ?, locked_until = ? WHERE username = ?`)

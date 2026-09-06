@@ -10,7 +10,7 @@
  * poeng over det teoretiske taket.
  *
  * HVEM som sendte inn, er ikke lenger noe innsenderen forteller oss.
- * Brukernavnet leses ut av et signert teikn og ikke ut av kroppen: en streng i
+ * Brukernavnet leses ut av et signert tegn og ikke ut av kroppen: en streng i
  * et JSON-felt kan være hvem som helst, og siden tavla holder én rad per
  * brukernavn, ville en høyere falsk poengsum ERSTATTE raden til den virkelige
  * spilleren i stedet for å legge seg ved siden av. Se functions/api/auth/.
@@ -322,7 +322,7 @@ export async function onRequestPost(context) {
     return json({ error: 'Invalid JSON body' }, 400)
   }
 
-  // navnet kommer fra teiknet, aldri fra kroppen
+  // navnet kommer fra tegnet, aldri fra kroppen
   const parsed = parseEntry(payload, username)
   if (parsed.error) return json({ error: parsed.error }, 400)
   const entry = parsed.entry

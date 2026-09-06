@@ -97,10 +97,10 @@
     "region": "Velg region",
     "mode": "Velg spillmodus",
     "mixedModes": "Modusene er ikke like mye verdt. Velg én for å sammenligne rettferdig.",
-    "allRegions": "Alle regionar",
+    "allRegions": "Alle regioner",
     "pace": "Tempo",
-    "error": "Ledertavla svarte ikkje skikkeleg. Dette er ikkje ei tom tavle — vi fekk ikkje lese henne.",
-    "notListed": "Du er ikkje blant dei viste enno. Spel ei runde for å komme på tavla."
+    "error": "Ledertavla svarte ikke skikkelig. Dette er ikke en tom tavle — vi fikk ikke lest den.",
+    "notListed": "Du er ikke blant de viste ennå. Spill en runde for å komme på tavla."
   },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
@@ -209,8 +209,8 @@
     "missedTitle_other": "{{count}} steder du bør øve på",
     "missedTitle": "{{count}} steder du bør øve på",
     "globalRank": "Nummer {{rank}} på den globale tavla",
-    "notCounted": "Denne runda kom ikkje på den globale tavla.",
-    "savedLocally": "Lagra på denne eininga — tavla svarte ikkje."
+    "notCounted": "Denne runden kom ikke på den globale tavla.",
+    "savedLocally": "Lagret på denne enheten — tavla svarte ikke."
   },
   "meta": {
     "title": "AtlasMaster — kartspillet om verden",
@@ -242,54 +242,54 @@
     "back": "Bytt region"
   },
   "auth": {
-    "registerTitle": "Ta namnet ditt",
-    "registerDesc": "Vel eit namn og ein PIN. PIN-en er det som hindrar andre i å sende inn poeng som deg.",
+    "registerTitle": "Ta navnet ditt",
+    "registerDesc": "Velg et navn og en PIN. PIN-en er det som hindrer andre i å sende inn poeng som deg.",
     "loginTitle": "Logg inn",
-    "loginDesc": "Namn og PIN, så kjem poenga dine på den globale tavla igjen.",
-    "signedInTitle": "Innlogga",
-    "signedInDesc": "Du speler som {{name}}. Poeng kjem på den globale tavla under det namnet.",
+    "loginDesc": "Navn og PIN, så kommer poengene dine på den globale tavla igjen.",
+    "signedInTitle": "Innlogget",
+    "signedInDesc": "Du spiller som {{name}}. Poeng kommer på den globale tavla under det navnet.",
     "signIn": "Logg inn",
     "signOut": "Logg ut",
     "register": "Opprett",
-    "guest": "Spel utan konto",
-    "haveAccount": "Eg har eit namn frå før",
-    "needAccount": "Eg treng eit namn",
+    "guest": "Spill uten konto",
+    "haveAccount": "Jeg har et navn fra før",
+    "needAccount": "Jeg trenger et navn",
     "pinPlaceholder": "PIN",
-    "pinHint": "4 til 6 siffer. Fem feil stenger namnet i eit kvarter.",
+    "pinHint": "4 til 6 siffer. Fem feil stenger navnet i et kvarter.",
     "errors": {
-      "not_configured": "Kontoar er slått av på denne tenaren.",
-      "bad_action": "Noko gjekk gale. Prøv igjen.",
-      "bad_body": "Noko gjekk gale. Prøv igjen.",
-      "bad_username": "Bruk bokstavar, tal, mellomrom, punktum, bindestrek eller apostrof.",
-      "bad_pin": "PIN-en må vere 4 til 6 siffer.",
-      "name_taken": "Namnet er teke. Logg inn om det er ditt.",
-      "bad_credentials": "Feil namn eller PIN.",
-      "locked": "For mange forsøk. Vent eit kvarter og prøv igjen.",
-      "service_failed": "Kontotenesta har ein dårleg dag. Prøv igjen om litt.",
-      "unreachable": "Ikkje noko svar frå tenaren. Du kan framleis spele utan konto.",
-      "failed": "Det gjekk ikkje. Prøv igjen."
+      "not_configured": "Kontoer er slått av på denne tjeneren.",
+      "bad_action": "Noe gikk galt. Prøv igjen.",
+      "bad_body": "Noe gikk galt. Prøv igjen.",
+      "bad_username": "Bruk bokstaver, tall, mellomrom, punktum, bindestrek eller apostrof.",
+      "bad_pin": "PIN-en må være 4 til 6 siffer.",
+      "name_taken": "Navnet er tatt. Logg inn om det er ditt.",
+      "bad_credentials": "Feil navn eller PIN.",
+      "locked": "For mange forsøk. Vent et kvarter og prøv igjen.",
+      "service_failed": "Kontotjenesten har en dårlig dag. Prøv igjen om litt.",
+      "unreachable": "Ikke noe svar fra tjeneren. Du kan fortsatt spille uten konto.",
+      "failed": "Det gikk ikke. Prøv igjen."
     }
   },
   "profile": {
     "eyebrow": "Feltbok",
-    "signedIn": "Innlogga — poeng kjem på den globale tavla",
-    "guest": "Speler utan konto — poenga blir verande på denne eininga",
+    "signedIn": "Innlogget — poeng kommer på den globale tavla",
+    "guest": "Spiller uten konto — poengene blir værende på denne enheten",
     "account": "Konto",
     "stats": "Karriere",
     "rounds": "Runder",
     "xp": "XP",
-    "flawless": "Reine runder",
-    "favourite": "Mest spelt",
+    "flawless": "Rene runder",
+    "favourite": "Mest spilt",
     "badges": "Merke",
-    "records": "Personlege rekordar",
-    "noRecords": "Ingenting notert enno. Spel ei runde, så dukkar ho opp her.",
+    "records": "Personlige rekorder",
+    "noRecords": "Ingenting notert ennå. Spill en runde, så dukker den opp her.",
     "xpToNext": "{{into}} av {{need}} XP til neste nivå",
     "close": "Lukk"
   },
   "badge": {
     "firstRound": {
-      "title": "Fyrste land i sikte",
-      "desc": "Fullfør den fyrste runda di."
+      "title": "Første land i sikte",
+      "desc": "Fullfør den første runden din."
     },
     "tenRounds": {
       "title": "Ti reiser",
@@ -305,15 +305,15 @@
     },
     "flawless": {
       "title": "Blankt ark",
-      "desc": "Fullfør ei runde utan eit einaste bomskot."
+      "desc": "Fullfør en runde uten et eneste bomskudd."
     },
     "tenFlawless": {
       "title": "Stø hand",
-      "desc": "Ti runder utan eit einaste bomskot."
+      "desc": "Ti runder uten et eneste bomskudd."
     },
     "topRank": {
-      "title": "Uråkeleg",
-      "desc": "Få toppkarakter på ei runde."
+      "title": "Urørlig",
+      "desc": "Få toppkarakter på en runde."
     },
     "streakTen": {
       "title": "Ti på rad",
@@ -328,32 +328,32 @@
       "desc": "Femti rette på rad."
     },
     "everyRegion": {
-      "title": "Heile atlaset",
-      "desc": "Spel ei runde i kvar region."
+      "title": "Hele atlaset",
+      "desc": "Spill en runde i hver region."
     },
     "everyCategory": {
-      "title": "Kvar plate",
-      "desc": "Spel kvar einaste kategori i boka."
+      "title": "Hver plate",
+      "desc": "Spill hver eneste kategori i boka."
     },
     "worldTraveller": {
-      "title": "Jordomseglar",
-      "desc": "Spel ei runde på verdskartet."
+      "title": "Jordomseiler",
+      "desc": "Spill en runde på verdenskartet."
     },
     "everyMode": {
       "title": "Alle fem hender",
-      "desc": "Spel kvar modus minst éin gong."
+      "desc": "Spill hver modus minst én gang."
     },
     "typist": {
       "title": "Pennen",
-      "desc": "Tjuefem runder der du skriv namnet."
+      "desc": "Tjuefem runder der du skriver navnet."
     },
     "blitz": {
       "title": "Mot glaset",
       "desc": "Tjuefem runder i lyntempo."
     },
     "flagBearer": {
-      "title": "Flaggberar",
-      "desc": "Spel ei runde i ein flaggmodus."
+      "title": "Flaggbærer",
+      "desc": "Spill en runde i en flaggmodus."
     },
     "levelFive": {
       "title": "Nivå fem",

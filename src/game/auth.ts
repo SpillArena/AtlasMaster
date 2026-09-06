@@ -4,13 +4,13 @@ import { setName } from './leaderboard'
 /**
  * Innlogging: brukernavn og PIN.
  *
- * Navnet var en streng i et tekstfelt. Kven som helst kunne sende inn et
- * resultat under kva namn som helst, og siden tavla holder én rad per
+ * Navnet var en streng i et tekstfelt. Hvem som helst kunne sende inn et
+ * resultat under hvilket navn som helst, og siden tavla holder én rad per
  * brukernavn, ville en høyere falsk poengsum ERSTATTE raden til den virkelige
  * spilleren i stedet for å legge seg ved siden av. Se functions/api/auth/.
  *
  * PIN-en forlater aldri dette laget: den sendes én gang for å få et signert
- * teikn tilbake, og teiknet er det eneste som lagres. Ligger enheten åpen,
+ * tegn tilbake, og tegnet er det eneste som lagres. Ligger enheten åpen,
  * ligger ikke PIN-en der.
  */
 
@@ -39,7 +39,7 @@ function read(): Session | null {
   try {
     const raw = readPreference(STORAGE_KEY)
     const parsed = raw ? (JSON.parse(raw) as Session) : null
-    // et utgått teikn er like godt som ingen: da spør vi heller på nytt
+    // et utgått tegn er like godt som ingen: da spør vi heller på nytt
     session = parsed && parsed.expiresAt > Date.now() ? parsed : null
   } catch {
     session = null

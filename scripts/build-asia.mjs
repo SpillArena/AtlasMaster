@@ -1,18 +1,18 @@
 /**
- * Genererer datasetta til Asia-regionen under src/data/asia/.
+ * Genererer datasettene til Asia-regionen under src/data/asia/.
  *
  *   npm i --no-save world-atlas@2 topojson-client@3
  *   npm run data:asia
  *
- * Resultatet er sjekka inn. Kjør på nytt berre når lista over land, hovudstader,
- * elver eller fjell skal endrast.
+ * Resultatet er sjekket inn. Kjør på nytt bare når lista over land, hovedsteder,
+ * elver eller fjell skal endres.
  *
- * RUSSLAND BLIR KUTTA, IKKJE UTELATE. Heile geometrien strekk seg frå 20°Ø
- * til over datolinja, og `fitExtent` ville zooma ut til heile den nordlege
- * halvkula for å få henne med — resten av Asia hadde blitt uspelbart lite.
- * Landet blir difor klipt geometrisk mot ein eigen boks, slik det òg blir i
- * Europa-kartet, så det er svarbart i begge regionar utan å ete opp nokon av
- * dei. Sjå RUSSIA_BOX under.
+ * RUSSLAND BLIR KUTTET, IKKE UTELATT. Hele geometrien strekker seg fra 20°Ø
+ * til over datolinja, og `fitExtent` ville zoomet ut til hele den nordlige
+ * halvkula for å få den med — resten av Asia hadde blitt uspillbart lite.
+ * Landet blir derfor klippet geometrisk mot en egen boks, slik det også blir i
+ * Europa-kartet, så det er svarbart i begge regioner uten å ete opp noen av
+ * dem. Se RUSSIA_BOX under.
  */
 
 import { resolve } from 'node:path'
@@ -37,27 +37,27 @@ import {
 const OUT = resolve(ROOT, 'src/data/asia')
 
 /**
- * Ringar med midtpunkt utanfor denne boksen blir forkasta.
+ * Ringer med midtpunkt utenfor denne boksen blir forkastet.
  *
- * Vestgrensa 25°Ø tek med Trakia, den europeiske delen av Tyrkia. Austgrensa
- * 150°Ø tek med Hokkaido og Papua, men lèt japanske stillehavsøyer som
- * Minamitorishima (154°Ø) ligge — dei ville dratt kartet ut i havet.
+ * Vestgrensa 25°Ø tar med Trakia, den europeiske delen av Tyrkia. Østgrensa
+ * 150°Ø tar med Hokkaido og Papua, men lar japanske stillehavsøyer som
+ * Minamitorishima (154°Ø) ligge — de ville dratt kartet ut i havet.
  */
 const BOX = { minLon: 25, maxLon: 150, minLat: -12, maxLat: 56 }
 
 /**
- * ISO 3166-1 numerisk → [norsk namn, engelsk namn].
+ * ISO 3166-1 numerisk → [norsk navn, engelsk navn].
  *
- * Bahrain, Singapore og Maldivane var utelatne her før, fordi dei er nokre få
- * piksler breie og i klikkemodus ville vore reine flaksetreff. Feilen låg i
- * kartet, ikkje i lista: flatene hadde ikkje noko minstemål for trykk.
- * `SmallTargets` i components/game/MapCanvas.tsx gjev dei det no, og då er
- * grunnen til å halde dei ute borte. Sjå same notatet i
+ * Bahrain, Singapore og Maldivene var utelatt her før, fordi de er noen få
+ * piksler brede og i klikkemodus ville vært rene flaksetreff. Feilen lå i
+ * kartet, ikke i lista: flatene hadde ikke noe minstemål for trykk.
+ * `SmallTargets` i components/game/MapCanvas.tsx gir dem det nå, og da er
+ * grunnen til å holde dem ute borte. Se samme notatet i
  * build-europe-countries.mjs.
  */
 const COUNTRIES = new Map([
   [4, ['Afghanistan', 'Afghanistan']], [31, ['Aserbajdsjan', 'Azerbaijan']],
-  [48, ['Bahrain', 'Bahrain']], [462, ['Maldivane', 'Maldives']],
+  [48, ['Bahrain', 'Bahrain']], [462, ['Maldivene', 'Maldives']],
   [702, ['Singapore', 'Singapore']],
   [50, ['Bangladesh', 'Bangladesh']], [51, ['Armenia', 'Armenia']],
   [64, ['Bhutan', 'Bhutan']], [96, ['Brunei', 'Brunei']],
@@ -86,22 +86,22 @@ const COUNTRIES = new Map([
 const RUSSIA = 643
 
 /**
- * Russland sitt eige utsnitt.
+ * Russlands eget utsnitt.
  *
- * Nordgrensa er valt, ikkje funne: heile Sibir går til 77°N, og tek vi det
- * med, veks utsnittet frå 67 til 89 breiddegrader og alt frå Java til Japan
- * krympar med ein fjerdedel for eit land som uansett berre treng å vere
- * treffbart. 58°N gjev eit belte frå Kaukasus og Volga i vest, over
- * Vest-Sibir og Bajkal, til Amur i aust — større flate enn Mongolia, og under
+ * Nordgrensa er valgt, ikke funnet: hele Sibir går til 77°N, og tar vi det
+ * med, vokser utsnittet fra 67 til 89 breddegrader og alt fra Java til Japan
+ * krymper med en fjerdedel for et land som uansett bare trenger å være
+ * treffbart. 58°N gir et belte fra Kaukasus og Volga i vest, over
+ * Vest-Sibir og Bajkal, til Amur i øst — større flate enn Mongolia, og under
  * fem prosent ekstra utsnitt.
  *
- * Austgrensa 150°Ø er den same som resten av regionen. Ho er òg det som held
- * datolinja unna: Tsjuktsjarhalvøya og Kamtsjatka ligg aust for henne og fell
- * bort i klippinga, i staden for å bli eit smett tvers over kartet.
+ * Østgrensa 150°Ø er den samme som resten av regionen. Den er også det som holder
+ * datolinja unna: Tsjuktsjarhalvøya og Kamtsjatka ligger øst for den og faller
+ * bort i klippinga, i stedet for å bli et smett tvers over kartet.
  */
 const RUSSIA_BOX = { minLon: 25, maxLon: 150, minLat: 40, maxLat: 58 }
 
-/** ISO-3 landkode → [id, norsk namn, engelsk namn] for hovudstaden. */
+/** ISO-3 landkode → [id, norsk navn, engelsk navn] for hovedstaden. */
 const CAPITALS = new Map([
   ['AFG', ['Kabul', 'Kabul']], ['ARM', ['Jerevan', 'Yerevan']],
   ['AZE', ['Baku', 'Baku']], ['BGD', ['Dhaka', 'Dhaka']],
@@ -128,11 +128,11 @@ const CAPITALS = new Map([
 ])
 
 /**
- * Elver, med Natural Earth sine segmentnamn.
+ * Elver, med Natural Earths segmentnavn.
  *
- * Ei elv ligg ikkje i datasettet som éin strek. Yangtze er delt i Tuotuo,
- * Tongtian, Jinsha og Yangtze — kvar strekninga med sitt lokale namn. For
- * spelet er dei same elva, så segmenta blir slåtte saman til éin feature.
+ * En elv ligger ikke i datasettet som én strek. Yangtze er delt i Tuotuo,
+ * Tongtian, Jinsha og Yangtze — hver strekning med sitt lokale navn. For
+ * spillet er de samme elva, så segmentene blir slått sammen til én feature.
  */
 const RIVERS = [
   { id: 'Yangtze', name: 'Yangtze', parts: ['Yangtze', 'Chang Jiang', 'Jinsha', 'Tongtian', 'Tuotuo'] },
@@ -151,7 +151,7 @@ const RIVERS = [
   { id: 'Tarim', name: 'Tarim', parts: ['Tarim', 'Yarkant'] },
 ]
 
-/** Fjell, med namnet dei har i Natural Earth sitt høgdepunkt-datasett. */
+/** Fjell, med navnet de har i Natural Earths høydepunkt-datasett. */
 const PEAKS = [
   { source: 'Mount Everest', id: 'MountEverest', name: 'Mount Everest' },
   { source: 'K2', id: 'K2', name: 'K2' },
@@ -168,8 +168,8 @@ const PEAKS = [
   { source: 'Yu Shan', id: 'YuShan', name: 'Yu Shan' },
   { source: 'Doi Inthanon', id: 'DoiInthanon', name: 'Doi Inthanon' },
   { source: 'Fan Si Pan', id: 'FanSiPan', name: 'Fan Si Pan' },
-  // Kangchenjunga og Annapurna manglar i Natural Earth-utvalet. Dei er for
-  // kjende til å utelate, så koordinatane står her.
+  // Kangchenjunga og Annapurna mangler i Natural Earth-utvalget. De er for
+  // kjente til å utelate, så koordinatene står her.
   { id: 'Kangchenjunga', name: 'Kangchenjunga', at: [88.147, 27.702] },
   { id: 'Annapurna', name: 'Annapurna', at: [83.82, 28.596] },
 ]
@@ -190,11 +190,11 @@ async function buildCountries() {
         ? clipGeometryToBox(f.geometry, RUSSIA_BOX)
         : clipPolygonToBox(f.geometry, BOX)
     if (!clipped) {
-      console.warn(`  ! ${name} fall utanfor Asia-boksen — hoppa over`)
+      console.warn(`  ! ${name} falt utenfor Asia-boksen — hoppet over`)
       continue
     }
-    // Asia er stort: heile regionen blir pressa inn i 900 px høgd, så 2
-    // desimalar (~1 km) er alt kartet klarer å vise uansett.
+    // Asia er stort: hele regionen blir presset inn i 900 px høyde, så 2
+    // desimaler (~1 km) er alt kartet klarer å vise uansett.
     features.push({
       type: 'Feature',
       properties: { id: String(code), name, nameEn },
@@ -204,10 +204,10 @@ async function buildCountries() {
 
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
   /*
-   * d3-geo les eit polygon sfærisk: kva side av ringen som er «inne» følgjer
-   * av kva veg han går. Ein ytterring som går feil veg blir teikna som resten
-   * av kloden. Klippinga held orienteringa, men samlinga blir normalisert til
-   * med klokka rundt ytterringen uansett — den konvensjonen d3 reknar med.
+   * d3-geo leser et polygon sfærisk: hvilken side av ringen som er «inne» følger
+   * av hvilken vei den går. En ytterring som går feil vei blir tegnet som resten
+   * av kloden. Klippingen holder orienteringen, men samlingen blir normalisert til
+   * med klokka rundt ytterringen uansett — den konvensjonen d3 regner med.
    */
   writeCollection(
     resolve(OUT, 'countries.json'),
@@ -215,7 +215,7 @@ async function buildCountries() {
   )
   if (missing.size > 0) {
     console.warn(
-      `  ! fanst ikkje i datasettet: ${[...missing].map((c) => COUNTRIES.get(c)[0]).join(', ')}`,
+      `  ! fantes ikke i datasettet: ${[...missing].map((c) => COUNTRIES.get(c)[0]).join(', ')}`,
     )
   }
 }
@@ -227,8 +227,8 @@ async function buildCapitals() {
 
   for (const f of places.features) {
     const p = f.properties
-    // `missing` er òg vaktposten mot doble treff: nokre land har meir enn éin
-    // hovudstad i datasettet, og spelet toler ikkje to features med same id.
+    // `missing` er også vaktposten mot doble treff: noen land har mer enn én
+    // hovedstad i datasettet, og spillet tåler ikke to features med samme id.
     if (p.ADM0CAP !== 1 || !missing.has(p.ADM0_A3)) continue
     missing.delete(p.ADM0_A3)
     const [name, nameEn] = CAPITALS.get(p.ADM0_A3)
@@ -241,7 +241,7 @@ async function buildCapitals() {
 
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
   writeCollection(resolve(OUT, 'capitals.json'), features)
-  if (missing.size > 0) console.warn(`  ! utan treff: ${[...missing].join(', ')}`)
+  if (missing.size > 0) console.warn(`  ! uten treff: ${[...missing].join(', ')}`)
 }
 
 async function buildRivers() {
@@ -267,7 +267,7 @@ async function buildRivers() {
       }
     }
     if (parts.length === 0) {
-      console.warn(`  ! ingen segment for ${river.name}`)
+      console.warn(`  ! ingen segmenter for ${river.name}`)
       continue
     }
     features.push({
@@ -300,7 +300,7 @@ async function buildPeaks() {
   for (const peak of PEAKS) {
     const coordinates = peak.at ?? byName.get(peak.source)?.geometry.coordinates
     if (!coordinates) {
-      console.warn(`  ! fann ikkje ${peak.name} (${peak.source})`)
+      console.warn(`  ! fant ikke ${peak.name} (${peak.source})`)
       continue
     }
     features.push({

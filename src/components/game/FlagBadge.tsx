@@ -3,16 +3,16 @@ import { flagFor, type EmblemSet, type FlagSpec } from '../../game/flags'
 import { flagImageFor } from '../../game/worldFlags'
 
 /**
- * Flagget til eit land, teikna som SVG frå skildringa i game/flags.ts.
+ * Flagget til et land, tegnet som SVG fra beskrivelsen i game/flags.ts.
  *
- * Duken er 30×20 einingar — 3:2, forholdet dei fleste europeiske flagg har.
- * Dei som eigentleg har eit anna forhold (Sveits er kvadratisk, Danmark er
- * breiare) blir strekte inn i det same: eit merke på under to centimeter skal
- * lesast, ikkje målast.
+ * Duken er 30×20 enheter — 3:2, forholdet de fleste europeiske flagg har.
+ * De som egentlig har et annet forhold (Sveits er kvadratisk, Danmark er
+ * bredere) blir strukket inn i det samme: et merke på under to centimeter skal
+ * leses, ikke måles.
  *
- * Flagget er `aria-hidden`. Det står alltid ved sida av namnet det høyrer
- * til, og ein skjermlesar som les «Noreg, flagg til Noreg» har fått hjelp av
- * ingen. Manglar flagget, blir det ingenting — namnet står der uansett.
+ * Flagget er `aria-hidden`. Det står alltid ved siden av navnet det hører
+ * til, og en skjermleser som leser «Norge, flagg til Norge» har fått hjelp av
+ * ingen. Mangler flagget, blir det ingenting — navnet står der uansett.
  */
 export const FlagBadge = memo(function FlagBadge({
   set,
@@ -112,11 +112,11 @@ function Shapes({ spec }: { spec: FlagSpec }) {
 }
 
 /**
- * Ei femtakka stjerne.
+ * En femtakket stjerne.
  *
- * Ti punkt annakvar gong på ein ytre og ein indre sirkel, med det første rett
- * opp. Den indre radien er den som avgjer om ho ser ut som ei stjerne eller
- * som ein blomst; 0,382 er forholdet i ein regulær pentagram.
+ * Ti punkt annenhver gang på en ytre og en indre sirkel, med det første rett
+ * opp. Den indre radien er den som avgjør om den ser ut som en stjerne eller
+ * som en blomst; 0,382 er forholdet i et regulært pentagram.
  */
 function Star({ cx, cy, r, fill }: { cx: number; cy: number; r: number; fill: string }) {
   const points = Array.from({ length: 10 }, (_, i) => {
@@ -130,7 +130,7 @@ function Star({ cx, cy, r, fill }: { cx: number; cy: number; r: number; fill: st
 /** Karlsvogna og Polarstjerna i gull på mørkeblått. */
 function Alaska() {
   const gold = '#ffb612'
-  // fire i skuffa, tre i skaftet, og Polarstjerna åleine oppe til høgre
+  // fire i skuffa, tre i skaftet, og Polarstjerna alene oppe til høyre
   const dipper = [
     [7.4, 15.4],
     [10.9, 15.9],
@@ -166,13 +166,13 @@ function Hawaii() {
   )
 }
 
-/** Tre band, ein raud C og ei gull skive. */
+/** Tre band, en rød C og en gull skive. */
 function Colorado() {
   return (
     <>
       <rect width={30} height={20} fill="#002868" />
       <rect y={20 / 3} width={30} height={20 / 3} fill="#ffffff" />
-      {/* C-en er ein oppklipt sirkel — opninga vender mot fly-sida */}
+      {/* C-en er en oppklipt sirkel — åpningen vender mot fly-siden */}
       <path
         d="M13.6,5.6 A5.2,5.2 0 1 0 13.6,14.4"
         fill="none"
@@ -185,10 +185,10 @@ function Colorado() {
 }
 
 /**
- * Tretten stråler over, blått under, og ei kopparstjerne i midten.
+ * Tretten stråler over, blått under, og en kobberstjerne i midten.
  *
- * Strålene får lov til å gå ut over duken — SVG-viewporten klipper dei — og
- * det blå feltet blir teikna oppå og skjer dei av på midtlinja.
+ * Strålene får lov til å gå ut over duken — SVG-viewporten klipper dem — og
+ * det blå feltet blir tegnet oppå og skjærer dem av på midtlinja.
  */
 function Arizona() {
   const rays = Array.from({ length: 13 }, (_, i) => {
@@ -215,10 +215,10 @@ function Arizona() {
   )
 }
 
-/** Zia-soltegnet: ei skive og fire grupper på fire stråler. */
+/** Zia-soltegnet: en skive og fire grupper på fire stråler. */
 function NewMexico() {
   const red = '#c8102e'
-  // avstand frå senterlinja, og lengd, for kvar av dei fire i ei gruppe
+  // avstand fra senterlinja, og lengde, for hver av de fire i en gruppe
   const offsets = [-1.7, -0.6, 0.6, 1.7]
   const lengths = [2.6, 3.6, 3.6, 2.6]
   const groups = [0, 90, 180, 270]
@@ -244,13 +244,13 @@ function NewMexico() {
   )
 }
 
-/** Like eller vekta band, på tvers eller på langs. */
+/** Like eller vektede bånd, på tvers eller på langs. */
 function Bands({ spec }: { spec: Extract<FlagSpec, { kind: 'bands' }> }) {
   const weights = spec.weights ?? spec.colors.map(() => 1)
   const total = weights.reduce((n, w) => n + w, 0)
   const span = spec.dir === 'h' ? 20 : 30
 
-  // start og storleik per band, rekna ut før teikninga
+  // start og størrelse per bånd, regnet ut før tegningen
   const bands = spec.colors.map((color, i) => ({
     color,
     key: `${color}-${i}`,
@@ -272,9 +272,9 @@ function Bands({ spec }: { spec: Extract<FlagSpec, { kind: 'bands' }> }) {
 }
 
 /**
- * Nordisk kors: loddrett arm forskjøve mot stanga, vassrett arm midt på.
- * Ei valfri, smalare stripe ligg oppå — det er den som skil Noreg frå
- * Danmark og Island frå Finland.
+ * Nordisk kors: loddrett arm forskjøvet mot stanga, vannrett arm midt på.
+ * En valgfri, smalere stripe ligger oppå — det er den som skiller Norge fra
+ * Danmark og Island fra Finland.
  */
 function Nordic({ spec }: { spec: Extract<FlagSpec, { kind: 'nordic' }> }) {
   return (
@@ -292,7 +292,7 @@ function Nordic({ spec }: { spec: Extract<FlagSpec, { kind: 'nordic' }> }) {
   )
 }
 
-/** Ni striper, og eit kvitt kors i eit blått felt ved stanga. */
+/** Ni striper, og et hvitt kors i et blått felt ved stanga. */
 function Greece() {
   const blue = '#0d5eaf'
   const stripe = 20 / 9
@@ -310,7 +310,7 @@ function Greece() {
   )
 }
 
-/** Tre band, med sjakkbrettet som skil flagget frå det nederlandske. */
+/** Tre bånd, med sjakkbrettet som skiller flagget fra det nederlandske. */
 function Croatia() {
   const cell = 1.6
   const x0 = 15 - cell * 2.5
@@ -345,9 +345,9 @@ function Croatia() {
 /**
  * Union Jack.
  *
- * Dei raude diagonalane er i røynda forskjøvne mot kvarandre om senterlinja —
- * det er den detaljen som skil eit rett union-flagg frå eit opp-ned. På seks
- * millimeter er skilnaden ein tidels piksel, så dei står symmetrisk her.
+ * De røde diagonalene er i virkeligheten forskjøvet mot hverandre om senterlinja —
+ * det er den detaljen som skiller et rett union-flagg fra et opp-ned. På seks
+ * millimeter er forskjellen en tidels piksel, så de står symmetrisk her.
  */
 function Union() {
   const blue = '#012169'

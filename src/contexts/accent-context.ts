@@ -25,10 +25,10 @@ export interface AccentDefinition {
 }
 
 /**
- * `brass` er feltbok-standarden etter redesignet — messing på alda papir.
- * Resten er retuna til å sitje i same verda (litt dempa, jordnære), så
- * fargeveljaren held seg heil. Ein lagra eldre verdi (`norsk`, `atlas`,
- * `atlasblue`) fell berre tilbake til standarden.
+ * `brass` er feltbok-standarden etter redesignet — messing på eldet papir.
+ * Resten er justert til å sitte i samme verden (litt dempet, jordnære), så
+ * fargevelgeren holder seg hel. En lagret eldre verdi (`norsk`, `atlas`,
+ * `atlasblue`) faller bare tilbake til standarden.
  */
 export const ACCENT_PRESETS: Record<AccentColor, AccentDefinition> = {
   brass: { label: 'Messing', light: '#a9772f', dark: '#ce9e52' },

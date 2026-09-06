@@ -160,13 +160,13 @@ export async function submitScore(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // navnet kommer fra teiknet, ikke fra kroppen — se functions/api/auth/
+      // navnet kommer fra tegnet, ikke fra kroppen — se functions/api/auth/
       Authorization: `Bearer ${session.token}`,
     },
     body: JSON.stringify(payload),
   })
 
-  // et teikn kan ha gått ut mens fanen stod åpen; da er økten over
+  // et tegn kan ha gått ut mens fanen stod åpen; da er økten over
   if (!result.ok && result.reason === 'rejected' && result.status === 401) signOut()
   if (!result.ok) return result
   return { ok: true, data: { rank: result.data.rank ?? null } }

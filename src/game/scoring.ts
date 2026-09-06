@@ -1,45 +1,45 @@
 import { PACE_META, type Mode, type Pace } from './types'
 
 /**
- * Poengreglane, samla på éin stad.
+ * Poengreglene, samlet på ett sted.
  *
- * Dei låg spreidde som tal midt i reduseraren før — 100 her, 60 der, 0.1 i
- * ein tredje funksjon — og serveren hadde sin eigen kopi av dei same tala i
- * ein kommentar som sa «må speile». Ei regel som står to stader er ei regel
- * som før eller seinare berre står halvt.
+ * De lå spredt som tall midt i reduseren før — 100 her, 60 der, 0.1 i
+ * en tredje funksjon — og serveren hadde sin egen kopi av de samme tallene i
+ * en kommentar som sa «må speile». En regel som står to steder er en regel
+ * som før eller senere bare står halvt.
  *
- * MERK — `functions/api/leaderboard/index.js` køyrer i Cloudflare-runtime og
- * kan ikkje importere TypeScript herifrå. Han held difor framleis sin eigen
- * kopi, men berre av taket han treng for å avvise umoglege poengsummar, og
- * `SCORING_VERSION` under er nummeret som held dei to i lås.
+ * MERK — `functions/api/leaderboard/index.js` kjører i Cloudflare-runtime og
+ * kan ikke importere TypeScript herfra. Den holder derfor fortsatt sin egen
+ * kopi, men bare av taket den trenger for å avvise umulige poengsummer, og
+ * `SCORING_VERSION` under er nummeret som holder de to i lås.
  */
 
-/** Grunnpoeng for eitt riktig svar, før modus, combo, fart og tempo. */
+/** Grunnpoeng for ett riktig svar, før modus, combo, fart og tempo. */
 export const BASE_POINTS = 100
 
 /** Svar under dette er «lynraskt» og «raskt», i millisekund. */
 export const FAST_ANSWER_MS = 2000
 export const BRISK_ANSWER_MS = 5000
 
-/** Fartsbonusen som følgjer dei to tersklane. */
+/** Fartsbonusen som følger de to tersklene. */
 export const FAST_BONUS = 60
 export const BRISK_BONUS = 30
 
 /** Combo topper etter ti riktige på rad. */
 export const MAX_COMBO_STEPS = 10
-/** Kvar riktige på rad legg på så mykje. Ti steg gjev ×2. */
+/** Hver riktige på rad legger på så mye. Ti steg gir ×2. */
 export const COMBO_STEP = 0.1
 
 /**
- * Kva modusen er verdt.
+ * Hva modusen er verdt.
  *
- * Å skrive namnet er ikkje same oppgåve som å klikke det. I flervalg står
- * svaret på skjermen og du har éin av fire i reint hell; i klikkemodus har du
- * namnet og skal finne staden; i skrivemodus har du korkje namnet eller
- * alternativa, og må kunne staveforma òg. Verdien følgjer det.
+ * Å skrive navnet er ikke samme oppgave som å klikke det. I flervalg står
+ * svaret på skjermen og du har én av fire i rent hell; i klikkemodus har du
+ * navnet og skal finne stedet; i skrivemodus har du verken navnet eller
+ * alternativene, og må kunne staveformen òg. Verdien følger det.
  *
- * Same tala er difor òg vanskegraden som står på modusvalet — ei rad med tre
- * staver som seier det same som multiplikatoren.
+ * De samme tallene er derfor òg vanskegraden som står på modusvalget — en rad
+ * med tre staver som sier det samme som multiplikatoren.
  */
 export const MODE_MULTIPLIER: Record<Mode, number> = {
   choice: 0.8,
@@ -51,52 +51,52 @@ export const MODE_MULTIPLIER: Record<Mode, number> = {
 }
 
 /**
- * Trekk for eitt bomskot, før modus og tempo.
+ * Trekk for ett bomskudd, før modus og tempo.
  *
- * Straffen finst fordi eit bomma sted kjem tilbake i køen og kan svarast
- * riktig seinare for full pott. Utan eit trekk kostar det ingenting å gjette
- * seg fram, og runden blir eit spørsmål om tolmod i staden for kunnskap.
- * Trekket er med vilje under ein femdel av det eit treff gjev: det skal
- * merkast, ikkje straffe den som prøver.
+ * Straffen finnes fordi et bommet sted kommer tilbake i køen og kan svares
+ * riktig senere for full pott. Uten et trekk koster det ingenting å gjette
+ * seg fram, og runden blir et spørsmål om tålmod i stedet for kunnskap.
+ * Trekket er med vilje under en femdel av det et treff gir: det skal
+ * merkes, ikke straffe den som prøver.
  */
 export const MISS_PENALTY = 20
 
 /**
- * Kor mange bom på same stad spelet toler før det gjev staden opp for deg.
+ * Hvor mange bom på samme sted spillet tåler før det gir stedet opp for deg.
  *
- * Utan eit tak kunne ein runde vare evig — staden kjem tilbake i køen kvar
- * gong. Etter tredje bomskotet blir svaret avslørt for godt og køen går
- * vidare.
+ * Uten et tak kunne en runde vare evig — stedet kommer tilbake i køen hver
+ * gang. Etter tredje bomskuddet blir svaret avslørt for godt og køen går
+ * videre.
  */
 export const MAX_ATTEMPTS = 3
 
 /**
- * Kor langt bak i køen eit bomma sted blir lagt.
+ * Hvor langt bak i køen et bommet sted blir lagt.
  *
- * For nært, og du hugsar berre svaret du nettopp såg. For langt, og du har
- * gløymt at du bomma. Tre spørsmål er langt nok til at det er kunnskap som
- * svarer neste gong.
+ * For nært, og du husker bare svaret du nettopp så. For langt, og du har
+ * glemt at du bommet. Tre spørsmål er langt nok til at det er kunnskap som
+ * svarer neste gang.
  */
 export const REQUEUE_GAP = 3
 
 /**
  * Nummer på poengreglane.
  *
- * Resultat rekna etter ulike reglar kan ikkje samanliknast. Nummeret følgjer
- * med kvar innsending til leiartavla, så eldre rader kan skiljast frå nye i
- * staden for å bli rangerte mot dei.
+ * Resultat regnet etter ulike regler kan ikke sammenlignes. Nummeret følger
+ * med hver innsending til ledertavla, så eldre rader kan skilles fra nye i
+ * stedet for å bli rangert mot dem.
  *
- * 1 — før modusane fekk kvar sin verdi. Alle tre modusane gav same poeng.
+ * 1 — før modusene fikk hver sin verdi. Alle tre modusene ga samme poeng.
  * 2 — MODE_MULTIPLIER og MISS_PENALTY.
  */
 export const SCORING_VERSION = 2
 
-/** Combo-multiplikator: ×1,1 på første riktige, ×2 frå ti på rad. */
+/** Combo-multiplikator: ×1,1 på første riktige, ×2 fra ti på rad. */
 export function comboMultiplier(streak: number): number {
   return 1 + Math.min(streak, MAX_COMBO_STEPS) * COMBO_STEP
 }
 
-/** Fartsbonusen for eitt svar. */
+/** Fartsbonusen for ett svar. */
 export function speedBonus(thinkMs: number): number {
   if (thinkMs < FAST_ANSWER_MS) return FAST_BONUS
   if (thinkMs < BRISK_ANSWER_MS) return BRISK_BONUS
@@ -108,16 +108,16 @@ export interface HitInput {
   pace: Pace
   /** rekka *etter* dette svaret */
   streak: number
-  /** kor lenge spørsmålet stod ubesvart */
+  /** hvor lenge spørsmålet stod ubesvart */
   thinkMs: number
 }
 
 /**
- * Poeng for eitt riktig svar.
+ * Poeng for ett riktig svar.
  *
- * Grunnpoeng pluss fartsbonus, ganga med combo, modus og tempo. Eit lynraskt
- * svar midt i ei lang rekke i skrivemodus på lynraskt tempo er verdt over ti
- * gonger eit seint, einsleg svar i flervalg på rolig.
+ * Grunnpoeng pluss fartsbonus, ganget med combo, modus og tempo. Et lynraskt
+ * svar midt i en lang rekke i skrivemodus på lynraskt tempo er verdt over ti
+ * ganger et sent, ensligt svar i flervalg på rolig.
  */
 export function pointsForHit({ mode, pace, streak, thinkMs }: HitInput): number {
   return Math.round(
@@ -129,22 +129,22 @@ export function pointsForHit({ mode, pace, streak, thinkMs }: HitInput): number 
 }
 
 /**
- * Trekk for eitt bomskot.
+ * Trekk for ett bomskudd.
  *
- * Same modus- og tempofaktorane som treffet: er runden verdt meir, kostar
- * bommen meir. Den som ringer med poengsummen må aldri kunne kome under null
- * — det er kallaren sitt ansvar å klemme summen.
+ * De samme modus- og tempofaktorene som treffet: er runden verdt mer, koster
+ * bommen mer. Den som ringer med poengsummen må aldri kunne komme under null
+ * — det er kallerens ansvar å klemme summen.
  */
 export function penaltyForMiss(mode: Mode, pace: Pace): number {
   return Math.round(MISS_PENALTY * MODE_MULTIPLIER[mode] * PACE_META[pace].multiplier)
 }
 
 /**
- * Det høgste eitt einaste sted kan gje.
+ * Det høyeste ett eneste sted kan gi.
  *
- * Poengsummen blir rekna ut i nettlesaren og kan difor ikkje stolast blindt
- * på. Serveren brukar dette taket ganga med talet på stader til å avvise det
- * som ikkje kan ha skjedd i eit ekte spel.
+ * Poengsummen blir regnet ut i nettleseren og kan derfor ikke stoles blindt
+ * på. Serveren bruker dette taket ganget med antallet steder til å avvise det
+ * som ikke kan ha skjedd i et ekte spill.
  */
 export function maxPointsPerTarget(mode: Mode, pace: Pace): number {
   return Math.ceil(

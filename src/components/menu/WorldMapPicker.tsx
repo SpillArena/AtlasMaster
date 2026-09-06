@@ -160,9 +160,9 @@ export function WorldMapPicker({ onPick }: Props) {
   }, [data]);
 
   /*
-   * Peilinga kompasset skal vise: frå midten av kartet til regionen musa er
-   * over. Nålen har alltid hatt ein overgang som kunne ta henne dit — han
-   * fyrte berre aldri, fordi ingen sende inn ei peiling.
+   * Peilingen kompasset skal vise: fra midten av kartet til regionen musa er
+   * over. Nålen har alltid hatt en overgang som kunne ta den dit — den
+   * fyrte bare aldri, fordi ingen sendte inn en peiling.
    */
   const heading = useMemo(() => {
     if (!built || !hover) return null;
@@ -170,7 +170,7 @@ export function WorldMapPicker({ onPick }: Props) {
     if (!target) return null;
     const dx = target[0] - W / 2;
     const dy = target[1] - built.height / 2;
-    // atan2(aust, nord): null grader er opp, og vinkelen aukar med klokka
+    // atan2(øst, nord): null grader er opp, og vinkelen øker med klokka
     return (Math.round((Math.atan2(dx, -dy) * 180) / Math.PI) + 360) % 360;
   }, [built, hover]);
 

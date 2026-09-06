@@ -1,33 +1,33 @@
 /**
- * Forenklar polygon-datasetta topologisk.
+ * Forenkler polygon-datasettene topologisk.
  *
  *   npm i --no-save topojson-server@3 topojson-simplify@3 topojson-client@3
  *   node scripts/simplify-geo.mjs [--check]
  *
- * Kjøres sjeldan — resultatet er sjekka inn. Køyr på nytt berre når eit
- * datasett blir bytt ut.
+ * Kjøres sjelden — resultatet er sjekket inn. Kjør på nytt bare når et
+ * datasett blir byttet ut.
  *
- * Kvifor: kvart punkt i eit fylke er eit punkt nettlesaren må treffe-teste for
- * kvar musrørsle over kartet, og eit punkt til å laste ned før nokon kan
- * spele. Noreg låg på 16 500 punkt — filigran som forsvinn under ein piksel
- * sjølv heilt innzooma.
+ * Hvorfor: hvert punkt i et fylke er et punkt nettleseren må treffe-teste for
+ * hver musbevegelse over kartet, og et punkt til å laste ned før noen kan
+ * spille. Norge lå på 16 500 punkt — filigran som forsvinner under en piksel
+ * selv helt innzoomet.
  *
- * Kvifor topologi og ikkje rett Douglas-Peucker per ring: to naboland deler
- * ei grense. Forenklar du dei kvar for seg, vandrar dei to sidene av grensa i
- * kvar si retning, og det opnar seg sprekker av hav mellom dei. TopoJSON
- * gjer grensa til éin boge som begge eig, så ho blir forenkla éin gong.
+ * Hvorfor topologi og ikke rett Douglas-Peucker per ring: to naboland deler
+ * en grense. Forenkler du dem hver for seg, vandrer de to sidene av grensa i
+ * hver sin retning, og det åpner seg sprekker av hav mellom dem. TopoJSON
+ * gjør grensa til én bue som begge eier, så den blir forenklet én gang.
  *
- * `LEVELS` er delen av punkta som overlever. 0.5 er valt etter å ha
- * samanlikna 0.7/0.5/0.35/0.25 side om side, både i heilbilete og på 4× zoom
- * inn i Sognefjorden: 0.5 er ikkje til å skilje frå originalen, 0.35 rundar
- * av fjordarmane, og 0.25 byrjar å eta småøyane.
+ * `LEVELS` er andelen av punktene som overlever. 0.5 er valgt etter å ha
+ * sammenlignet 0.7/0.5/0.35/0.25 side om side, både i helbilde og på 4× zoom
+ * inn i Sognefjorden: 0.5 er ikke til å skille fra originalen, 0.35 runder
+ * av fjordarmene, og 0.25 begynner å ete småøyene.
  *
- * Kva eit datasett faktisk toler, varierer likevel: Europa har Malta, som er
- * bygd av nettopp dei småpunkta forenklinga et først. Skriptet prøver difor
- * frå hardast til mildast og tek det første nivået der alle features står
- * att innanfor arealbudsjettet.
+ * Hva et datasett faktisk tåler, varierer likevel: Europa har Malta, som er
+ * bygd av nettopp de småpunktene forenklinga eter først. Skriptet prøver derfor
+ * fra hardest til mildest og tar det første nivået der alle features står
+ * igjen innenfor arealbudsjettet.
  *
- * `--check` skriv berre kva som ville skjedd, og endrar ingen filer.
+ * `--check` skriver bare hva som ville skjedd, og endrer ingen filer.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -42,18 +42,18 @@ const root = resolve(here, '..')
 const check = process.argv.includes('--check')
 
 /**
- * Filer nemnde på kommandolinja vinn over lista under.
+ * Filer nevnt på kommandolinja vinner over lista under.
  *
- * Forenklinga kan ikkje køyrast to gonger på same fila — andre runden et av
- * det første runden lét stå. Når berre eitt datasett er bygd på nytt, må
- * difor berre det eine forenklast, og då er `node scripts/simplify-geo.mjs
+ * Forenklinga kan ikke kjøres to ganger på samme fila — andre runden eter av
+ * det første runden lot stå. Når bare ett datasett er bygd på nytt, må
+ * derfor bare det ene forenkles, og da er `node scripts/simplify-geo.mjs
  * src/data/europe/countries.json` det trygge kallet.
  */
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'))
 
 const LEVELS = [0.5, 0.6, 0.7, 0.8, 0.9]
 
-/** Berre flatene. Punkt har ingenting å forenkle, og elvane er små alt. */
+/** Bare flatene. Punkt har ingenting å forenkle, og elvene er små alt. */
 const FILES = [
   'src/data/norway/counties.json',
   'src/data/europe/countries.json',
@@ -63,41 +63,41 @@ const FILES = [
 ]
 
 /**
- * Terskel for kor mykje areal ein feature får miste. Forenklinga fjernar
- * punkt etter kor lite areal dei bidreg med, og små øystatar som Malta og
- * Kypros består av nettopp slike punkt — går dei tapt, forsvinn eit svar frå
- * spelet utan at nokon oppdagar det før ein spelar klikkar i tomt hav.
+ * Terskel for hvor mye areal en feature får miste. Forenklinga fjerner
+ * punkt etter hvor lite areal de bidrar med, og små øystater som Malta og
+ * Kypros består av nettopp slike punkt — går de tapt, forsvinner et svar fra
+ * spillet uten at noen oppdager det før en spiller klikker i tomt hav.
  */
 const MAX_AREA_LOSS = 0.15
 
 /**
- * Terskel for kor mykje av kystlinja ein feature får miste.
+ * Terskel for hvor mye av kystlinja en feature får miste.
  *
- * Areal åleine er ein blind målestokk for ei kystlinje. Ein fjord er ei tynn
- * revne — Sognefjorden er sytten mil lang og fire kilometer brei — så å stryke
- * han kostar nesten ikkje areal i det heile, men tek bort nettopp det som gjer
- * kysten til ein norsk kyst. Forenklinga fjernar punkt etter kor lite areal
- * dei bidreg med, og går difor rett i fjordane først.
+ * Areal alene er en blind målestokk for en kystlinje. En fjord er en tynn
+ * revne — Sognefjorden er sytten mil lang og fire kilometer bred — så å stryke
+ * den koster nesten ikke areal i det hele, men tar bort nettopp det som gjør
+ * kysten til en norsk kyst. Forenklinga fjerner punkt etter hvor lite areal
+ * de bidrar med, og går derfor rett i fjordene først.
  *
- * Omkrinsen fangar det arealet ikkje ser. Ein tjuandedel er sett med målestokk:
- * kartet blir teikna 900 einingar høgt, så fem prosent av ei norsk kystlinje er
- * framleis under ein piksel per fjord. Ti prosent — det første forsøket — gav
- * eit Europa med færre punkt enn det som alt låg i repoet.
+ * Omkretsen fanger det arealet ikke ser. En tjuendedel er satt med målestokk:
+ * kartet blir tegnet 900 enheter høyt, så fem prosent av en norsk kystlinje er
+ * fortsatt under en piksel per fjord. Ti prosent — det første forsøket — ga
+ * et Europa med færre punkt enn det som alt lå i repoet.
  */
 const MAX_EDGE_LOSS = 0.05
 
 /**
- * Kor liten ein feature må vere for å sleppe forenkling heilt, målt som
+ * Hvor liten en feature må være for å slippe forenkling helt, målt som
  * diagonalen i omslutningsboksen, i grader.
  *
- * `quantile` set éin vektterskel for heile topologien. Ei atoll-øy har små
- * trekantar over alt og ryk difor først, same kor varsamt nivået er valt:
- * Amerikansk Samoa misser halve arealet på nivået der Russland enno er
- * urørt. Slike flater har inga støy å fjerne — dei *er* minstedetaljen — så
- * dei blir haldne utanfor og lagde tilbake urørte etterpå.
+ * `quantile` setter én vektterskel for hele topologien. En atoll-øy har små
+ * trekanter over alt og ryker derfor først, samme hvor varsomt nivået er valgt:
+ * Amerikansk Samoa mister halve arealet på nivået der Russland ennå er
+ * urørt. Slike flater har ingen støy å fjerne — de *er* minstedetaljen — så
+ * de blir holdt utenfor og lagt tilbake urørte etterpå.
  *
- * Éin grad er rundt elleve mil. Alt under det er ei øygruppe eller ein
- * bystat, og vog uansett ingenting i filstorleiken.
+ * Én grad er rundt elleve mil. Alt under det er en øygruppe eller en
+ * bystat, og veide uansett ingenting i filstørrelsen.
  */
 const MIN_SIMPLIFY_SPAN = 1
 
@@ -122,7 +122,7 @@ const ringLength = (ring) => {
   return sum
 }
 
-/** Samla kystlinje — alle ringar, i grader. Berre relative tal blir brukte. */
+/** Samlet kystlinje — alle ringer, i grader. Bare relative tall blir brukt. */
 function perimeter(geometry) {
   const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   return polys.reduce((sum, poly) => sum + poly.reduce((s, ring) => s + ringLength(ring), 0), 0)
@@ -132,8 +132,8 @@ const count = (c) => (typeof c[0] === 'number' ? 1 : c.reduce((n, x) => n + coun
 const points = (fc) => fc.features.reduce((n, f) => n + count(f.geometry.coordinates), 0)
 
 /**
- * Kor lang ein akseparallell kant får vere før han blir delt opp, i grader.
- * Bulen veks med kvadratet av lengda; to grader held han under ein
+ * Hvor lang en akseparallell kant får være før den blir delt opp, i grader.
+ * Bulen vokser med kvadratet av lengden; to grader holder den under en
  * hundredels grad.
  */
 const EDGE_STEP = 2
@@ -141,16 +141,16 @@ const EDGE_STEP = 2
 /**
  * Legg punkt tilbake langs lange, akseparallelle kantar.
  *
- * Nokre kantar i datasetta er streker nokon har trekt, ikkje kystlinjer:
- * Russland er kutta langs 58. breiddegrad og 150. lengdegrad for å få plass i
- * Asia-kartet. Forenklinga fjernar nettopp slike punkt først — dei ligg på
- * rekkje og bidreg med null areal — og då står det att éin kant frå 25°Ø til
- * 150°Ø. d3-geo teiknar den kanten som ein storsirkel, og buen mellom
- * endepunkta bular tretten breiddegrader nordover: kartet zoomar ut til
- * Polhavet for eit land som skulle stoppe ved Bajkal.
+ * Noen kanter i datasettene er streker noen har trukket, ikke kystlinjer:
+ * Russland er kuttet langs 58. breddegrad og 150. lengdegrad for å få plass i
+ * Asia-kartet. Forenklinga fjerner nettopp slike punkt først — de ligger på
+ * rekke og bidrar med null areal — og da står det igjen én kant fra 25°Ø til
+ * 150°Ø. d3-geo tegner den kanten som en storsirkel, og buen mellom
+ * endepunktene buler tretten breddegrader nordover: kartet zoomer ut til
+ * Polhavet for et land som skulle stoppe ved Bajkal.
  *
- * Ein kant langs ein meridian er derimot allereie ein storsirkel, og treng
- * ingenting. Berre dei som ligg på ein breiddegrad blir delte.
+ * En kant langs en meridian er derimot allerede en storsirkel, og trenger
+ * ingenting. Bare de som ligger på en breddegrad blir delt.
  */
 function densifyParallels(fc) {
   let added = 0
@@ -180,13 +180,13 @@ function densifyParallels(fc) {
 }
 
 /**
- * Den største einskildringen i ein feature, målt som diagonalen i
+ * Den største enkeltringen i en feature, målt som diagonalen i
  * omslutningsboksen sin, i grader.
  *
- * Målet er per ring og ikkje per feature med vilje. Fransk Polynesia spenner
- * over to tusen kilometer hav, men kvar einaste øy er ein prikk: heile
- * feature-en er minstedetalj, sjølv om boksen rundt henne er stor. Det er
- * ringen, ikkje spreiinga, som seier om det finst noko å forenkle.
+ * Målet er per ring og ikke per feature med vilje. Fransk Polynesia spenner
+ * over to tusen kilometer hav, men hver eneste øy er en prikk: hele
+ * feature-en er minstedetalj, selv om boksen rundt den er stor. Det er
+ * ringen, ikke spredningen, som sier om det finnes noe å forenkle.
  */
 function span(geometry) {
   let largest = 0
@@ -213,9 +213,9 @@ function span(geometry) {
 
 let failed = false
 
-/** Forenklar éin gong på eitt nivå, og seier frå kva som eventuelt røk. */
+/** Forenkler én gang på ett nivå, og sier fra hva som eventuelt røk. */
 function attempt(src, keep) {
-  // dei minste flatene står over — sjå MIN_SIMPLIFY_SPAN
+  // de minste flatene står over — se MIN_SIMPLIFY_SPAN
   const big = []
   const index = []
   src.features.forEach((f, i) => {

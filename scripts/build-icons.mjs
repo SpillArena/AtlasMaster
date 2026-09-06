@@ -1,17 +1,17 @@
 /**
- * Rasteriserer public/favicon.svg til PNG-ikona appen treng.
+ * Rasteriserer public/favicon.svg til PNG-ikonene appen trenger.
  *
  *   npm i --no-save @resvg/resvg-js
  *   node scripts/build-icons.mjs
  *
- * Køyrast sjeldan — resultatet er sjekka inn. Køyr på nytt berre når
- * favicon.svg blir bytt ut.
+ * Kjøres sjelden — resultatet er sjekket inn. Kjør på nytt bare når
+ * favicon.svg blir byttet ut.
  *
- * MERK — SVG-en frå Spillarena skriv kvar farge to gonger:
- * `fill:#863bff;fill:color(display-p3 …)`. Den siste vinn i CSS, og ein
- * rasteriserar som ikkje kjenner `color(display-p3 …)` fell tilbake til svart
- * i staden for til hex-verdien rett før. Difor blir dei moderne
- * fargedeklarasjonane stripte bort før rendring; nettlesarane les framleis
+ * MERK — SVG-en fra Spillarena skriver hver farge to ganger:
+ * `fill:#863bff;fill:color(display-p3 …)`. Den siste vinner i CSS, og en
+ * rasteriserer som ikke kjenner `color(display-p3 …)` faller tilbake til svart
+ * i stedet for til hex-verdien rett før. Derfor blir de moderne
+ * fargedeklarasjonene strippet bort før rendring; nettleserne leser fortsatt
  * originalfila og får den vide fargeromsversjonen.
  */
 
@@ -24,15 +24,15 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const SRC = resolve(root, 'public/favicon.svg')
 
-/** Bakgrunnen bak merket. Same tone som `--bg-deep` i det mørke temaet. */
+/** Bakgrunnen bak merket. Samme tone som `--bg-deep` i det mørke temaet. */
 const BG = [0x05, 0x07, 0x0f]
 
 /**
- * Kor mykje av ruta merket får fylle.
+ * Hvor mye av ruta merket får fylle.
  *
- * `maskable` i webmanifestet lèt operativsystemet klippe ikonet til si eiga
- * form — sirkel, avrunda firkant, dropar. Alt utanfor den innskrivne sirkelen
- * på 80 % kan forsvinne, så merket held seg innanfor 60 %.
+ * `maskable` i webmanifestet lar operativsystemet klippe ikonet til sin egen
+ * form — sirkel, avrundet firkant, dråpe. Alt utenfor den innskrevne sirkelen
+ * på 80 % kan forsvinne, så merket holder seg innenfor 60 %.
  */
 const SAFE = 0.6
 
@@ -44,14 +44,14 @@ const TARGETS = [
 
 const svg = readFileSync(SRC, 'utf8').replace(/;?fill:color\(display-p3[^;"]*\)/g, '')
 
-/** Legg merket midt på ei einsfarga rute og skriv resultatet som PNG. */
+/** Legg merket midt på en ensfarget rute og skriv resultatet som PNG. */
 function compose(size) {
   const inner = Math.round(size * SAFE)
   const rendered = new Resvg(svg, { fitTo: { mode: 'width', value: inner } }).render()
   const mark = rendered.asPng()
   const { width: mw, height: mh } = rendered
 
-  // resvg gjev berre PNG ut, så merket blir dekoda att for å komponerast.
+  // resvg gir bare PNG ut, så merket blir dekodet igjen for å komponeres.
   const px = decodePng(mark)
   const out = Buffer.alloc(size * size * 4)
   for (let i = 0; i < size * size; i++) {
@@ -77,7 +77,7 @@ function compose(size) {
   return encodePng(out, size, size)
 }
 
-/* --- minimal PNG-kodek: berre 8-bits RGBA, som er alt resvg skriv --- */
+/* --- minimal PNG-kodek: bare 8-bits RGBA, som er alt resvg skriver --- */
 
 import { deflateSync, inflateSync } from 'node:zlib'
 
@@ -93,7 +93,7 @@ function decodePng(buffer) {
     if (type === 'IHDR') {
       width = data.readUInt32BE(0)
       height = data.readUInt32BE(4)
-      if (data[8] !== 8 || data[9] !== 6) throw new Error('ventar 8-bits RGBA')
+      if (data[8] !== 8 || data[9] !== 6) throw new Error('venter 8-bits RGBA')
     } else if (type === 'IDAT') idat.push(data)
     else if (type === 'IEND') break
     offset += length + 12

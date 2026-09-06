@@ -10,12 +10,12 @@ import type { FeatureCollection } from 'geojson'
 import type { ProjectionSpec } from './types'
 
 /**
- * Kvar region vel si eiga projeksjon. Eit land som strekk seg nord-sør
- * (Noreg) og eit kontinent som strekk seg aust-vest (Europa) toler ikkje
- * same kartprojeksjon utan at det eine blir vridd ut av form.
+ * Hver region velger sin egen projeksjon. Et land som strekker seg nord-sør
+ * (Norge) og et kontinent som strekker seg øst-vest (Europa) tåler ikke
+ * samme kartprojeksjon uten at det ene blir vridd ut av form.
  *
- * `fitExtent` gjer resten: den skalerer og sentrerer datasettet inn i
- * [width, height], så ingen region treng hardkoda senter eller zoom.
+ * `fitExtent` gjør resten: den skalerer og sentrerer datasettet inn i
+ * [width, height], så ingen region trenger hardkodet senter eller zoom.
  */
 function fromSpec(spec: ProjectionSpec): GeoProjection {
   switch (spec.kind) {
@@ -53,24 +53,24 @@ export function makePath(projection: GeoProjection): GeoPath {
 }
 
 /**
- * Same projeksjon, men med punkta tynna ut *etter* at dei er projiserte.
+ * Samme projeksjon, men med punktene tynnet ut *etter* at de er projisert.
  *
- * Kystlinja til Noreg er nesten ti tusen punkt. Å fylle den flata er billeg —
- * nettlesaren rasteriserer eit polygon éin gong. Å *streke* henne er det
- * ikkje: ei strek med breidd og runde hjørne må byggjast som ein ny figur med
- * to sider og eit ledd per punkt, og sokkelstripa rundt kysten er den breiaste
- * streken på kartet. Ho blir bygd på nytt for kvar biletramme medan fingeren
- * dreg.
+ * Kystlinja til Norge er nesten ti tusen punkt. Å fylle den flata er billig —
+ * nettleseren rasteriserer et polygon én gang. Å *streke* den er det
+ * ikke: en strek med bredde og runde hjørner må bygges som en ny figur med
+ * to sider og et ledd per punkt, og sokkelstripa rundt kysten er den bredeste
+ * streken på kartet. Den blir bygd på nytt for hver bilderamme mens fingeren
+ * drar.
  *
- * Ei ni einingar brei, mjuk stripe treng ikkje fjordane. Vi lèt difor stripa
- * gå på ein grovare kopi av same geometrien: fyllinga og kystlinja står
- * framleis i full oppløysing, så ingenting synleg endrar seg — det er berre
- * det brede laget under som sluttar å telje kvar skjærgardsholme.
+ * En ni enheter bred, myk stripe trenger ikke fjordene. Vi lar derfor stripa
+ * gå på en grovere kopi av samme geometrien: fyllingen og kystlinja står
+ * fortsatt i full oppløsning, så ingenting synlig endrer seg — det er bare
+ * det brede laget under som slutter å telle hver skjærgårdsholme.
  *
- * Toleransen er i lerretseiningar (lerretet er 900 høgt). Første punktet i
- * kvar ring blir alltid med, så ein ring kan aldri forsvinne heilt; små øyar
- * kan derimot krympe til eit punkt og falle ut av stripa. Det er meininga —
- * dei har landflata si i full oppløysing rett oppå.
+ * Toleransen er i lerretsenheter (lerretet er 900 høyt). Første punktet i
+ * hver ring blir alltid med, så en ring kan aldri forsvinne helt; små øyer
+ * kan derimot krympe til et punkt og falle ut av stripa. Det er meningen —
+ * de har landflata si i full oppløsning rett oppå.
  */
 function coarsen(projection: GeoProjection, tolerance: number): GeoStreamWrapper {
   return {
@@ -117,19 +117,19 @@ export function makeCoarsePath(projection: GeoProjection, tolerance: number): Ge
 }
 
 /**
- * Breidde delt på høgd for regionen slik den faktisk blir projisert.
+ * Bredde delt på høyde for regionen slik den faktisk blir projisert.
  *
- * Noreg er høgt og smalt, Europa er breitt og lågt. Eit fast lerret ville
- * gjeve den eine regionen svarte marger på begge sider og den andre eit
- * frimerke midt på skjermen. Vi projiserer difor inn i eit kvadrat, måler
- * kva plass forma faktisk tok, og let lerretet følgje det.
+ * Norge er høyt og smalt, Europa er bredt og lavt. Et fast lerret ville
+ * gitt den ene regionen svarte marger på begge sider og den andre et
+ * frimerke midt på skjermen. Vi projiserer derfor inn i et kvadrat, måler
+ * hvor mye plass forma faktisk tok, og lar lerretet følge det.
  */
 /**
- * Målinga går gjennom heile datasettet to gonger — éin gong for `fitExtent`
- * og éin for `bounds` — og eit kontinent er titusenvis av punkt. Svaret er
- * likevel det same kvar gong for eit gitt datasett og ei gitt projeksjon, så
- * det blir hugsa. Ein `WeakMap` held ikkje datasettet i live: droppar spelet
- * regionen, forsvinn målinga med han.
+ * Målingen går gjennom hele datasettet to ganger — én gang for `fitExtent`
+ * og én for `bounds` — og et kontinent er titusenvis av punkt. Svaret er
+ * likevel det samme hver gang for et gitt datasett og en gitt projeksjon, så
+ * det blir husket. En `WeakMap` holder ikke datasettet i live: dropper spillet
+ * regionen, forsvinner målingen med den.
  */
 const aspectCache = new WeakMap<FeatureCollection, Map<string, number>>()
 

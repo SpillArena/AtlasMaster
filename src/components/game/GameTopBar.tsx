@@ -103,8 +103,8 @@ export const GameTopBar = memo(function GameTopBar({
           </div>
 
           <div className="mt-1 flex items-center gap-2">
-            {/* «7 igjen» — Seterra sitt tydelegaste enkeltgrep: du veit alltid
-              kor langt det er att, ikkje berre kor langt du har komme */}
+            {/* «7 igjen» — Seterras tydeligste enkeltgrep: du vet alltid
+              hvor langt det er igjen, ikke bare hvor langt du har kommet */}
             <span
               className="numeric shrink-0 text-xs font-bold"
               style={{ color: "var(--text-subtle)" }}
@@ -138,13 +138,13 @@ export const GameTopBar = memo(function GameTopBar({
 });
 
 /**
- * Klokka for eitt spørsmål.
+ * Klokka for ett spørsmål.
  *
- * Ho ligg her, og ikkje i `GameScreen`, fordi ho tikkar ti gonger i sekundet.
- * Frå spelskjermen ville kvart tikk ha gjeve ei ny rendring av heile
- * spelegreina — toppbjelke, HUD og kartprops — berre for å flytte ei stripe
- * nokre piksler. No er det denne komponenten åleine som blir rendra på nytt,
- * og resten av spelet står stille til noko faktisk skjer.
+ * Den ligger her, og ikke i `GameScreen`, fordi den tikker ti ganger i sekundet.
+ * Fra spillskjermen ville hvert tikk ha gitt en ny rendring av hele
+ * spillgrenen — toppbjelke, HUD og kartprops — bare for å flytte en stripe
+ * noen piksler. Nå er det denne komponenten alene som blir rendret på nytt,
+ * og resten av spillet står stille til noe faktisk skjer.
  */
 function QuestionClock({
   questionStartedAt,
