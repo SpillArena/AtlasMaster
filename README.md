@@ -15,6 +15,7 @@ The game was called NorgesMester and covered only Norway until August 2026.
 | Norway | Counties (15), cities, rivers, peaks | Conic conformal, 60/70°, rotated −15° |
 | Europe | Countries (39), capitals, rivers, peaks | Conic conformal, 35/65°, rotated −10° (ETRS89-LCC) |
 | Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area, centred 87°E/22°N |
+| Africa | Countries (54), capitals, rivers, peaks, flags | Azimuthal equal area, centred 20°E/2°N |
 | USA | States (50), cities, rivers, peaks | Albers USA (Alaska and Hawaii in inset boxes) |
 | World | Countries (195), flags | Natural Earth 1 |
 
@@ -111,6 +112,7 @@ Run the migrations, `0005_create_players.sql` included, before deploying this.
 npm run data:norway    # county borders from Kartverket
 npm run data:europe    # rebuild the Europe outline from Natural Earth
 npm run data:asia      # countries, capitals, rivers and peaks in Asia
+npm run data:africa    # countries, capitals, rivers and peaks in Africa
 npm run data:usa       # states, cities, rivers and peaks in the USA
 npm run check:geo      # extent, ring winding and emblem coverage
 npm run check:engine   # the game rules, run directly against the reducer
@@ -120,7 +122,7 @@ npm run bench:map      # what the map layer costs per region
 
 The data scripts need
 `npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3 topojson-server@3 topojson-simplify@3`.
-`data:norway`, `data:asia` and `data:usa` also fetch datasets over the network
+`data:norway`, `data:asia`, `data:africa` and `data:usa` also fetch datasets over the network
 the first time and cache them in `node_modules/.cache/atlasmaster/`. The result
 is checked in, so the scripts only need to run when the place lists or the
 resolution change.

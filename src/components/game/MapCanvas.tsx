@@ -48,7 +48,7 @@ const SHELF_TOLERANCE = 2.5
 type ShapeState = 'idle' | 'correct' | 'revealed' | 'wrong' | 'target'
 
 /**
- * En projisert flate, med det `SmallTargets` trenger for å måle den: midtpunkt
+ * En projisert flate, med det `measureSmall` trenger for å måle den: midtpunkt
  * og største utstrekning, i lerretsenheter.
  */
 interface MeasuredPath {
@@ -57,6 +57,51 @@ interface MeasuredPath {
   cx: number
   cy: number
   size: number
+}
+
+/** En flate som er for liten til å kunne trykkes på, med plassen den har fått. */
+interface SmallTarget extends MeasuredPath {
+  /** halve avstanden til nærmeste andre lille flate */
+  gap: number
+  /** radien treffflata og merket deler */
+  rHit: number
+}
+
+/**
+ * Hvem som er for liten, og hvor stor hjelpa kan bli.
+ *
+ * Regnestykket lå inni `SmallTargets` før, da det bare fantes ett lag. Nå er
+ * det to — en usynlig treffflate under kartet og et synlig merke over det —
+ * og de to må være enige om hvem som er liten og hvor stor sirkelen er, ellers
+ * peker merket et annet sted enn trykket lander. Derfor står regningen her,
+ * ett sted, og begge lagene får svaret servert.
+ *
+ * Avstanden blir målt bare mot de andre små flatene, ikke mot alle. En sirkel
+ * som ligger *under* de synlige banene kan ikke stjele et klikk fra Italia
+ * uansett hvor stor den er — Italia tar imot sitt eget klikk først. Det eneste
+ * to sirkler kan kollidere med, er hverandre.
+ *
+ * Målt mot alle ble Vatikanstaten kappet av midtpunktet til Italia, som ligger
+ * et par hundre kilometer unna, og satt igjen med en treffflate på fjorten
+ * piksler — like liten som landet var fra før.
+ *
+ * Løste flater blir *med* i målingen, i motsetning til før. De tar ikke imot
+ * klikk lenger, men de står fortsatt på kartet med sitt eget merke, og et
+ * merke som vokser hver gang naboen blir svart ville flyttet på seg midt i
+ * runden.
+ */
+function measureSmall(paths: MeasuredPath[], reach: number): SmallTarget[] {
+  const small = paths.filter(
+    (p) => p.size < 2 * reach && Number.isFinite(p.cx) && Number.isFinite(p.cy),
+  )
+  return small.map((p) => {
+    let gap = Infinity
+    for (const q of small) {
+      if (q === p) continue
+      gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
+    }
+    return { ...p, gap, rHit: Math.max(p.size / 2, Math.min(reach, gap)) }
+  })
 }
 
 const STATE_COLOR: Record<ShapeState, string> = {
@@ -72,6 +117,20 @@ const STATE_COLOR: Record<ShapeState, string> = {
 const POINT_COLOR: Record<ShapeState, string> = {
   ...STATE_COLOR,
   idle: 'var(--accent)',
+}
+
+/*
+ * Merket rundt en mikrostat.
+ *
+ * `idle` kan ikke være gjennomsiktig her slik den er for flatene: en flate
+ * lar terrenget lese gjennom seg fordi den *er* synlig i omrisset sitt, mens
+ * et land på tre piksler ikke har noe omriss å se. Kartrammefargen er den
+ * samme streken som tegner alle landegrensene, så merket leser som en del av
+ * kartet og ikke som en ny slags prikk.
+ */
+const MARKER_COLOR: Record<ShapeState, string> = {
+  ...STATE_COLOR,
+  idle: 'var(--map-border)',
 }
 
 interface Props {
@@ -194,7 +253,7 @@ export const MapCanvas = memo(function MapCanvas({
     /*
      * Hvor stor flata blir på lerretet, og halve avstanden til nærmeste nabo.
      * Begge blir målt her fordi de bare endrer seg med projeksjonen — ikke
-     * med zoomen. `SmallTargets` bruker de to tallene til å avgjøre hvem som er
+     * med zoomen. `measureSmall` bruker de to tallene til å avgjøre hvem som er
      * for liten til å kunne trykkes på; se kommentaren der.
      */
     const measured = features.map((f) => {
@@ -229,6 +288,19 @@ export const MapCanvas = memo(function MapCanvas({
     ro.observe(el)
     return () => ro.disconnect()
   }, [W])
+
+  /*
+   * Mikrostatene, målt én gang for begge lagene som bruker dem.
+   *
+   * Fingertuppen krymper i lerretsenheter når man zoomer inn, så både hvem
+   * som er for liten og hvor stor sirkelen blir henger på `k`. Det er også
+   * hele mekanismen bak at merkene forsvinner av seg selv: når Malta er stor
+   * nok til å treffes uten hjelp, faller øya ut av lista og merket med den.
+   */
+  const smallTargets = useMemo(
+    () => (geom === 'polygon' ? measureSmall(paths, (HIT_PX * unitsPerPx) / k) : []),
+    [geom, paths, unitsPerPx, k],
+  )
 
   /*
    * d3-zoom: hjul, pinch og dra-panorering.
@@ -350,23 +422,6 @@ export const MapCanvas = memo(function MapCanvas({
         <g ref={layerRef}>
           <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
 
-          {/*
-            Usynlige trykkmål for de minste landene. Laget ligger *under*
-            ShapeLayer med vilje — samme grunn som elvebåndene: et presist trykk
-            rett på Italia skal alltid gi Italia, og bare klikk som bommer på
-            alle synlige flater faller ned hit.
-          */}
-          {geom === 'polygon' && (
-            <SmallTargets
-              paths={paths}
-              status={status}
-              live={interactive && !disabled}
-              k={k}
-              unitsPerPx={unitsPerPx}
-              onPick={onPick}
-            />
-          )}
-
           {geom !== 'point' && (
             <ShapeLayer
               paths={paths}
@@ -377,6 +432,35 @@ export const MapCanvas = memo(function MapCanvas({
               highlightId={highlightId ?? null}
               live={interactive && !disabled}
               onPick={onPick}
+            />
+          )}
+
+          {/*
+            Mikrostatene, over de synlige flatene: først trykkmålet, så merket.
+            Begge må ligge her oppe. Vatikanstaten ligger inni Italia, og en
+            treffflate under kartet ville aldri fått et eneste klikk — Italia
+            tok dem alle. Merket over gjør at prisen er til å leve med: du ser
+            prikken, så du vet at de tjueto pikslene rundt den tilhører
+            Vatikanstaten og ikke Roma.
+          */}
+          {geom === 'polygon' && (
+            <SmallTargets
+              targets={smallTargets}
+              status={status}
+              live={interactive && !disabled}
+              onPick={onPick}
+            />
+          )}
+
+          {geom === 'polygon' && (
+            <SmallMarkers
+              targets={smallTargets}
+              status={status}
+              flashId={flashId}
+              revealId={revealId ?? null}
+              highlightId={highlightId ?? null}
+              k={k}
+              unitsPerPx={unitsPerPx}
             />
           )}
 
@@ -466,28 +550,38 @@ function stateOf(
  * som er mindre enn trykkmålet får derfor en usynlig sirkel på størrelse med
  * fingertuppen, akkurat som byene i `PointLayer`.
  *
- * To ting holder sirklene fra å stjele klikk. Laget ligger under de synlige
- * flatene, så et trykk som treffer Italia er Italia — bare bomskudd ned i
- * havet faller hit. Og radien vokser aldri forbi halve avstanden til nærmeste
- * nabo, så to små naboland kan ikke dekke hverandre.
+ * LAGET LÅ UNDER DE SYNLIGE FLATENE FØR, og det var feilen.
+ *
+ * Tanken var god: et presist trykk rett på Italia skal gi Italia, og bare
+ * bomskudd ned i havet skal falle videre til en mikrostat. Det virker for dem
+ * som ligger i havet — Malta, Kypros, Singapore. Det virker ikke for en eneste
+ * enklave. Vatikanstaten og San Marino ligger *inni* Italia, Lesotho inni
+ * Sør-Afrika: over dem er det aldri noe hav å bomme på, og hvert eneste klikk
+ * traff landet rundt i stedet. De var treffbare på papiret og uoppnåelige i
+ * praksis, og det var nettopp det spillerne meldte fra om.
+ *
+ * Nå ligger sirklene over. Det koster Italia de tjueto pikslene rundt
+ * Vatikanstaten, og den prisen er grunnen til at `SmallMarkers` finnes: når
+ * prikken er synlig, vet du at de pikslene er opptatt. En usynlig sirkel som
+ * stjal klikk ville vært en felle; en merket sirkel er et mål.
+ *
+ * Radien vokser aldri forbi halve avstanden til nærmeste andre lille flate, så
+ * to små naboland kan ikke dekke hverandre. Og et løst land mister sirkelen
+ * sin med det samme — da er Italia hel igjen.
  *
  * Laget er skilt fra `ShapeLayer` fordi det er det eneste som trenger å vite om
  * zoomen. Hadde de vært ett, måtte alle de hundre banene til ShapeLayer
  * blitt avstemt på nytt for hvert zoom-steg.
  */
 const SmallTargets = memo(function SmallTargets({
-  paths,
+  targets,
   status,
   live,
-  k,
-  unitsPerPx,
   onPick,
 }: {
-  paths: MeasuredPath[]
+  targets: SmallTarget[]
   status: Record<string, 'correct' | 'revealed'>
   live: boolean
-  k: number
-  unitsPerPx: number
   onPick: (id: string) => void
 }) {
   // samme tre skansene som i ShapeLayer — se kommentaren der
@@ -499,47 +593,107 @@ const SmallTargets = memo(function SmallTargets({
     [status, onPick],
   )
 
-  /** fingertuppen målt i lerretsenheter ved gjeldende zoom */
-  const reach = (HIT_PX * unitsPerPx) / k
-
-  /*
-   * Hvem som trenger hjelp, og hvor stor hjelpa kan bli.
-   *
-   * Avstanden blir målt bare mot de andre små flatene, ikke mot alle. En
-   * sirkel som ligger *under* de synlige banene kan ikke stjele et klikk fra
-   * Italia uansett hvor stor den er — Italia tar imot sitt eget klikk først.
-   * Det eneste to sirkler kan kollidere med, er hverandre.
-   *
-   * Målt mot alle ble Vatikanstaten kappet av midtpunktet til Italia, som ligger
-   * et par hundre kilometer unna, og satt igjen med en treffflate på fjorten
-   * piksler — like liten som landet var fra før.
-   */
-  const small = live
-    ? paths.filter(
-        (p) => p.size < 2 * reach && !status[p.id] && Number.isFinite(p.cx) && Number.isFinite(p.cy),
-      )
-    : []
-
-  if (!small.length) return null
+  // et løst land er ute av spillet og skal ikke ta imot klikk — merket over
+  // står igjen uansett, i fargen svaret ga det
+  const open = live ? targets.filter((p) => !status[p.id]) : []
+  if (!open.length) return null
 
   return (
     <g onClick={handleClick}>
-      {small.map((p) => {
-        let gap = Infinity
-        for (const q of small) {
-          if (q === p) continue
-          gap = Math.min(gap, Math.hypot(q.cx - p.cx, q.cy - p.cy) / 2)
-        }
+      {open.map((p) => (
+        <circle
+          key={`hit-${p.id}`}
+          data-id={p.id}
+          cx={p.cx}
+          cy={p.cy}
+          r={p.rHit}
+          fill="transparent"
+          className="cursor-pointer"
+        />
+      ))}
+    </g>
+  )
+})
+
+/**
+ * Synlige merker for de samme flatene.
+ *
+ * Treffflatene under gjorde mikrostatene mulige å trykke på, og spillerne
+ * meldte likevel om at Andorra, Malta og Vatikanstaten ikke gikk an å treffe.
+ * De hadde rett: en treffflate man ikke ser er ingen treffflate. Man sikter
+ * ikke på noe som ikke er der, og tre piksler mellom Frankrike og Spania er
+ * ikke der.
+ *
+ * Merket er to sirkler. Den ytre, svake er nøyaktig så stor som trykkmålet
+ * under — den lover ikke mer enn den holder. Den indre ringen med prikk er
+ * selve siktepunktet, og den bærer fargen svaret gir: grønn når landet er
+ * rett, blå når fasiten blir vist, gull når det er landet du skal finne nå.
+ *
+ * Laget tegner *alle* de små flatene, også de løste. `SmallTargets` filtrerer
+ * bort dem som er ferdige fordi de ikke skal ta imot klikk; her skal de bli
+ * stående, ellers forsvinner Malta fra kartet i samme øyeblikk som du klarte
+ * den.
+ *
+ * Ingenting her trenger et eget terskelmål. Lista kommer fra `measureSmall`,
+ * som måler mot fingertuppen ved gjeldende zoom, så merkene forsvinner av seg
+ * selv når landet er blitt stort nok til å klare seg uten dem.
+ */
+const SmallMarkers = memo(function SmallMarkers({
+  targets,
+  status,
+  flashId,
+  revealId,
+  highlightId,
+  k,
+  unitsPerPx,
+}: {
+  targets: SmallTarget[]
+  status: Record<string, 'correct' | 'revealed'>
+  flashId: string | null
+  revealId: string | null
+  highlightId: string | null
+  k: number
+  unitsPerPx: number
+}) {
+  if (!targets.length) return null
+
+  /**
+   * Siktepunktet: 3,5 px, uansett zoom og uansett hvor stort landet er.
+   *
+   * Det fulgte størrelsen på flata før — `max(size / 2, dot)` — og det var
+   * feil for alle unntatt de aller minste. Slovenia og Albania er så vidt
+   * under trykkmålet, så prikken ble like stor som landet og la seg over det
+   * som et fylt felt: formen man skulle kjenne igjen forsvant under sitt eget
+   * merke. Et siktepunkt skal peke på landet, ikke erstatte det.
+   */
+  const dot = (3.5 * unitsPerPx) / k
+
+  return (
+    <g pointerEvents="none">
+      {targets.map((p) => {
+        const state = stateOf(p.id, status, flashId, revealId, highlightId)
+        const color = MARKER_COLOR[state]
         return (
-          <circle
-            key={`hit-${p.id}`}
-            data-id={p.id}
-            cx={p.cx}
-            cy={p.cy}
-            r={Math.max(p.size / 2, Math.min(reach, gap))}
-            fill="transparent"
-            className="cursor-pointer"
-          />
+          <g key={`mark-${p.id}`} className={state === 'target' ? 'animate-breathe' : undefined}>
+            {/* glorien: like stor som trykkmålet, svak nok til å ikke tegne et land der det ikke er noe */}
+            <circle
+              cx={p.cx}
+              cy={p.cy}
+              r={p.rHit}
+              fill="color-mix(in srgb, var(--ink) 8%, transparent)"
+            />
+            <circle
+              cx={p.cx}
+              cy={p.cy}
+              r={dot}
+              fill={color}
+              fillOpacity={state === 'idle' ? 0.55 : 0.85}
+              stroke={color}
+              strokeWidth={1.6}
+              vectorEffect="non-scaling-stroke"
+              className="transition-colors duration-75"
+            />
+          </g>
         )
       })}
     </g>

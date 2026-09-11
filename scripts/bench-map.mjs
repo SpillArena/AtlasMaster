@@ -54,6 +54,11 @@ const CASES = [
     file: 'src/data/asia/countries.json',
     projection: { kind: 'azimuthalEqualArea', centre: [87, 22] },
   },
+  {
+    region: 'Afrika',
+    file: 'src/data/africa/countries.json',
+    projection: { kind: 'azimuthalEqualArea', centre: [20, 2] },
+  },
   { region: 'USA', file: 'src/data/usa/states.json', projection: { kind: 'albersUsa' } },
 ]
 

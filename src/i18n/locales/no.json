@@ -119,6 +119,11 @@
     "usCities": "Finn USAs største byer",
     "usRivers": "Lær USAs store elver",
     "usPeaks": "Lær USAs høyeste topper",
+    "africaCountries": "Lær alle de 54 landene",
+    "africaCapitals": "Finn Afrikas hovedsteder",
+    "africaRivers": "Lær Afrikas store elver",
+    "africaPeaks": "Lær Afrikas høyeste topper",
+    "africaFlags": "Koble flagg til land i Afrika",
     "worldCountries": "Lær alle land i verden",
     "worldFlags": "Koble flagg til land i hele verden"
   },
@@ -137,7 +142,8 @@
     "states": "Delstater",
     "cities": "Storbyer",
     "worldCountries": "Land",
-    "worldFlags": "Flagg"
+    "worldFlags": "Flagg",
+    "africaFlags": "Flagg"
   },
   "mode": {
     "subtitle": "Velg spillmodus",
@@ -236,6 +242,7 @@
     "europe": "Europa",
     "asia": "Asia",
     "usa": "USA",
+    "africa": "Afrika",
     "world": "Verden",
     "count": "{{count}} kategorier",
     "plate": "Plate {{n}}",

@@ -17,6 +17,7 @@ const json = (loader: () => Promise<{ default: unknown }>) => async () =>
 const norwayCounties = json(() => import('../data/norway/counties.json'))
 const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
+const africaCountries = json(() => import('../data/africa/countries.json'))
 const usStates = json(() => import('../data/usa/states.json'))
 const worldCountries = json(() => import('../data/world/countries.json'))
 /**
@@ -216,6 +217,70 @@ const usaCategories: Category[] = [
 ]
 
 /**
+ * Afrika — samme fire kategoriene som Asia, pluss flagg.
+ *
+ * Flaggkategorien låner bildesettet verdensregionen alt har under
+ * src/data/world/flags/. Oppslaget går på `properties.id`, og der er nøkkelen
+ * ISO 3166-1 numerisk med tre siffer — «012», ikke «12». Derfor skriver
+ * scripts/build-africa.mjs id-ene nullpolstret, i motsetning til Asia: uten
+ * det ville Algerie, Angola og Botswana stått uten flagg, og ingen feilmelding
+ * hadde sagt fra. `flagImageFor` gir null, og FlagBadge tegner ingenting.
+ */
+const africaCategories: Category[] = [
+  {
+    id: 'africaCountries',
+    labelKey: 'cat.countries',
+    geom: 'polygon',
+    icon: 'map',
+    color: '#65a30d',
+    gradient: 'from-lime-600 via-[#3f6212] to-[#152505]',
+    load: africaCountries,
+    emblems: 'world',
+  },
+  {
+    id: 'africaCapitals',
+    labelKey: 'cat.capitals',
+    geom: 'point',
+    icon: 'buildings',
+    color: '#e11d48',
+    gradient: 'from-rose-600 via-[#7f1d1d] to-[#2a0a12]',
+    load: json(() => import('../data/africa/capitals.json')),
+    base: africaCountries,
+  },
+  {
+    id: 'africaRivers',
+    labelKey: 'cat.rivers',
+    geom: 'line',
+    icon: 'river',
+    color: '#06b6d4',
+    gradient: 'from-cyan-600 via-[#0e7490] to-[#0b3a4a]',
+    load: json(() => import('../data/africa/rivers.json')),
+    base: africaCountries,
+  },
+  {
+    id: 'africaPeaks',
+    labelKey: 'cat.peaks',
+    geom: 'point',
+    icon: 'mountain',
+    color: '#f59e0b',
+    gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+    load: json(() => import('../data/africa/peaks.json')),
+    base: africaCountries,
+  },
+  {
+    id: 'africaFlags',
+    labelKey: 'cat.africaFlags',
+    geom: 'polygon',
+    icon: 'seal',
+    color: '#d97706',
+    gradient: 'from-amber-600 via-[#78350f] to-[#231003]',
+    load: africaCountries,
+    emblems: 'world',
+    modes: ['flag', 'pick'],
+  },
+]
+
+/**
  * Verden — hele kloden, med to kategorier bygd på samme landdatasett.
  *
  * «Land» er et vanlig kartspill: klikk, flervalg eller skriv. «Flagg» bruker
@@ -291,6 +356,19 @@ export const regions: Region[] = [
     projection: { kind: 'albersUsa' },
     outline: usStates,
     categories: usaCategories,
+  },
+  {
+    id: 'africa',
+    labelKey: 'region.africa',
+    code: 'AF',
+    gradient: 'from-[#4d7c0f] via-[#3f6212] to-[#152505]',
+    // Afrika ligger med en tredel av seg sør for ekvator. En kjegle med
+    // standardparalleller må velge en halvkule å stå støtt på, og strekker
+    // den andre; en azimutal projeksjon sentrert nær ekvator holder formen
+    // begge veier. Samme resonnement som Asia — se kommentaren der.
+    projection: { kind: 'azimuthalEqualArea', centre: [20, 2] },
+    outline: africaCountries,
+    categories: africaCategories,
   },
   {
     id: 'world',

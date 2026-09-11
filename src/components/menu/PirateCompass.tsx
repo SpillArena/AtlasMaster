@@ -11,8 +11,19 @@
  * dit med overgangen som alltid har ligget der. Uten en peiling driver den
  * sakte rundt nord, slik en magnetnål gjør når ingenting drar i den.
  */
+import type { CSSProperties } from "react";
+
 type PirateCompassProps = {
-    size?: number;
+    /**
+     * Diameteren, som et tall i piksler eller en hvilken som helst CSS-lengde.
+     *
+     * Den var et rent tall før, skrevet rett inn i `width`/`height`. Da kunne
+     * instrumentet bare ha én størrelse om gangen, og landingssida valgte 168
+     * px uansett hvor lav skjermen var — på et bredt, lavt vindu la kompasset
+     * seg oppå Vest-Afrika. En streng slipper `clamp()` inn, og da er
+     * størrelsen skjermens og ikke komponentens.
+     */
+    size?: number | string;
     className?: string;
     /** 0-359, der 0 = nord. `null` = ingenting å peke på, nålen driver. */
     heading?: number | null;
@@ -80,10 +91,12 @@ export default function PirateCompass({
     /*
      * Hver tiende grad, ikke hver femte.
      *
-     * Instrumentet står 168 px bredt på landingssida. Strekbåndet er da rundt
-     * 56 px i radius, altså 350 px rundt: 72 streker ble én per 4,9 px, og
-     * båndet leste som en grå ring. 36 gir dobbelt så mye luft — man ser at
-     * det *er* streker.
+     * Instrumentet står mellom 96 og 168 px bredt på landingssida. Ved 168 px
+     * er strekbåndet rundt 56 px i radius, altså 350 px rundt: 72 streker ble
+     * én per 4,9 px, og båndet leste som en grå ring. 36 gir dobbelt så mye
+     * luft — man ser at det *er* streker. I den nedre enden av spennet er
+     * selv 36 streker tett, men da er båndet uansett et mønster og ikke noe
+     * man teller.
      */
     const degrees = Array.from({ length: 36 }, (_, i) => i * 10);
 
@@ -106,7 +119,15 @@ export default function PirateCompass({
     return (
         <div
             className={`pirate-compass ${className}`}
-            style={{ width: size, height: size }}
+            /*
+             * Størrelsen går inn som en egenskap, ikke som `width`/`height`.
+             * `.pirate-compass` leser den, og en beholderspørring i index.css
+             * leser den samme bredden én gang til for å forstørre
+             * himmelretningene når instrumentet blir lite. Skrev vi `width`
+             * her, ville en CSS-lengde som `clamp(...)` fortsatt virket, men
+             * stilarket hadde ikke hatt noe å spørre om.
+             */
+            style={{ "--compass-size": typeof size === "number" ? `${size}px` : size } as CSSProperties}
             aria-label={label}
             role="img"
         >
@@ -264,11 +285,13 @@ export default function PirateCompass({
                 </g>
 
                 {/*
-                  NØ/SØ/SV/NV og gradtallene stod her før. På 168 px kom de ut
-                  som henholdsvis 5 og 3,8 piksler — under det man kan lese,
-                  altså mønster og ikke tekst, oppå et bånd som allerede var
-                  fullt. Diamantene i rosen peker på mellomretningene; det er
-                  merket. Gradtallene hadde ingen å avløse, og er borte.
+                  NØ/SØ/SV/NV og gradtallene stod her før. Selv på det
+                  største instrumentet sida viser, 168 px, kom de ut som
+                  henholdsvis 5 og 3,8 piksler — under det man kan lese, altså
+                  mønster og ikke tekst, oppå et bånd som allerede var fullt.
+                  Nå krymper kompasset ned mot 96 px, og da ville de vært under
+                  tre piksler. Diamantene i rosen peker på mellomretningene;
+                  det er merket. Gradtallene hadde ingen å avløse, og er borte.
                 */}
                 <g>
                     {cardinals.map((item) => {

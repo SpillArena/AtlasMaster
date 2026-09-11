@@ -119,6 +119,11 @@
     "usCities": "Find America's biggest cities",
     "usRivers": "Learn America's great rivers",
     "usPeaks": "Learn America's highest peaks",
+    "africaCountries": "Learn all 54 countries",
+    "africaCapitals": "Find the capitals of Africa",
+    "africaRivers": "Learn Africa's great rivers",
+    "africaPeaks": "Learn Africa's highest peaks",
+    "africaFlags": "Match flags to countries in Africa",
     "worldCountries": "Learn every country on Earth",
     "worldFlags": "Match flags to countries worldwide"
   },
@@ -137,7 +142,8 @@
     "states": "States",
     "cities": "Cities",
     "worldCountries": "Countries",
-    "worldFlags": "Flags"
+    "worldFlags": "Flags",
+    "africaFlags": "Flags"
   },
   "mode": {
     "subtitle": "Choose game mode",
@@ -236,6 +242,7 @@
     "europe": "Europe",
     "asia": "Asia",
     "usa": "USA",
+    "africa": "Africa",
     "world": "World",
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",
