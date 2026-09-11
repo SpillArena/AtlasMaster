@@ -66,6 +66,11 @@ const CASES = [
     box: { minLon: 25, maxLon: 151, minLat: -12, maxLat: 59 },
   },
   {
+    region: 'Afrika',
+    file: 'src/data/africa/countries.json',
+    box: { minLon: -27, maxLon: 59, minLat: -37, maxLat: 39 },
+  },
+  {
     region: 'USA',
     file: 'src/data/usa/states.json',
     box: { minLon: -180, maxLon: -66, minLat: 18, maxLat: 72 },

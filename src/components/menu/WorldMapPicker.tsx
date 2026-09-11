@@ -35,6 +35,24 @@ const ASIA_IDS = new Set([
   626, 634, 643, 682, 704, 760, 762, 764, 784, 792, 795, 860, 887,
 ]);
 
+/*
+ * Afrika, med Vest-Sahara (732) på slutten.
+ *
+ * 732 er ikke et svar i noen kategori — området har ingen ubestridt stat å
+ * gjette på, og build-africa.mjs lar det stå utenfor datasettet. På
+ * landingssida er spørsmålet et annet: alt som ikke blir klassifisert her
+ * havner i «Verden» og får verdensfargen, og da hadde det ligget et gråblekt
+ * hull midt i Sahara mellom Marokko og Mauritania. Her er det altså kulisse,
+ * ikke svar — samme skille som `playable` gjør i verdensdatasettet.
+ */
+const AFRICA_IDS = new Set([
+  12, 24, 72, 108, 120, 132, 140, 148, 174, 178, 180, 204, 226, 231, 232, 262,
+  266, 270, 288, 324, 384, 404, 426, 430, 434, 450, 454, 466, 478, 480, 504,
+  508, 516, 562, 566, 624, 646, 678, 686, 690, 694, 706, 710, 716, 728, 729,
+  748, 768, 788, 800, 818, 834, 854, 894,
+  732,
+]);
+
 interface RegionSkin {
   id: string;
   labelKey: string;
@@ -81,6 +99,21 @@ const REGION_SKINS: RegionSkin[] = [
     color: "#c39a3f",
     match: (c) => ASIA_IDS.has(c),
     anchor: [92, 44],
+  },
+  // Egypt (818) ligger verken i EUROPE_IDS eller ASIA_IDS, så Afrika kan stå
+  // hvor som helst i lista uten å ta et land fra noen. Plassen her, etter
+  // Asia, holder oppgjøret om Russland og Norge nøyaktig som det var.
+  {
+    id: "africa",
+    labelKey: "region.africa",
+    // olivengrønn, ikke enda en brun. USA er terrakotta og Asia er okergul;
+    // et tredje jordfarget felt mellom dem var ikke til å skille fra hverandre
+    // i prikkene under kartet, der de tre står ved siden av hverandre.
+    color: "#7f8f55",
+    match: (c) => AFRICA_IDS.has(c),
+    // Sentral-Afrika, nord for Kongobassenget: kontinentet er bredest her, og
+    // navnet får luft på begge sider uten å legge seg over Guineabukta.
+    anchor: [20, 2],
   },
   // sør for Østersjøen, klar av både Norge-etiketten og det russiske feltet
   {
@@ -352,9 +385,28 @@ export function WorldMapPicker({ onPick }: Props) {
           <PaperRifts className="z-[5] opacity-40 dark:opacity-50" />
         </motion.div>
 
-        <div className="pointer-events-none absolute bottom-6 left-8 z-10 hidden sm:block">
+        {/*
+          Kompasset er målt etter skjermen, ikke etter seg selv.
+          `vmin` er den minste av de to sidene i vinduet, så et lavt og bredt
+          vindu krymper instrumentet like mye som et smalt gjør. Det var
+          nettopp den ene retningen som manglet: platen under følger høyden,
+          og på en bærbar med lite vindushøyde la et fast 168 px kompass seg
+          oppå Vest-Afrika.
+
+          16 %, ikke 13: på en vanlig bærbar er den minste siden rundt 950 px,
+          og 13 % av den ga 123 px — tretti piksler mindre enn instrumentet
+          trenger for å lese som et instrument, på en skjerm som hadde god
+          plass. 16 % holder det nær taket der det er rom, og drar det ned mot
+          gulvet først når vinduet faktisk er trangt.
+
+          Med et gulv på 96 px får telefonen det også. Det stod `hidden
+          sm:block` her før, fordi instrumentet i full størrelse dekket halve
+          kartet på en liten skjerm — men et kompass man aldri ser er ikke et
+          kompass, og ved 96 px er det et hjørnemerke og ikke et lokk.
+        */}
+        <div className="pointer-events-none absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-8">
           <PirateCompass
-            size={168}
+            size="clamp(96px, 16vmin, 168px)"
             heading={heading}
             label={t("region.title")}
             className="drop-shadow-lg"

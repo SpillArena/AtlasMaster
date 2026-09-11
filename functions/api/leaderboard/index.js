@@ -54,6 +54,15 @@ const REGION_CATEGORIES = {
     asiaPeaks: MAP_MODES,
   },
   usa: { usStates: MAP_MODES, usCities: MAP_MODES, usRivers: MAP_MODES, usPeaks: MAP_MODES },
+  africa: {
+    africaCountries: MAP_MODES,
+    africaCapitals: MAP_MODES,
+    africaRivers: MAP_MODES,
+    africaPeaks: MAP_MODES,
+    // som worldFlags: kategorien setter `modes` i regions.ts og kan bare
+    // spilles i flaggmodus — se notatet over
+    africaFlags: FLAG_MODES,
+  },
   world: { worldCountries: MAP_MODES, worldFlags: FLAG_MODES },
 }
 

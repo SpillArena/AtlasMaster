@@ -58,6 +58,7 @@ const FILES = [
   'src/data/norway/counties.json',
   'src/data/europe/countries.json',
   'src/data/asia/countries.json',
+  'src/data/africa/countries.json',
   'src/data/usa/states.json',
   'src/data/world/countries.json',
 ]
