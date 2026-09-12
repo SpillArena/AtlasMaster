@@ -16,6 +16,8 @@ export const PREFERENCE_KEYS = [
   'playerName',
   'leaderboard',
   'progress',
+  // hvilken konto profilen sist tilhørte — se adoptRemoteProgress i game/progress.ts
+  'progressOwner',
   // innloggingsteiknet — med i lista så «slett mine data» faktisk logger ut
   'auth',
 ] as const
