@@ -34,7 +34,7 @@ interface Props {
 export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
   const { t } = useTranslation()
   const session = getSession()
-  const [mode, setMode] = useState<AuthAction>(session ? 'login' : 'register')
+  const [mode, setMode] = useState<AuthAction>('login')
   const [name, setNameValue] = useState(() => session?.username ?? getName())
   const [pin, setPin] = useState('')
   const [busy, setBusy] = useState(false)

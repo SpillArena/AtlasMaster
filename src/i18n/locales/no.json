@@ -260,7 +260,7 @@
     "register": "Opprett",
     "guest": "Spill uten konto",
     "haveAccount": "Jeg har et navn fra før",
-    "needAccount": "Jeg trenger et navn",
+    "needAccount": "Jeg har ikke et navn fra før",
     "pinPlaceholder": "PIN",
     "pinHint": "4 til 6 siffer. Fem feil stenger navnet i et kvarter.",
     "errors": {
@@ -270,7 +270,7 @@
       "bad_username": "Bruk bokstaver, tall, mellomrom, punktum, bindestrek eller apostrof.",
       "bad_pin": "PIN-en må være 4 til 6 siffer.",
       "name_taken": "Navnet er tatt. Logg inn om det er ditt.",
-      "bad_credentials": "Feil navn eller PIN.",
+      "bad_credentials": "Feil navn eller PIN. Har du ikke registrert deg ennå? Trykk «Jeg har ikke et navn fra før».",
       "locked": "For mange forsøk. Vent et kvarter og prøv igjen.",
       "service_failed": "Kontotjenesten har en dårlig dag. Prøv igjen om litt.",
       "unreachable": "Ikke noe svar fra tjeneren. Du kan fortsatt spille uten konto.",

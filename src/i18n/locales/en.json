@@ -260,7 +260,7 @@
     "register": "Create",
     "guest": "Play without an account",
     "haveAccount": "I already have a name",
-    "needAccount": "I need a name",
+    "needAccount": "I do not have a name from before",
     "pinPlaceholder": "PIN",
     "pinHint": "4 to 6 digits. Five wrong tries locks the name for fifteen minutes.",
     "errors": {
@@ -270,7 +270,7 @@
       "bad_username": "Use letters, numbers, spaces, dots, dashes or apostrophes.",
       "bad_pin": "The PIN must be 4 to 6 digits.",
       "name_taken": "That name is taken. Sign in if it is yours.",
-      "bad_credentials": "Wrong name or PIN.",
+      "bad_credentials": "Wrong name or PIN. Haven't registered yet? Tap \"I do not have a name from before\".",
       "locked": "Too many tries. Wait fifteen minutes and try again.",
       "service_failed": "The account service is having a bad day. Try again shortly.",
       "unreachable": "No answer from the server. You can still play without an account.",
