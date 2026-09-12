@@ -25,6 +25,10 @@ import {
   onRequestPost as authPost,
   verifyToken,
 } from '../functions/api/auth/index.js'
+import {
+  onRequestGet as profileGet,
+  onRequestPost as profilePost,
+} from '../functions/api/profile/index.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const db = new DatabaseSync(':memory:')
@@ -90,6 +94,7 @@ runSql('0004_leaderboard_pace_index.sql')
 
 // --- 0005: kontoer ---
 runSql('0005_create_players.sql')
+runSql('0006_create_player_progress.sql')
 
 check(
   'rader fra før modusverdiene blir merket som versjon 1',
@@ -422,6 +427,118 @@ check(
   null,
 )
 check('et tegn uten signatur blir forkastet', await verifyToken(SECRET, 'bare-tekst'), null)
+
+/*
+ * Profilen: XP, rekorder og statistikk, speilet til kontoen.
+ *
+ * Samme mønster som kontotestene over — det ekte endepunktet, kjørt mot en
+ * ekte SQLite-tabell, med `token` fra registreringen av «Kartleser» lenger
+ * opp.
+ */
+const callProfile = async (method, body, bearer = token, env = authEnv) => {
+  const request = new Request('https://example.test/api/profile', {
+    method,
+    headers: {
+      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  })
+  const response =
+    method === 'GET' ? await profileGet({ env, request }) : await profilePost({ env, request })
+  return { status: response.status, body: await response.json() }
+}
+
+const emptyProgress = {
+  xp: 0,
+  plays: 0,
+  best: {},
+  stats: {
+    bestStreak: 0,
+    flawless: 0,
+    topRanks: 0,
+    totalCorrect: 0,
+    totalMistakes: 0,
+    byRegion: {},
+    byMode: {},
+    byPace: {},
+    categoriesPlayed: [],
+  },
+}
+
+check(
+  'ingen profil lagret enda gir null, ikke en feil',
+  (await callProfile('GET', null)).body,
+  { progress: null, updatedAt: null },
+)
+
+check('uten tegn blir GET avvist', (await callProfile('GET', null, null)).status, 401)
+check(
+  'uten tegn blir POST avvist',
+  (await callProfile('POST', emptyProgress, null)).status,
+  401,
+)
+
+const played = {
+  ...emptyProgress,
+  xp: 620,
+  plays: 3,
+  best: { 'europe:countries:click': 5000 },
+  stats: {
+    ...emptyProgress.stats,
+    bestStreak: 12,
+    totalCorrect: 39,
+    byRegion: { europe: 3 },
+    categoriesPlayed: ['europe:countries'],
+  },
+}
+
+const saved = await callProfile('POST', played)
+check('lagring lykkes', saved.status, 200)
+check('lagringssvaret bærer et tidsstempel', typeof saved.body.updatedAt, 'string')
+
+const fetched = await callProfile('GET', null)
+check('det lagrede kommer tilbake uendret', fetched.body.progress, played)
+
+const updated = { ...played, xp: 900, plays: 4 }
+await callProfile('POST', updated)
+check(
+  'en ny lagring erstatter den forrige, ikke en ny rad ved siden av',
+  (await callProfile('GET', null)).body.progress.xp,
+  900,
+)
+
+check(
+  'negativ XP blir avvist',
+  (await callProfile('POST', { ...played, xp: -1 })).body.error,
+  'Invalid xp',
+)
+check(
+  'best som ikke er et objekt blir avvist',
+  (await callProfile('POST', { ...played, best: 'ikke et objekt' })).body.error,
+  'Invalid best',
+)
+check(
+  'en manglende stats-blokk blir avvist',
+  (await callProfile('POST', { ...played, stats: undefined })).body.error,
+  'Invalid stats',
+)
+check(
+  'categoriesPlayed må være en liste med strenger',
+  (
+    await callProfile('POST', {
+      ...played,
+      stats: { ...played.stats, categoriesPlayed: [{ not: 'a string' }] },
+    })
+  ).body.error,
+  'Invalid stats.categoriesPlayed',
+)
+
+check(
+  'uten nøkkel svarer profilen også at den ikke er satt opp',
+  (await callProfile('GET', null, token, { DB: d1 })).status,
+  503,
+)
 
 console.log(failures === 0 ? '\nAlle sjekker gikk gjennom.' : `\n${failures} sjekk(er) feilet.`)
 process.exit(failures === 0 ? 0 : 1)

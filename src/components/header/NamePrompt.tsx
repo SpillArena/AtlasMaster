@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { getName, setName } from '../../game/leaderboard'
 import { authenticate, getSession, signOut, type AuthAction } from '../../game/auth'
+import { syncProgress } from '../../game/profileSync'
 import { Icon } from '../Icon'
 import { Button } from '../ui'
 
@@ -49,6 +50,9 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
     const result = await authenticate(mode, trimmed, pin)
     setBusy(false)
     if (result.ok) {
+      // henter kontoens profil og smelter den inn i enhetens — se
+      // game/profileSync.ts. Kjøres uavhengig av skjermen som lukkes under.
+      void syncProgress()
       onConfirm()
       return
     }

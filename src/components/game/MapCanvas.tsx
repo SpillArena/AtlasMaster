@@ -658,7 +658,7 @@ const SmallMarkers = memo(function SmallMarkers({
   if (!targets.length) return null
 
   /**
-   * Siktepunktet: 3,5 px, uansett zoom og uansett hvor stort landet er.
+   * Siktepunktet: 3 px, uansett zoom og uansett hvor stort landet er.
    *
    * Det fulgte størrelsen på flata før — `max(size / 2, dot)` — og det var
    * feil for alle unntatt de aller minste. Slovenia og Albania er så vidt
@@ -666,7 +666,20 @@ const SmallMarkers = memo(function SmallMarkers({
    * som et fylt felt: formen man skulle kjenne igjen forsvant under sitt eget
    * merke. Et siktepunkt skal peke på landet, ikke erstatte det.
    */
-  const dot = (3.5 * unitsPerPx) / k
+  const dot = (3 * unitsPerPx) / k
+
+  /*
+   * Glorien tegnes mindre enn treffflata den varsler om, ikke like stor.
+   *
+   * `rHit` er selve trykkmålet — fingertuppen, eller mindre der to småland
+   * ligger tett — og den skal ikke krympe: det var jo den som gjorde
+   * mikrostatene treffbare i utgangspunktet. Men tegnet på skjermen fylte
+   * hele den flata, og ved siden av naboland på normal størrelse leste det
+   * som en tåkedott og ikke som et merke. 0,8 holder sirkelen tydelig mindre
+   * enn seg selv-som-treffflate, mens treffet fortsatt dekker akkurat det den
+   * alltid har gjort.
+   */
+  const haloScale = 0.8
 
   return (
     <g pointerEvents="none">
@@ -675,11 +688,11 @@ const SmallMarkers = memo(function SmallMarkers({
         const color = MARKER_COLOR[state]
         return (
           <g key={`mark-${p.id}`} className={state === 'target' ? 'animate-breathe' : undefined}>
-            {/* glorien: like stor som trykkmålet, svak nok til å ikke tegne et land der det ikke er noe */}
+            {/* glorien: mindre enn trykkmålet, svak nok til å ikke tegne et land der det ikke er noe */}
             <circle
               cx={p.cx}
               cy={p.cy}
-              r={p.rHit}
+              r={p.rHit * haloScale}
               fill="color-mix(in srgb, var(--ink) 8%, transparent)"
             />
             <circle
@@ -867,6 +880,9 @@ const PointLayer = memo(function PointLayer({
     [status, onPick],
   )
 
+  /** fingertuppen i lerretsenheter — se samme mål i measureSmall */
+  const reach = (HIT_PX * unitsPerPx) / k
+
   return (
     <g onClick={live ? handleClick : undefined}>
       {points.map(({ id, x, y, gap }) => {
@@ -874,7 +890,7 @@ const PointLayer = memo(function PointLayer({
         const r = (state === 'target' ? 6 : 5) / k
         // treffflata vokser aldri forbi halve naboavstanden, og krymper med
         // zoomen slik at den holder samme størrelse på skjermen
-        const rHit = Math.max(r, Math.min((HIT_PX * unitsPerPx) / k, gap))
+        const rHit = Math.max(r, Math.min(reach, gap))
         return (
           <PointMark
             key={id}
@@ -883,6 +899,9 @@ const PointLayer = memo(function PointLayer({
             y={y}
             r={r}
             rHit={rHit}
+            // trengte nabolaget å klype av treffflata? da er det ikke opplagt
+            // hvor Luxembourg slutter og Brussel begynner, og glorien viser det
+            crowded={gap < reach}
             state={state}
             live={live}
             k={k}
@@ -899,6 +918,7 @@ const PointMark = memo(function PointMark({
   y,
   r,
   rHit,
+  crowded,
   state,
   live,
   k,
@@ -908,6 +928,8 @@ const PointMark = memo(function PointMark({
   y: number
   r: number
   rHit: number
+  /** nabopunktet lå nærmere enn fingertuppen ønsket seg — treffflata måtte gi etter */
+  crowded: boolean
   state: ShapeState
   live: boolean
   k: number
@@ -916,6 +938,23 @@ const PointMark = memo(function PointMark({
 
   return (
     <g>
+      {/*
+        Glorien til et punkt med trang plass — Beneluxs hovedsteder, øystatene
+        i Stillehavet på verdenskartet. Selve prikken er alltid like liten
+        uansett hvor tett byene ligger; det er bare når fingertuppen faktisk
+        må vike for naboen at treffet blir mindre enn det pleier, og da er
+        det verdt å vise hvor grensa mellom de to gikk. Samme glorie som
+        mikrostatene på flatelaget — se SmallMarkers over.
+      */}
+      {crowded && (
+        <circle
+          cx={x}
+          cy={y}
+          r={rHit * 0.8}
+          fill="color-mix(in srgb, var(--ink) 8%, transparent)"
+          pointerEvents="none"
+        />
+      )}
       {/*
         Ringen rundt det aktive målet puster med ren CSS. Den var en
         framer-motion-animasjon som skrev en ny `r` seksti ganger i

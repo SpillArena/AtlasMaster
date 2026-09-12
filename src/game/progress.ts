@@ -258,3 +258,88 @@ function newlyEarned(before: Progress, after: Progress): string[] {
 export function forgetProgress(): void {
   session = null
 }
+
+const OWNER_KEY = 'progressOwner'
+
+/**
+ * Hvilken konto den lokale profilen sist ble synkronisert mot — `null` for en
+ * profil som enten er gjestespilt eller aldri har møtt en konto.
+ *
+ * Dette er IKKE det samme som å være innlogget nå. Det er et spor etter SIST
+ * gang enheten snakket med en konto, og det eneste stedet det brukes er
+ * `adoptRemoteProgress` under: uten det ville et kontobytte på samme enhet
+ * limt den forrige spillerens statistikk inn i den neste sin. Se
+ * game/profileSync.ts for hele historien.
+ */
+export function getProgressOwner(): string | null {
+  return readPreference(OWNER_KEY) || null
+}
+
+function setProgressOwner(username: string): void {
+  writePreference(OWNER_KEY, username)
+}
+
+/**
+ * Smelter to profiler sammen uten å la noen av dem tape noe.
+ *
+ * Alt i `Stats` er en sum eller en telling som bare vokser (se kommentaren på
+ * typen) — det samme gjelder XP, antall runder og hver personlige rekord i
+ * `best`. Å ta det høyeste av hvert par, felt for felt, er derfor både trygt
+ * og idempotent: et kall som kommer for sent, eller to ganger, gjør aldri
+ * profilen dårligere enn den var. Det er nøyaktig samme idé som
+ * `migrateBestKeys` bruker på én record allerede — her gjelder den hele
+ * profilen.
+ */
+export function mergeProgress(a: Progress, b: Progress): Progress {
+  return {
+    xp: Math.max(a.xp, b.xp),
+    plays: Math.max(a.plays, b.plays),
+    best: mergeCounts(a.best, b.best),
+    stats: {
+      bestStreak: Math.max(a.stats.bestStreak, b.stats.bestStreak),
+      flawless: Math.max(a.stats.flawless, b.stats.flawless),
+      topRanks: Math.max(a.stats.topRanks, b.stats.topRanks),
+      totalCorrect: Math.max(a.stats.totalCorrect, b.stats.totalCorrect),
+      totalMistakes: Math.max(a.stats.totalMistakes, b.stats.totalMistakes),
+      byRegion: mergeCounts(a.stats.byRegion, b.stats.byRegion),
+      byMode: mergeCounts(a.stats.byMode, b.stats.byMode),
+      byPace: mergeCounts(a.stats.byPace, b.stats.byPace),
+      categoriesPlayed: Array.from(
+        new Set([...a.stats.categoriesPlayed, ...b.stats.categoriesPlayed]),
+      ),
+    },
+  }
+}
+
+function mergeCounts(
+  a: Record<string, number>,
+  b: Record<string, number>,
+): Record<string, number> {
+  const out: Record<string, number> = { ...a }
+  for (const [key, value] of Object.entries(b)) {
+    out[key] = Math.max(out[key] ?? 0, value)
+  }
+  return out
+}
+
+/**
+ * Tar imot det kontoen har liggende, og gjør opp med hvem enhetens profil
+ * faktisk tilhører før den smeltes inn.
+ *
+ * Samme konto (eller ingen kjent eier — en gjest som nettopp logget inn eller
+ * registrerte seg): den lokale profilen er fortsatt spillerens egen, og
+ * smeltes sammen med kontoens som vanlig — se `mergeProgress`.
+ *
+ * En ANNEN konto satt sist: enheten sin profil hørte til noen andre, og skal
+ * ikke bli en gratis gave til den som nettopp logget inn her. Den nye kontoen
+ * starter fra sitt eget, tomme utgangspunkt i stedet — akkurat som om
+ * enheten var blank.
+ */
+export function adoptRemoteProgress(username: string, remote: Progress | null): Progress {
+  const owner = getProgressOwner()
+  const local = owner === null || owner === username ? getProgress() : EMPTY
+  const merged = remote ? mergeProgress(local, remote) : local
+  save(merged)
+  setProgressOwner(username)
+  return merged
+}

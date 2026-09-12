@@ -1,4 +1,5 @@
 import { getSession, signOut } from './auth'
+import { callApi, type ApiResult } from './apiClient'
 import type { Entry } from './leaderboard'
 import type { Mode, Pace } from './types'
 
@@ -7,10 +8,9 @@ import type { Mode, Pace } from './types'
  *
  * Alt her feiler stille: uten nett, uten API eller med en treg server faller
  * spillet tilbake på den lokale tavla. En runde skal aldri gå tapt fordi
- * skyen ikke svarte.
+ * skyen ikke svarte. Selve oppslaget — stiene, tidsavbruddet, skillet mellom
+ * død tjener og avvist kall — er delt med profilen i apiClient.ts.
  */
-
-const TIMEOUT_MS = 6000
 
 /** Pages Functions ligger under samme prefiks som appen; rot er reserven. */
 const API_PATHS = [`${import.meta.env.BASE_URL}api/leaderboard`, '/api/leaderboard']
@@ -53,51 +53,6 @@ export function toEntry(cloud: CloudEntry): Entry {
   }
 }
 
-async function request(path: string, init?: RequestInit): Promise<Response> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-  try {
-    return await fetch(path, { ...init, signal: controller.signal })
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
-/**
- * Hva et kall endte med.
- *
- * Skillet mellom «serveren svarte ikke» og «serveren sa nei» fantes ikke før:
- * begge ble til `null`. En avvist innsending og en død server så identiske ut,
- * og tavla viste «ingen resultater enda» når D1 svarte med en femhundre.
- * Spilleren fikk vite at det ikke var noe der, i stedet for at vi ikke fikk
- * sett etter.
- */
-export type ApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; reason: 'unreachable' }
-  | { ok: false; reason: 'rejected'; status: number; message?: string }
-
-/**
- * Prøver hver kjente API-sti til én svarer. 404 betyr «feil sti», så da går
- * vi videre til neste; andre feil er tjenestens eget svar.
- */
-async function callApi<T>(query: string, init?: RequestInit): Promise<ApiResult<T>> {
-  for (const base of API_PATHS) {
-    try {
-      const response = await request(`${base}${query}`, init)
-      if (response.status === 404) continue
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as { error?: string } | null
-        return { ok: false, reason: 'rejected', status: response.status, message: body?.error }
-      }
-      return { ok: true, data: (await response.json()) as T }
-    } catch {
-      continue
-    }
-  }
-  return { ok: false, reason: 'unreachable' }
-}
-
 export interface BoardQuery {
   regionId?: string
   categoryId?: string
@@ -125,7 +80,7 @@ export async function fetchGlobalEntries(
   if (mode && mode !== 'all') params.set('mode', mode)
   if (pace && pace !== 'all') params.set('pace', pace)
 
-  const result = await callApi<{ entries?: CloudEntry[] }>(`?${params}`)
+  const result = await callApi<{ entries?: CloudEntry[] }>(API_PATHS, `?${params}`)
   if (!result.ok) return result
   return { ok: true, data: (result.data.entries ?? []).map(toEntry) }
 }
@@ -156,7 +111,7 @@ export async function submitScore(
   const session = getSession()
   if (!session) return { ok: false, reason: 'rejected', status: 401, message: 'Not signed in' }
 
-  const result = await callApi<{ rank?: number | null }>('', {
+  const result = await callApi<{ rank?: number | null }>(API_PATHS, '', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

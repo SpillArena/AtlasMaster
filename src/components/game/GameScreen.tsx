@@ -18,6 +18,7 @@ import { recordRun, type RunResult } from '../../game/progress'
 import { SCORING_VERSION } from '../../game/scoring'
 import { playSfx } from '../../game/sfx'
 import { submitScore } from '../../game/scoreApi'
+import { pushProgress } from '../../game/profileSync'
 import { rankFor } from '../../game/rank'
 import type { CloudOutcome } from './ResultScreen'
 import { useCookieConsent } from '../../contexts/useCookieConsent'
@@ -259,6 +260,10 @@ function Game({
         }),
       }),
     )
+    // kontoen får den ferske profilen — se game/profileSync.ts. Egen
+    // gate på samtykke og innlogging ligger inni funksjonen selv, samme sted
+    // som den henter/skyver alt annet mot kontoen.
+    pushProgress()
     onRunRecorded()
     // kjøres kun ved overgang til 'finished'
     // eslint-disable-next-line react-hooks/exhaustive-deps

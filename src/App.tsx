@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MotionConfig, motion as fm } from 'framer-motion'
 import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
@@ -11,6 +11,7 @@ import { BackgroundMap } from './components/BackgroundMap'
 import { useGameSettings } from './contexts/useGameSettings'
 import { DEFAULT_REGION_ID, getCategory, getRegion } from './game/regions'
 import { getName } from './game/leaderboard'
+import { syncProgress } from './game/profileSync'
 import type { Mode, Pace } from './game/types'
 
 function App() {
@@ -31,6 +32,15 @@ function App() {
   const [confirmGiveUp, setConfirmGiveUp] = useState(false)
   // teller opp når en runde er lagret, så header og ledertavle leses på nytt
   const [profileVersion, setProfileVersion] = useState(0)
+
+  /*
+   * Ved oppstart: er økten fra sist fortsatt gyldig, hent kontoens profil og
+   * smelt den inn i det enheten alt har liggende. Trygt å kjøre hver gang
+   * appen laster — se mergeProgress i game/progress.ts for hvorfor.
+   */
+  useEffect(() => {
+    void syncProgress()
+  }, [])
 
   const reset = () => {
     setRegionId(null)
