@@ -63,6 +63,13 @@ const REGION_CATEGORIES = {
     // spilles i flaggmodus — se notatet over
     africaFlags: FLAG_MODES,
   },
+  southAmerica: {
+    southAmericaCountries: MAP_MODES,
+    southAmericaCapitals: MAP_MODES,
+    southAmericaRivers: MAP_MODES,
+    southAmericaPeaks: MAP_MODES,
+    southAmericaFlags: FLAG_MODES,
+  },
   world: { worldCountries: MAP_MODES, worldFlags: FLAG_MODES },
 }
 

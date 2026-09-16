@@ -52,6 +52,9 @@ const AFRICA_IDS = new Set([
   748, 768, 788, 800, 818, 834, 854, 894,
   732,
 ]);
+const SOUTH_AMERICA_IDS = new Set([
+  32, 68, 76, 152, 170, 218, 328, 600, 604, 740, 858, 862,
+]);
 
 interface RegionSkin {
   id: string;
@@ -115,6 +118,16 @@ const REGION_SKINS: RegionSkin[] = [
     // navnet får luft på begge sider uten å legge seg over Guineabukta.
     anchor: [20, 2],
   },
+  {
+    id: "southAmerica",
+    labelKey: "region.southAmerica",
+    // stålblå, ikke enda en jordfarge: Norge er den eneste andre kalde
+    // tonen på kartet, og ligger på motsatt kant — ingen forveksling der.
+    color: "#4d6f9e",
+    match: (c) => SOUTH_AMERICA_IDS.has(c),
+    // Brasils innland, sør for Amazonas — kontinentet er bredest her.
+    anchor: [-58, -12],
+  },
   // sør for Østersjøen, klar av både Norge-etiketten og det russiske feltet
   {
     id: "europe",
@@ -125,14 +138,40 @@ const REGION_SKINS: RegionSkin[] = [
   },
 ];
 
-function classify(code: number): string {
+/**
+ * Fransk Guyana — en ring i Frankrikes MultiPolygon, med Frankrikes ID (250),
+ * men liggende i Sør-Amerika, ikke Europa. `classify` går på landkode, og en
+ * hel feature får én farge; uten dette unntaket ville ringen arvet Europas
+ * farge fra resten av moderlandet. Boksen dekker bare Fransk Guyana, ikke
+ * Frankrikes andre oversjøiske ringer (Réunion, Guadeloupe, Martinique) —
+ * de har ingen spillbar region å høre til og forblir «Verden».
+ */
+const FRENCH_GUIANA_BOX = { minLon: -55, maxLon: -51, minLat: 1, maxLat: 6 };
+
+function classify(code: number, centre?: [number, number]): string {
+  if (code === 250 && centre && inBox(centre, FRENCH_GUIANA_BOX)) return "southAmerica";
   for (const skin of REGION_SKINS) if (skin.match(code)) return skin.id;
   return "world";
+}
+
+function inBox([lon, lat]: [number, number], box: typeof FRENCH_GUIANA_BOX): boolean {
+  return lon >= box.minLon && lon <= box.maxLon && lat >= box.minLat && lat <= box.maxLat;
 }
 
 function codeOf(f: Feature): number {
   const raw = (f.properties as { id?: string | number } | null)?.id ?? f.id;
   return Number(raw);
+}
+
+/** Midtpunktet i en ring — brukt til å avgjøre hvilken side av et unntak den hører til. */
+function ringCentre(ring: number[][]): [number, number] {
+  let lon = 0;
+  let lat = 0;
+  for (const [x, y] of ring) {
+    lon += x;
+    lat += y;
+  }
+  return [lon / ring.length, lat / ring.length];
 }
 
 interface Shape {
@@ -178,9 +217,22 @@ export function WorldMapPicker({ onPick }: Props) {
 
     const shapes: Shape[] = [];
     for (const f of data.features) {
+      const code = codeOf(f);
+      // Frankrike er det eneste landet med en oversjøisk ring i en annen
+      // spillbar region enn moderlandet — se FRENCH_GUIANA_BOX. Bare
+      // MultiPolygon-features splittes per polygon; alle andre tegnes som
+      // én sammenhengende sti, som før.
+      if (code === 250 && f.geometry.type === "MultiPolygon") {
+        for (const polygon of f.geometry.coordinates) {
+          const d = path({ type: "Polygon", coordinates: polygon });
+          if (!d) continue;
+          shapes.push({ d, region: classify(code, ringCentre(polygon[0])) });
+        }
+        continue;
+      }
       const d = path(f.geometry);
       if (!d) continue;
-      shapes.push({ d, region: classify(codeOf(f)) });
+      shapes.push({ d, region: classify(code) });
     }
 
     const labels: Record<string, [number, number]> = {};

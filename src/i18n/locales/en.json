@@ -124,6 +124,11 @@
     "africaRivers": "Learn Africa's great rivers",
     "africaPeaks": "Learn Africa's highest peaks",
     "africaFlags": "Match flags to countries in Africa",
+    "southAmericaCountries": "Learn all 12 countries",
+    "southAmericaCapitals": "Find the capitals of South America",
+    "southAmericaRivers": "Learn South America's great rivers",
+    "southAmericaPeaks": "Learn South America's highest peaks",
+    "southAmericaFlags": "Match flags to countries in South America",
     "worldCountries": "Learn every country on Earth",
     "worldFlags": "Match flags to countries worldwide"
   },
@@ -143,7 +148,8 @@
     "cities": "Cities",
     "worldCountries": "Countries",
     "worldFlags": "Flags",
-    "africaFlags": "Flags"
+    "africaFlags": "Flags",
+    "southAmericaFlags": "Flags"
   },
   "mode": {
     "subtitle": "Choose game mode",
@@ -233,8 +239,7 @@
     "label": "Footer",
     "tagline": "A geography map game, one region at a time. Built for Spillarena.",
     "github": "View on GitHub",
-    "madeBy": "Made by",
-    "updated": "Last updated: {{month}} {{year}}"
+    "madeBy": "Made by"
   },
   "region": {
     "title": "Choose a region",
@@ -243,6 +248,7 @@
     "asia": "Asia",
     "usa": "USA",
     "africa": "Africa",
+    "southAmerica": "South America",
     "world": "World",
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",

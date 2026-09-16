@@ -2,18 +2,12 @@ import { useTranslation } from 'react-i18next'
 import { FiGithub } from 'react-icons/fi'
 import { Icon } from '../Icon'
 
-// Måned er 0-indeksert, som i Date
-const LAST_UPDATED_MONTH_INDEX = 7
-const LAST_UPDATED_YEAR = 2026
-
 /**
  * Kolofonen: siste siden i feltboka. En tynn messinglinje, kompasset, og hvem
  * som tegnet kartet — som i et trykt atlas.
  */
 export function FooterSection() {
-  const { t, i18n } = useTranslation()
-  const lastUpdated = new Date(LAST_UPDATED_YEAR, LAST_UPDATED_MONTH_INDEX, 1)
-  const monthName = new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(lastUpdated)
+  const { t } = useTranslation()
 
   return (
     <footer
@@ -42,10 +36,6 @@ export function FooterSection() {
         >
           Emil Berglund
         </a>
-        <span className="mx-2" style={{ color: 'var(--text-subtle)' }} aria-hidden="true">
-          ·
-        </span>
-        <span>{t('footer.updated', { month: monthName, year: LAST_UPDATED_YEAR })}</span>
       </p>
 
       <a
