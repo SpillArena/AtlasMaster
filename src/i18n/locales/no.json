@@ -124,6 +124,11 @@
     "africaRivers": "Lær Afrikas store elver",
     "africaPeaks": "Lær Afrikas høyeste topper",
     "africaFlags": "Koble flagg til land i Afrika",
+    "southAmericaCountries": "Lær alle de 12 landene",
+    "southAmericaCapitals": "Finn Sør-Amerikas hovedsteder",
+    "southAmericaRivers": "Lær Sør-Amerikas store elver",
+    "southAmericaPeaks": "Lær Sør-Amerikas høyeste topper",
+    "southAmericaFlags": "Koble flagg til land i Sør-Amerika",
     "worldCountries": "Lær alle land i verden",
     "worldFlags": "Koble flagg til land i hele verden"
   },
@@ -143,7 +148,8 @@
     "cities": "Storbyer",
     "worldCountries": "Land",
     "worldFlags": "Flagg",
-    "africaFlags": "Flagg"
+    "africaFlags": "Flagg",
+    "southAmericaFlags": "Flagg"
   },
   "mode": {
     "subtitle": "Velg spillmodus",
@@ -233,8 +239,7 @@
     "label": "Bunntekst",
     "tagline": "Et kartspill om geografi, én region om gangen. Laget for Spillarena.",
     "github": "Se på GitHub",
-    "madeBy": "Laget av",
-    "updated": "Sist oppdatert: {{month}} {{year}}"
+    "madeBy": "Laget av"
   },
   "region": {
     "title": "Velg region",
@@ -243,6 +248,7 @@
     "asia": "Asia",
     "usa": "USA",
     "africa": "Afrika",
+    "southAmerica": "Sør-Amerika",
     "world": "Verden",
     "count": "{{count}} kategorier",
     "plate": "Plate {{n}}",

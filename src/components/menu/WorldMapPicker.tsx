@@ -15,6 +15,15 @@ interface Props {
 }
 
 const W = 960;
+/**
+ * Blank papirmarg over og under selve kartet, i samme skala som `W`.
+ *
+ * Et rammet kart har luft mot kanten av arket — uten den flyter Alaska og
+ * Ildlandet helt ut til `.torn`-kanten. Legges til på begge sider av
+ * `built.height`, aldri inn i det: ingen land klippes bort, de får bare
+ * mindre plass å dele på i samme plate.
+ */
+const MARGIN = 28;
 
 /** Verdenskartet tegnes alltid i Natural Earth, uansett hvilken region du ender i. */
 const WORLD_PROJECTION: ProjectionSpec = { kind: "naturalEarth" };
@@ -51,6 +60,9 @@ const AFRICA_IDS = new Set([
   508, 516, 562, 566, 624, 646, 678, 686, 690, 694, 706, 710, 716, 728, 729,
   748, 768, 788, 800, 818, 834, 854, 894,
   732,
+]);
+const SOUTH_AMERICA_IDS = new Set([
+  32, 68, 76, 152, 170, 218, 328, 600, 604, 740, 858, 862,
 ]);
 
 interface RegionSkin {
@@ -115,6 +127,16 @@ const REGION_SKINS: RegionSkin[] = [
     // navnet får luft på begge sider uten å legge seg over Guineabukta.
     anchor: [20, 2],
   },
+  {
+    id: "southAmerica",
+    labelKey: "region.southAmerica",
+    // stålblå, ikke enda en jordfarge: Norge er den eneste andre kalde
+    // tonen på kartet, og ligger på motsatt kant — ingen forveksling der.
+    color: "#4d6f9e",
+    match: (c) => SOUTH_AMERICA_IDS.has(c),
+    // Brasils innland, sør for Amazonas — kontinentet er bredest her.
+    anchor: [-58, -12],
+  },
   // sør for Østersjøen, klar av både Norge-etiketten og det russiske feltet
   {
     id: "europe",
@@ -125,14 +147,40 @@ const REGION_SKINS: RegionSkin[] = [
   },
 ];
 
-function classify(code: number): string {
+/**
+ * Fransk Guyana — en ring i Frankrikes MultiPolygon, med Frankrikes ID (250),
+ * men liggende i Sør-Amerika, ikke Europa. `classify` går på landkode, og en
+ * hel feature får én farge; uten dette unntaket ville ringen arvet Europas
+ * farge fra resten av moderlandet. Boksen dekker bare Fransk Guyana, ikke
+ * Frankrikes andre oversjøiske ringer (Réunion, Guadeloupe, Martinique) —
+ * de har ingen spillbar region å høre til og forblir «Verden».
+ */
+const FRENCH_GUIANA_BOX = { minLon: -55, maxLon: -51, minLat: 1, maxLat: 6 };
+
+function classify(code: number, centre?: [number, number]): string {
+  if (code === 250 && centre && inBox(centre, FRENCH_GUIANA_BOX)) return "southAmerica";
   for (const skin of REGION_SKINS) if (skin.match(code)) return skin.id;
   return "world";
+}
+
+function inBox([lon, lat]: [number, number], box: typeof FRENCH_GUIANA_BOX): boolean {
+  return lon >= box.minLon && lon <= box.maxLon && lat >= box.minLat && lat <= box.maxLat;
 }
 
 function codeOf(f: Feature): number {
   const raw = (f.properties as { id?: string | number } | null)?.id ?? f.id;
   return Number(raw);
+}
+
+/** Midtpunktet i en ring — brukt til å avgjøre hvilken side av et unntak den hører til. */
+function ringCentre(ring: number[][]): [number, number] {
+  let lon = 0;
+  let lat = 0;
+  for (const [x, y] of ring) {
+    lon += x;
+    lat += y;
+  }
+  return [lon / ring.length, lat / ring.length];
 }
 
 interface Shape {
@@ -178,9 +226,22 @@ export function WorldMapPicker({ onPick }: Props) {
 
     const shapes: Shape[] = [];
     for (const f of data.features) {
+      const code = codeOf(f);
+      // Frankrike er det eneste landet med en oversjøisk ring i en annen
+      // spillbar region enn moderlandet — se FRENCH_GUIANA_BOX. Bare
+      // MultiPolygon-features splittes per polygon; alle andre tegnes som
+      // én sammenhengende sti, som før.
+      if (code === 250 && f.geometry.type === "MultiPolygon") {
+        for (const polygon of f.geometry.coordinates) {
+          const d = path({ type: "Polygon", coordinates: polygon });
+          if (!d) continue;
+          shapes.push({ d, region: classify(code, ringCentre(polygon[0])) });
+        }
+        continue;
+      }
       const d = path(f.geometry);
       if (!d) continue;
-      shapes.push({ d, region: classify(codeOf(f)) });
+      shapes.push({ d, region: classify(code) });
     }
 
     const labels: Record<string, [number, number]> = {};
@@ -227,7 +288,7 @@ export function WorldMapPicker({ onPick }: Props) {
       piksler bredt; her er hele klodens plass målt opp etter det minste man
       skal kunne treffe, ikke etter tekstbredden under.
     */
-    <div className="mx-auto w-full max-w-[88rem] px-4">
+    <div className="mx-auto w-full max-w-[100rem] px-4">
       {/*
         Kompasset ligger utenfor selve platen, ikke inni den. Platen bærer den
         revne kanten, og en maske klipper alt den inneholder — instrumentet
@@ -241,7 +302,7 @@ export function WorldMapPicker({ onPick }: Props) {
           transition={{ duration: 0.5 }}
           className="plate torn relative w-full overflow-hidden"
           style={{
-            aspectRatio: built ? `${W} / ${built.height}` : "960 / 480",
+            aspectRatio: built ? `${W} / ${built.height + 2 * MARGIN}` : `960 / ${480 + 2 * MARGIN}`,
           }}
         >
           <div className="grain foxed pointer-events-none absolute inset-0 opacity-[0.5]" />
@@ -249,7 +310,11 @@ export function WorldMapPicker({ onPick }: Props) {
             <svg
               viewBox={`0 0 ${W} ${built.height}`}
               preserveAspectRatio="xMidYMid meet"
-              className="absolute inset-0 h-full w-full"
+              className="absolute inset-x-0 w-full"
+              style={{
+                top: `${(MARGIN / (built.height + 2 * MARGIN)) * 100}%`,
+                height: `${(built.height / (built.height + 2 * MARGIN)) * 100}%`,
+              }}
               role="group"
               aria-label={t("region.title")}
             >

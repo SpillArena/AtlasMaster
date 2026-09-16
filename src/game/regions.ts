@@ -18,6 +18,7 @@ const norwayCounties = json(() => import('../data/norway/counties.json'))
 const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
 const africaCountries = json(() => import('../data/africa/countries.json'))
+const southAmericaCountries = json(() => import('../data/south-america/countries.json'))
 const usStates = json(() => import('../data/usa/states.json'))
 const worldCountries = json(() => import('../data/world/countries.json'))
 /**
@@ -281,6 +282,66 @@ const africaCategories: Category[] = [
 ]
 
 /**
+ * Sør-Amerika — samme mønster som Afrika: fire kategorier pluss flagg, som
+ * begge låner bildesettet fra verdensregionen (`emblems: 'world'`), keyet på
+ * samme tresifrede ISO-numeriske id som scripts/build-south-america.mjs
+ * skriver ut.
+ */
+const southAmericaCategories: Category[] = [
+  {
+    id: 'southAmericaCountries',
+    labelKey: 'cat.countries',
+    geom: 'polygon',
+    icon: 'map',
+    color: '#6366f1',
+    gradient: 'from-indigo-600 via-[#312e81] to-[#0d0a1f]',
+    load: southAmericaCountries,
+    emblems: 'world',
+  },
+  {
+    id: 'southAmericaCapitals',
+    labelKey: 'cat.capitals',
+    geom: 'point',
+    icon: 'buildings',
+    color: '#e11d48',
+    gradient: 'from-rose-600 via-[#7f1d1d] to-[#2a0a12]',
+    load: json(() => import('../data/south-america/capitals.json')),
+    base: southAmericaCountries,
+  },
+  {
+    id: 'southAmericaRivers',
+    labelKey: 'cat.rivers',
+    geom: 'line',
+    icon: 'river',
+    color: '#06b6d4',
+    gradient: 'from-cyan-600 via-[#0e7490] to-[#0b3a4a]',
+    load: json(() => import('../data/south-america/rivers.json')),
+    base: southAmericaCountries,
+  },
+  {
+    id: 'southAmericaPeaks',
+    labelKey: 'cat.peaks',
+    geom: 'point',
+    icon: 'mountain',
+    color: '#f59e0b',
+    gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+    load: json(() => import('../data/south-america/peaks.json')),
+    base: southAmericaCountries,
+  },
+  {
+    id: 'southAmericaFlags',
+    labelKey: 'cat.southAmericaFlags',
+    geom: 'polygon',
+    icon: 'seal',
+    color: '#d97706',
+    gradient: 'from-amber-600 via-[#78350f] to-[#231003]',
+    load: southAmericaCountries,
+    emblems: 'world',
+    modes: ['flag', 'pick'],
+  },
+]
+
+/**
  * Verden — hele kloden, med to kategorier bygd på samme landdatasett.
  *
  * «Land» er et vanlig kartspill: klikk, flervalg eller skriv. «Flagg» bruker
@@ -369,6 +430,19 @@ export const regions: Region[] = [
     projection: { kind: 'azimuthalEqualArea', centre: [20, 2] },
     outline: africaCountries,
     categories: africaCategories,
+  },
+  {
+    id: 'southAmerica',
+    labelKey: 'region.southAmerica',
+    code: 'SA',
+    gradient: 'from-[#4338ca] via-[#312e81] to-[#0d0a1f]',
+    // Kontinentet strekker seg fra 13°N til 56°S, men bare 49 lengdegrader på
+    // det bredeste — smalt og langt, som Chile i miniatyr. En azimutal
+    // projeksjon sentrert midt i regionen holder formen, samme resonnement
+    // som Afrika og Asia — se kommentaren der.
+    projection: { kind: 'azimuthalEqualArea', centre: [-60, -15] },
+    outline: southAmericaCountries,
+    categories: southAmericaCategories,
   },
   {
     id: 'world',

@@ -263,6 +263,19 @@ writeFileSync(OUT_JSON, JSON.stringify(collection))
 const OUTLINE_KEEP = 0.25
 const OUTLINE_MIN_SPAN = 1
 
+/*
+ * USA er delt på Alaska, Hawaii og fastlandet, og fastlandskysten er glattere
+ * enn Norges fjorder — kvantilen regner ut en terskel fra hvor mye vekt hvert
+ * punkt har, og en jevn kyst gir lave vekter over hele linja. Samme terskel
+ * fjerner derfor en større andel av USAs punkter enn Norges, og landet ender
+ * opp grovere tegnet enn naboene på landingssiden selv om det har flere
+ * punkter totalt. Disse kodene hopper over forenklinga og beholder hele
+ * kystlinja, som småstatene under OUTLINE_MIN_SPAN allerede gjør.
+ */
+const OUTLINE_DETAILED = new Set([
+  '840', // USA
+])
+
 function largestRingSpan(geometry) {
   let largest = 0
   const walk = (node) => {
@@ -285,15 +298,19 @@ function largestRingSpan(geometry) {
 
 const big = []
 const bigAt = []
+const outlineFeatures = features.slice()
 features.forEach((f, i) => {
-  if (largestRingSpan(f.geometry) >= OUTLINE_MIN_SPAN) {
+  if (largestRingSpan(f.geometry) < OUTLINE_MIN_SPAN) return
+  if (OUTLINE_DETAILED.has(f.properties.id)) {
+    const geometry = dropRepeats(roundGeometry(f.geometry, 2))
+    if (geometry) outlineFeatures[i] = { ...f, geometry }
+  } else {
     big.push(f)
     bigAt.push(i)
   }
 })
 const topo = presimplify(toTopology({ layer: { type: 'FeatureCollection', features: big } }))
 const thinned = feature(simplify(topo, quantile(topo, OUTLINE_KEEP)), 'layer')
-const outlineFeatures = features.slice()
 bigAt.forEach((at, i) => {
   // to desimaler etter forenklinga: punktene ligger nå titalls kilometer fra
   // hverandre, så en kilometers avrunding flytter ingenting man kan se — den
