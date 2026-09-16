@@ -15,6 +15,15 @@ interface Props {
 }
 
 const W = 960;
+/**
+ * Blank papirmarg over og under selve kartet, i samme skala som `W`.
+ *
+ * Et rammet kart har luft mot kanten av arket — uten den flyter Alaska og
+ * Ildlandet helt ut til `.torn`-kanten. Legges til på begge sider av
+ * `built.height`, aldri inn i det: ingen land klippes bort, de får bare
+ * mindre plass å dele på i samme plate.
+ */
+const MARGIN = 28;
 
 /** Verdenskartet tegnes alltid i Natural Earth, uansett hvilken region du ender i. */
 const WORLD_PROJECTION: ProjectionSpec = { kind: "naturalEarth" };
@@ -279,7 +288,7 @@ export function WorldMapPicker({ onPick }: Props) {
       piksler bredt; her er hele klodens plass målt opp etter det minste man
       skal kunne treffe, ikke etter tekstbredden under.
     */
-    <div className="mx-auto w-full max-w-[88rem] px-4">
+    <div className="mx-auto w-full max-w-[100rem] px-4">
       {/*
         Kompasset ligger utenfor selve platen, ikke inni den. Platen bærer den
         revne kanten, og en maske klipper alt den inneholder — instrumentet
@@ -293,7 +302,7 @@ export function WorldMapPicker({ onPick }: Props) {
           transition={{ duration: 0.5 }}
           className="plate torn relative w-full overflow-hidden"
           style={{
-            aspectRatio: built ? `${W} / ${built.height}` : "960 / 480",
+            aspectRatio: built ? `${W} / ${built.height + 2 * MARGIN}` : `960 / ${480 + 2 * MARGIN}`,
           }}
         >
           <div className="grain foxed pointer-events-none absolute inset-0 opacity-[0.5]" />
@@ -301,7 +310,11 @@ export function WorldMapPicker({ onPick }: Props) {
             <svg
               viewBox={`0 0 ${W} ${built.height}`}
               preserveAspectRatio="xMidYMid meet"
-              className="absolute inset-0 h-full w-full"
+              className="absolute inset-x-0 w-full"
+              style={{
+                top: `${(MARGIN / (built.height + 2 * MARGIN)) * 100}%`,
+                height: `${(built.height / (built.height + 2 * MARGIN)) * 100}%`,
+              }}
               role="group"
               aria-label={t("region.title")}
             >
