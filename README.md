@@ -24,14 +24,14 @@ The World region ships two files from the same build. `countries.json` is the
 playable map at Natural Earth 50m; `outline.json` is the same features with a
 quarter of the points, and it is what the landing page and the background draw.
 The whole globe is 900 px wide there, so the detail would not survive the
-rasteriser — and splitting them keeps 290 kB off the first paint. They share
+rasteriser. Splitting them also keeps 290 kB off the first paint. They share
 ids, and `check:geo` fails if they drift apart.
 
 Not every feature on the world map is an answer. Sovereign states plus Kosovo
 are (195 of them); overseas territories, crown dependencies and areas without
 an ISO code are drawn so the map has no holes, but carry
 `properties.playable: false`. `toQuizFeatures` in `src/game/types.ts` enforces
-the split — no other dataset sets the flag, so everywhere else every feature is
+the split. No other dataset sets the flag, so everywhere else every feature is
 an answer.
 
 Russia is in no region. Its geometry runs from 20°E across the date line, and
@@ -84,15 +84,15 @@ device. A round is never lost because the cloud was unreachable.
 ### Accounts
 
 Posting to the global board needs an account: a name and a 4-6 digit PIN,
-`functions/api/auth/`. Before this, a player was a string in a text field —
-anyone could post under any name, and because the board keeps one row per
+`functions/api/auth/`. Before this, a player was a string in a text field.
+Anyone could post under any name, and because the board keeps one row per
 username, a higher fake score *replaced* the real player's row instead of
 sitting beside it.
 
-What actually protects a PIN is the attempt limit, not the hash: five wrong
-tries lock the name for fifteen minutes. Four digits is ten thousand values, and
-no key derivation function makes that number big. PBKDF2 is there for the other
-case — if the database leaks, the PINs should not be readable in one pass.
+The attempt limit protects a PIN, more than the hash does: five wrong tries
+lock the name for fifteen minutes. Four digits is ten thousand values, and no
+key derivation function makes that number big. PBKDF2 covers the other case. If
+the database leaks, nobody should be able to read the PINs in one pass.
 
 The signing key is **not** in `wrangler.toml`:
 
@@ -103,7 +103,7 @@ echo 'AUTH_SECRET=anything-long-and-random' > .dev.vars   # local, gitignored
 
 Without it, `/api/auth` and score submission both answer 503 rather than falling
 back to something that looks like it works. Rounds still save on the device, and
-playing without an account still works — those rounds just stay local.
+playing without an account still works. Those rounds stay local.
 
 Run the migrations, `0005_create_players.sql` included, before deploying this.
 
@@ -130,7 +130,7 @@ is checked in, so the scripts only need to run when the place lists or the
 resolution change.
 
 `data:norway` fetches the S-resolution county borders from
-[robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner) —
+[robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner):
 Kartverket data, licensed CC BY 4.0, generalised and clipped to the coastline.
 It is the only region built from something other than Natural Earth or a
 `*-atlas` topology, and the only builder with an attribution requirement to
@@ -151,8 +151,8 @@ Name the files you rebuilt. `simplify-geo.mjs` with no arguments runs its whole
 list, and a second pass over a file eats what the first one left. Simplification
 stops when a feature would lose more than 15 % of its area **or** 5 % of its
 coastline. The second guard is the one that matters for a fjord: Sognefjorden is
-170 km long and 4 km wide, so removing it costs almost no area — area alone is
-blind to exactly the detail the map is for. Features whose largest single ring
+170 km long and 4 km wide, so removing it costs almost no area. Area alone is
+blind to the detail the map is for. Features whose largest single ring
 is under a degree are passed through untouched; there is nothing to remove from
 an atoll but the atoll.
 
@@ -174,9 +174,8 @@ filters on now that pace is part of the exercise, and drops the index
 `0002` already described as superseded.
 
 `0005_create_players.sql` adds the accounts table. `COLLATE NOCASE` on the
-primary key stops `Kari` and `kari` from becoming two accounts — and fixes the
-same split that already existed on the board, where the two showed up as
-duplicate rows.
+primary key stops `Kari` and `kari` from becoming two accounts. It also fixes
+the same split on the board, where the two showed up as duplicate rows.
 
 `0003_add_scoring_version.sql` adds `scoring_version` with `DEFAULT 1`. The
 modes are not worth the same any more (see `MODE_MULTIPLIER` in

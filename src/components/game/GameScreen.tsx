@@ -238,6 +238,10 @@ function Game({
         elapsedMs,
       }).then((result) => {
         if (result.ok) setCloud({ rank: result.data.rank })
+        // 401 er «ingen konto», ikke «tjeneren sa nei til resultatet» — det
+        // er to ulike beskjeder til spilleren, med to ulike svar
+        else if (result.reason === 'rejected' && result.status === 401)
+          setCloud({ rank: null, problem: 'signedOut' })
         else setCloud({ rank: null, problem: result.reason })
       })
     }

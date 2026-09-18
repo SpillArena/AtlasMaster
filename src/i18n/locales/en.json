@@ -99,7 +99,7 @@
     "mixedModes": "The modes aren't worth the same. Pick one to compare fairly.",
     "allRegions": "All regions",
     "pace": "Pace",
-    "error": "The leaderboard didn't answer properly. This isn't an empty board — we couldn't read it.",
+    "error": "The leaderboard didn't answer. The board isn't empty; we could not read it.",
     "notListed": "You're not in the top listed here yet. Play a round to get on the board."
   },
   "tile": {
@@ -222,7 +222,9 @@
     "missedTitle": "{{count}} places to practise",
     "globalRank": "Number {{rank}} on the global board",
     "notCounted": "This round didn't make it onto the global board.",
-    "savedLocally": "Saved on this device — the board was unreachable."
+    "savedLocally": "Saved on this device. The board was unreachable.",
+    "signedOut": "This round isn't on the global board. Your XP and level are saved on this device either way.",
+    "signInToPost": "Sign in on spillarena.no to post scores."
   },
   "meta": {
     "title": "AtlasMaster — the world map game",
@@ -285,8 +287,8 @@
   },
   "profile": {
     "eyebrow": "Field logbook",
-    "signedIn": "Signed in — scores go on the global board",
-    "guest": "Playing without an account — scores stay on this device",
+    "signedIn": "Signed in. Scores go on the global board",
+    "guest": "Playing without an account. Scores stay on this device",
     "account": "Account",
     "stats": "Career",
     "rounds": "Rounds",
