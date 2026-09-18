@@ -376,5 +376,9 @@
       "title": "Level ten",
       "desc": "Reach level ten."
     }
+  },
+  "account": {
+    "signedOut": "Not signed in",
+    "signedInAs": "Logged in as {{name}}"
   }
 }
