@@ -99,7 +99,7 @@
     "mixedModes": "Modusene er ikke like mye verdt. Velg én for å sammenligne rettferdig.",
     "allRegions": "Alle regioner",
     "pace": "Tempo",
-    "error": "Ledertavla svarte ikke skikkelig. Dette er ikke en tom tavle — vi fikk ikke lest den.",
+    "error": "Ledertavla svarte ikke. Tavla er ikke tom; vi fikk ikke lest den.",
     "notListed": "Du er ikke blant de viste ennå. Spill en runde for å komme på tavla."
   },
   "tile": {
@@ -222,7 +222,9 @@
     "missedTitle": "{{count}} steder du bør øve på",
     "globalRank": "Nummer {{rank}} på den globale tavla",
     "notCounted": "Denne runden kom ikke på den globale tavla.",
-    "savedLocally": "Lagret på denne enheten — tavla svarte ikke."
+    "savedLocally": "Lagret på denne enheten. Tavla svarte ikke.",
+    "signedOut": "Denne runden er ikke på den globale tavla. XP og nivå lagres på denne enheten uansett.",
+    "signInToPost": "Logg inn på spillarena.no for å sende inn resultater."
   },
   "meta": {
     "title": "AtlasMaster — kartspillet om verden",
@@ -285,8 +287,8 @@
   },
   "profile": {
     "eyebrow": "Feltbok",
-    "signedIn": "Innlogget — poeng kommer på den globale tavla",
-    "guest": "Spiller uten konto — poengene blir værende på denne enheten",
+    "signedIn": "Innlogget. Poengene kommer på den globale tavla",
+    "guest": "Spiller uten konto. Poengene blir værende på denne enheten",
     "account": "Konto",
     "stats": "Karriere",
     "rounds": "Runder",

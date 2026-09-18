@@ -139,6 +139,34 @@ export function fetchAccount(): Promise<ApiResult<AccountOverview>> {
     return call<AccountOverview>('/profile', { auth: true })
 }
 
+/**
+ * Changes the username, and stores the fresh token it returns.
+ *
+ * A new token is not a nicety: the signature covers the name, so the token the
+ * caller arrived with names an account that no longer exists the moment the row
+ * is renamed. Without replacing it the player would be signed out of all five
+ * games by renaming themselves.
+ *
+ * Leaderboard rows already posted keep the OLD name — they live in each game's
+ * own database, which this service does not touch. Tell the player that before
+ * they rename, not after.
+ */
+export async function renameAccount(pin: string, newUsername: string): Promise<AuthResult> {
+    const result = await call<Session>('/account', {
+        auth: true,
+        method: 'POST',
+        body: JSON.stringify({ action: 'rename', pin, newUsername: newUsername.trim() }),
+    })
+    if (!result.ok) return result
+    const session: Session = {
+        username: result.data.username,
+        token: result.data.token,
+        expiresAt: result.data.expiresAt,
+    }
+    setSession(session)
+    return { ok: true, session }
+}
+
 /** Changes the PIN and stores the fresh token it returns. */
 export async function changePin(pin: string, newPin: string): Promise<AuthResult> {
     const result = await call<Session>('/account', {

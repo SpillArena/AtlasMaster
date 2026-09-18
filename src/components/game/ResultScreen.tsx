@@ -27,10 +27,15 @@ export interface MissedItem {
  * tempo. `problem` er satt når tavla ikke tok imot: enten fordi ingen svarte,
  * eller fordi tjeneren sa nei. De to var umulige å skille før, og begge endte
  * med at spilleren aldri dukket opp på tavla uten et ord om hvorfor.
+ *
+ * `signedOut` er skilt ut fra `rejected` av samme grunn: tavla tar bare imot
+ * rader som henger på en konto (se functions/api/leaderboard/), og det rettes
+ * ved å logge inn — ikke ved å prøve igjen. Runden er ikke tapt uansett: XP,
+ * nivå og rekord ligger på enheten (game/progress.ts).
  */
 export interface CloudOutcome {
   rank: number | null
-  problem?: 'unreachable' | 'rejected'
+  problem?: 'unreachable' | 'rejected' | 'signedOut'
 }
 
 interface Props {
@@ -174,10 +179,19 @@ export function ResultScreen({
               {t('result.globalRank', { rank: cloud.rank })}
             </p>
           )}
-          {cloud?.problem && (
+          {cloud?.problem === 'signedOut' ? (
             <p role="status" className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
-              {t(cloud.problem === 'rejected' ? 'result.notCounted' : 'result.savedLocally')}
+              {t('result.signedOut')}{' '}
+              <a className="underline" href="https://spillarena.no">
+                {t('result.signInToPost')}
+              </a>
             </p>
+          ) : (
+            cloud?.problem && (
+              <p role="status" className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+                {t(cloud.problem === 'rejected' ? 'result.notCounted' : 'result.savedLocally')}
+              </p>
+            )
           )}
         </div>
 
