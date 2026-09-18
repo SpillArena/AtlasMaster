@@ -19,6 +19,15 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/atlasmaster/, ''),
       },
+      // Kontoen ligger på forsiden, ikke her. I produksjon gjør routeren dette
+      // av seg selv — /api treffer SpillArena-prosjektet fordi spillet ligger
+      // på samme opphav. Lokalt finnes ingen router, så kjør forsiden ved siden
+      // av med `npx wrangler pages dev --port 8789` i SpillArena/ for å teste
+      // innlogging. Svarer ingen der, spiller AtlasMaster videre uten konto.
+      '/api': {
+        target: 'http://localhost:8789',
+        changeOrigin: true,
+      },
     },
   },
 })

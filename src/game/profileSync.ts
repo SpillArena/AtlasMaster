@@ -1,39 +1,51 @@
-import { getSession, isSignedIn } from './auth'
+import { createProfileSync, getSession } from '../account'
 import { hasConsent } from '../lib/cookieConsent'
-import { fetchProfile, pushProfile } from './profileApi'
 import { adoptRemoteProgress, getProgress } from './progress'
+import type { Progress } from './progress'
 
 /**
  * Kobler kontoen og den lokale profilen sammen, i begge retninger.
  *
- * Kalles ved innlogging/registrering og ved oppstart når en økt fortsatt er
- * gyldig. Henter det kontoen har, smelter det inn i det enheten har (se
- * `adoptRemoteProgress` i progress.ts for hvorfor det ikke bare er en
- * erstatning), og skriver resultatet tilbake — det siste dekker både «kontoen
- * visste ikke om enhetens fremgang ennå» og «kontoen var alt oppdatert», som
- * begge blir en ufarlig oppdatering av samme rad.
+ * Selve mekanikken — når det hentes, når det skyves — ligger i
+ * src/account/sync.ts, som er lik i alle spillene. Det AtlasMaster eier er
+ * SMELTINGA: bare dette spillet vet at hvert felt i `Progress` er en sum eller
+ * en rekord som bare kan vokse, og at det derfor er trygt å ta det høyeste av
+ * hvert par. Se `mergeProgress` og `adoptRemoteProgress` i progress.ts — det
+ * siste håndterer også kontobytte på samme enhet, som en ren smelting ville
+ * limt to spilleres statistikk sammen på.
  *
- * Kan kalles så ofte som helst uten fare: smeltingen kan bare vokse hvert
- * felt, aldri krympe det.
+ * Uten samtykke skjer ingenting: profilen ville ikke overlevd fanen uansett,
+ * og en konto som får halve historien er verre enn en som får ingen.
  */
+/*
+ * Navnet smeltingen tilhører. adoptRemoteProgress trenger det for å se om
+ * profilen på enheten er den samme spillerens som kontoen — det leses fra
+ * økten i stedet for å gis inn, fordi en henting kan skje i en annen fane enn
+ * den som logget inn.
+ */
+const ownerName = (): string => getSession()?.username ?? ''
+
+const sync = createProfileSync<Progress>({
+  game: 'atlasmaster',
+  read: getProgress,
+  merge: (_local, remote) => adoptRemoteProgress(ownerName(), remote),
+  // adoptRemoteProgress lagrer selv, og er den som avgjør hva som blir stående
+  write: () => {},
+})
+
+/** Henter kontoens profil, smelter den inn, og skriver resultatet tilbake. */
 export async function syncProgress(): Promise<void> {
-  const session = getSession()
-  if (!session || !hasConsent()) return
-
-  const result = await fetchProfile()
-  if (!result.ok) return
-
-  const merged = adoptRemoteProgress(session.username, result.data.progress)
-  void pushProfile(merged)
+  if (!hasConsent()) return
+  await sync.pull()
 }
 
-/**
- * Sender den ferske lokale profilen til kontoen — kalles rett etter en
- * fullført runde. Ren skyving, ingen henting: `syncProgress` har allerede
- * gjort opp med hvem profilen tilhører ved innlogging, så her er det bare å
- * dele det som står lokalt akkurat nå.
- */
+/** Sender den ferske lokale profilen til kontoen — kalles etter en fullført runde. */
 export function pushProgress(): void {
-  if (!isSignedIn() || !hasConsent()) return
-  void pushProfile(getProgress())
+  if (!hasConsent()) return
+  sync.push()
+}
+
+/** Henter på nytt når kontoen byttes, også når byttet skjedde i en annen fane. */
+export function watchProgressSync(): () => void {
+  return sync.watch()
 }

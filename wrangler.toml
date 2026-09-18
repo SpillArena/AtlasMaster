@@ -17,8 +17,15 @@ migrations_dir = "migrations"
 
 # AUTH_SECRET er ikke her med vilje.
 #
-# Den signerer innloggingstegnene (functions/api/auth/), og en signeringsnøkkel
-# i en fil som ligger i git er ikke en nøkkel. Den skal settes som en
+# Kontoene ligger IKKE lenger her. De ble flyttet til forsiden, som er den ene
+# tjenesten på domenet som utsteder innloggingstegn — se
+# SpillArena/functions/api/auth/. Det AtlasMaster gjør med AUTH_SECRET er å
+# VERIFISERE et tegn forsiden har signert (shared/verify-token.js), og til det
+# må hemmeligheten være nøyaktig den samme strengen som på Pages-prosjektet
+# `spillarena`. Er den ikke det, faller hver innsending på 401 med et tegn som
+# ser helt riktig ut.
+#
+# En signeringsnøkkel i en fil som ligger i git er ikke en nøkkel. Den skal settes som en
 # kryptert variabel på Pages-prosjektet:
 #
 #   npx wrangler pages secret put AUTH_SECRET
