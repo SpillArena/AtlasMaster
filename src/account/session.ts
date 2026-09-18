@@ -54,7 +54,20 @@ function isValid(value: unknown): value is Session {
 }
 
 function read(): Session | null {
-    if (session !== undefined) return session
+    /*
+     * Expiry is checked on every read, not only when the session is loaded.
+     *
+     * A game tab can stay open for a very long time — longer than the thirty
+     * days a token lasts. Checking only at load meant such a tab kept reporting
+     * a signed-in player indefinitely: the badge said their name, the username
+     * field stayed locked, and every request failed with 401 until something
+     * signed them out. Re-checking here costs a comparison and makes "signed
+     * in" mean the same thing at any point in the tab's life.
+     */
+    if (session !== undefined) {
+        if (session && session.expiresAt <= Date.now()) session = null
+        return session
+    }
     session = null
     if (typeof window === 'undefined' || !hasConsent()) return session
     try {

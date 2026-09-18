@@ -376,5 +376,9 @@
       "title": "Nivå ti",
       "desc": "Nå nivå ti."
     }
+  },
+  "account": {
+    "signedOut": "Ikke logget inn",
+    "signedInAs": "Logget inn som {{name}}"
   }
 }

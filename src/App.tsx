@@ -13,6 +13,8 @@ import { DEFAULT_REGION_ID, getCategory, getRegion } from './game/regions'
 import { getName } from './game/leaderboard'
 import { syncProgress, watchProgressSync } from './game/profileSync'
 import type { Mode, Pace } from './game/types'
+import { AccountBadge, resolveIdentity } from './account'
+import { getProgress } from './game/progress'
 
 function App() {
   const { t } = useTranslation()
@@ -54,10 +56,20 @@ function App() {
     setPendingPace(null)
   }
 
-  // START: krever navn — ellers spør vi først og starter etterpå
+  /*
+   * START: krever et navn — ellers spør vi først og starter etterpå.
+   *
+   * En innlogget spiller blir ALDRI spurt. Navnet kommer fra kontoen, og tavla
+   * tar det fra det signerte tegnet uansett hva som står i et felt her, så et
+   * spørsmål ville vært et spørsmål med bare ett gyldig svar. `resolveIdentity`
+   * er det samme svaret i alle spillene — se src/account/identity.ts.
+   *
+   * Den lokale navnesjekken er fortsatt der for gjester, som er de eneste den
+   * gjelder for.
+   */
   const startRound = (chosen: Pace) => {
     rememberPace(chosen)
-    if (getName().trim()) setPace(chosen)
+    if (resolveIdentity(getName()).name.trim()) setPace(chosen)
     else setPendingPace(chosen)
   }
 
@@ -231,6 +243,14 @@ function App() {
             onCancel={() => setEditingName(false)}
           />
         )}
+        {/* One account for the whole domain — say so, in the same corner in
+            every game. Innlogging finnes også i headeren her, fra den gang
+            AtlasMaster hadde kontoene alene; merket er det som er likt på tvers. */}
+        <AccountBadge
+          progress={getProgress()}
+          signedOutLabel={t('account.signedOut')}
+          signedInLabel={(name) => t('account.signedInAs', { name })}
+        />
       </div>
     </MotionConfig>
   )
