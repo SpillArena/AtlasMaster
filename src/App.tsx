@@ -11,7 +11,7 @@ import { BackgroundMap } from './components/BackgroundMap'
 import { useGameSettings } from './contexts/useGameSettings'
 import { DEFAULT_REGION_ID, getCategory, getRegion } from './game/regions'
 import { getName } from './game/leaderboard'
-import { syncProgress } from './game/profileSync'
+import { syncProgress, watchProgressSync } from './game/profileSync'
 import type { Mode, Pace } from './game/types'
 
 function App() {
@@ -40,6 +40,9 @@ function App() {
    */
   useEffect(() => {
     void syncProgress()
+    // og på nytt hvis kontoen byttes mens spillet står åpent — innlogging skjer
+    // like gjerne på forsiden, i en annen fane
+    return watchProgressSync()
   }, [])
 
   const reset = () => {

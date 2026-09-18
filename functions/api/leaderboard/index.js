@@ -16,7 +16,7 @@
  * spilleren i stedet for å legge seg ved siden av. Se functions/api/auth/.
  */
 
-import { verifyToken } from '../auth/index.js'
+import { verifyToken } from '../../../shared/verify-token.js'
 
 const DEFAULT_LIMIT = 25
 const MAX_LIMIT = 100

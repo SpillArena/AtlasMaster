@@ -56,7 +56,7 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
       onConfirm()
       return
     }
-    setError(result.message)
+    setError(result.error)
   }
 
   /*
