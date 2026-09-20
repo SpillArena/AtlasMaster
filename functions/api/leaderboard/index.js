@@ -164,7 +164,7 @@ export async function fetchTop(db, { region, category, mode, pace, limit }) {
                   PARTITION BY username, region, category, mode, pace
                   ORDER BY score DESC, timestamp DESC, id DESC
                 ) AS rank_in_group
-         FROM leaderboard_entries
+         FROM atlasmaster_leaderboard
          ${where}
        )
        WHERE rank_in_group = 1
@@ -192,7 +192,7 @@ export async function rankOf(db, { region, category, mode, pace, score }) {
       `SELECT COUNT(*) + 1 AS rank
        FROM (
          SELECT MAX(score) AS best
-         FROM leaderboard_entries
+         FROM atlasmaster_leaderboard
          WHERE region = ? AND category = ? AND mode = ? AND pace = ?
          GROUP BY username
        )
@@ -345,7 +345,7 @@ export async function onRequestPost(context) {
 
   try {
     await env.DB.prepare(
-      `INSERT INTO leaderboard_entries
+      `INSERT INTO atlasmaster_leaderboard
         (id, timestamp, username, category, region, mode, pace, score,
          correct_count, total, mistakes, best_streak, elapsed_ms, scoring_version)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
