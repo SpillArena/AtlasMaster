@@ -272,20 +272,32 @@
     "pinPlaceholder": "PIN",
     "pinHint": "4 til 6 siffer. Fem feil stenger navnet i et kvarter.",
     "errors": {
-      "not_configured": "Kontoer er slått av på denne tjeneren.",
+      "not_configured": "Kontoer er utilgjengelige akkurat nå. Du kan spille videre uten.",
       "bad_action": "Noe gikk galt. Prøv igjen.",
       "bad_body": "Noe gikk galt. Prøv igjen.",
       "bad_username": "Bruk bokstaver, tall, mellomrom, punktum, bindestrek eller apostrof.",
       "bad_pin": "PIN-en må være 4 til 6 siffer.",
-      "name_taken": "Navnet er tatt. Logg inn om det er ditt.",
-      "bad_credentials": "Feil navn eller PIN. Har du ikke registrert deg ennå? Trykk «Jeg har ikke et navn fra før».",
+      "name_taken": "Navnet er opptatt. Er det ditt, logg inn i stedet.",
+      "bad_credentials": "Feil navn eller PIN. Har du ikke laget konto ennå, velg Opprett konto.",
       "locked": "For mange forsøk. Vent et kvarter og prøv igjen.",
       "service_failed": "Kontotjenesten har en dårlig dag. Prøv igjen om litt.",
-      "unreachable": "Ikke noe svar fra tjeneren. Du kan fortsatt spille uten konto.",
+      "unreachable": "Ingen svar fra kontotjenesten. Sjekk nettet og prøv igjen.",
       "failed": "Det gikk ikke. Prøv igjen.",
-      "pin_mismatch": "De to PIN-kodene er ikke like."
+      "pin_mismatch": "De to PIN-kodene er ikke like.",
+      "username_empty": "Skriv et navn først.",
+      "username_too_long": "Navnet er for langt — maks 20 tegn.",
+      "username_chars": "Navn kan bare bruke bokstaver, tall, mellomrom og . _ ' -",
+      "name_reserved": "Navnet er reservert. Velg et annet.",
+      "name_not_allowed": "Navnet kan ikke brukes. Velg et annet.",
+      "unauthorized": "Økten er utløpt. Logg inn på nytt.",
+      "locked_wait": "For mange feil forsøk. Prøv igjen om {{wait}}."
     },
-    "repeatPinPlaceholder": "Gjenta PIN"
+    "repeatPinPlaceholder": "Gjenta PIN",
+    "wait": {
+      "seconds": "{{count}} sekunder",
+      "minute": "ett minutt",
+      "minutes": "{{count}} minutter"
+    }
   },
   "profile": {
     "eyebrow": "Feltbok",
@@ -394,15 +406,27 @@
     "signOut": "Logg ut",
     "profile": "Profil på spillarena.no",
     "badgeGuestHint": "Du kan spille uten konto. Logger du inn, lagres resultatene på topplista.",
-    "errBadCredentials": "Feil navn eller PIN.",
+    "errBadCredentials": "Feil navn eller PIN. Har du ikke laget konto ennå, velg Ny konto.",
     "errBadUsername": "Det navnet kan ikke brukes.",
     "errBadPin": "PIN-en må være 4–6 siffer.",
-    "errNameTaken": "Navnet er opptatt.",
-    "errLocked": "For mange forsøk. Prøv igjen om noen minutter.",
-    "errNotConfigured": "Kontoer er utilgjengelige akkurat nå.",
-    "errUnreachable": "Ingen svar fra kontotjenesten.",
+    "errNameTaken": "Navnet er opptatt. Er det ditt, logg inn i stedet.",
+    "errLocked": "For mange feil forsøk. Prøv igjen om noen minutter.",
+    "errNotConfigured": "Kontoer er utilgjengelige akkurat nå. Du kan spille videre som gjest.",
+    "errUnreachable": "Ingen svar fra kontotjenesten. Sjekk nettet og prøv igjen.",
     "errGeneric": "Noe gikk galt. Prøv igjen.",
     "repeatPinLabel": "Gjenta PIN",
-    "errPinMismatch": "De to PIN-kodene er ikke like."
+    "errPinMismatch": "De to PIN-kodene er ikke like.",
+    "errUsernameEmpty": "Skriv et navn først.",
+    "errUsernameTooLong": "Navnet er for langt — maks 20 tegn.",
+    "errUsernameChars": "Navn kan bare bruke bokstaver, tall, mellomrom og . _ ' -",
+    "errNameReserved": "Navnet er reservert. Velg et annet.",
+    "errNameNotAllowed": "Navnet kan ikke brukes. Velg et annet.",
+    "errUnauthorized": "Økten er utløpt. Logg inn på nytt.",
+    "errLockedWait": "For mange feil forsøk. Prøv igjen om {{wait}}.",
+    "errSignInFailed": "Klarte ikke å logge inn. Prøv igjen.",
+    "errCreateFailed": "Klarte ikke å opprette kontoen. Prøv igjen.",
+    "waitSeconds": "{{count}} sekunder",
+    "waitMinute": "ett minutt",
+    "waitMinutes": "{{count}} minutter"
   }
 }

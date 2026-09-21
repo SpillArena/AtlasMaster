@@ -40,6 +40,8 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
   const [confirmPin, setConfirmPin] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /** Sekunder igjen av en utestenging, når tjenesten sier det. */
+  const [retryAfter, setRetryAfter] = useState<number | undefined>(undefined)
 
   const trimmed = name.trim()
   const pinOk = /^\d{4,6}$/.test(pin)
@@ -64,6 +66,7 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
 
     setBusy(true)
     setError(null)
+    setRetryAfter(undefined)
     const result = await authenticate(mode, trimmed, pin)
     setBusy(false)
     if (result.ok) {
@@ -74,7 +77,19 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
       return
     }
     setError(result.error)
+    setRetryAfter(result.retryAfter)
   }
+
+  /*
+   * «Prøv igjen senere» er en avvisning, ikke en beskjed. Tjenesten vet hvor
+   * lenge det er igjen, så vi sier det.
+   */
+  const waitText = (seconds: number) =>
+    seconds < 60
+      ? t('auth.wait.seconds', { count: seconds })
+      : Math.ceil(seconds / 60) === 1
+        ? t('auth.wait.minute')
+        : t('auth.wait.minutes', { count: Math.ceil(seconds / 60) })
 
   /*
    * Uten konto: navnet lagres på enheten, og runden blir liggende der.
@@ -171,7 +186,9 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
 
       {error && (
         <p role="alert" className="mt-3 text-sm" style={{ color: 'var(--danger)' }}>
-          {t(`auth.errors.${error}`, { defaultValue: error })}
+          {error === 'locked' && retryAfter && retryAfter > 0
+            ? t('auth.errors.locked_wait', { wait: waitText(retryAfter) })
+            : t(`auth.errors.${error}`, { defaultValue: t('auth.errors.failed') })}
         </p>
       )}
 

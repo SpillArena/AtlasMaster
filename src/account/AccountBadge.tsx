@@ -31,6 +31,13 @@ import type { AuthAction, AuthErrorCode } from './types'
  * reason every string is a prop — the games translate, this file cannot.
  */
 
+/** Seconds as something a person would say, for the lockout message. */
+function formatWait(seconds: number): string {
+    if (seconds < 60) return `${seconds} seconds`
+    const minutes = Math.ceil(seconds / 60)
+    return minutes === 1 ? 'a minute' : `${minutes} minutes`
+}
+
 const STYLE_ID = 'spillarena-account-badge-style'
 
 /*
@@ -187,8 +194,16 @@ export interface AccountBadgeLabels {
     /** Why signing in is worth it, shown under the form. */
     guestHint: string
     level: (level: number) => string
-    /** Maps a stable error code to a sentence the player can read. */
-    error: (code: AuthErrorCode) => string
+    /**
+     * Maps a stable error code to a sentence the player can read.
+     *
+     * `action` is passed because the same code deserves different advice
+     * depending on what was being attempted: `name_taken` while registering
+     * means "sign in instead", and `bad_credentials` while signing in means
+     * "or make an account". `retryAfter` is seconds, and only arrives with
+     * `locked`.
+     */
+    error: (code: AuthErrorCode, action: AuthAction, retryAfter?: number) => string
 }
 
 const DEFAULT_LABELS: AccountBadgeLabels = {
@@ -207,24 +222,46 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
     profile: 'Profile on spillarena.no',
     guestHint: 'You can play without an account. Signing in saves your scores to the leaderboard.',
     level: (level) => `Lv ${level}`,
-    error: (code) => {
+    error: (code, action, retryAfter) => {
         switch (code) {
+            /*
+             * Deliberately the same answer for "no such name" and "wrong PIN".
+             * Told apart, the sign-in form becomes a way to ask which names
+             * exist. What CAN be added without leaking anything is the way out
+             * for the commonest cause: there is no account yet.
+             */
             case 'bad_credentials':
-                return 'Wrong name or PIN.'
+                return 'Wrong name or PIN. If you have not made an account yet, use New account.'
+            case 'username_empty':
+                return 'Type a name first.'
+            case 'username_too_long':
+                return 'That name is too long — 20 characters at most.'
+            case 'username_chars':
+                return "Names can use letters, numbers, spaces and . _ ' - only."
+            case 'name_reserved':
+                return 'That name is reserved. Pick another one.'
+            case 'name_not_allowed':
+                return 'That name is not allowed. Pick another one.'
             case 'bad_username':
                 return 'That name cannot be used.'
             case 'bad_pin':
                 return 'The PIN must be 4–6 digits.'
             case 'name_taken':
-                return 'That name is taken.'
+                return 'That name is taken. If it is yours, sign in instead.'
             case 'locked':
-                return 'Too many attempts. Try again in a few minutes.'
+                return retryAfter && retryAfter > 0
+                    ? `Too many wrong attempts. Try again in ${formatWait(retryAfter)}.`
+                    : 'Too many wrong attempts. Try again in a few minutes.'
             case 'not_configured':
-                return 'Accounts are unavailable right now.'
+                return 'Accounts are unavailable right now. You can keep playing as a guest.'
             case 'unreachable':
-                return 'No answer from the account service.'
+                return 'No answer from the account service. Check your connection and try again.'
+            case 'unauthorized':
+                return 'That session has expired. Sign in again.'
             default:
-                return 'Something went wrong. Try again.'
+                return action === 'register'
+                    ? 'Could not create the account. Try again.'
+                    : 'Could not sign in. Try again.'
         }
     },
 }
@@ -281,6 +318,8 @@ export function AccountBadge({
     const [confirm, setConfirm] = useState('')
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<AuthErrorCode | null>(null)
+    /** Seconds left on a lockout, when the service told us. */
+    const [retryAfter, setRetryAfter] = useState<number | undefined>(undefined)
     /*
      * Kept apart from `error` because it is not a server code and nothing was
      * sent: the request is never made when the two PINs differ. Folding it into
@@ -342,6 +381,7 @@ export function AccountBadge({
         setBusy(true)
         setError(null)
         setMismatch(false)
+        setRetryAfter(undefined)
         const result = await authenticate(mode, name, pin)
         setBusy(false)
         // the PIN is never kept around, whether it worked or not
@@ -349,6 +389,7 @@ export function AccountBadge({
         setConfirm('')
         if (!result.ok) {
             setError(result.error)
+            setRetryAfter(result.retryAfter)
             return
         }
         setName('')
@@ -359,6 +400,7 @@ export function AccountBadge({
     const switchMode = (next: AuthAction) => {
         setMode(next)
         setError(null)
+        setRetryAfter(undefined)
         setMismatch(false)
         setConfirm('')
     }
@@ -485,7 +527,9 @@ export function AccountBadge({
 
                             {(error || mismatch) && (
                                 <p className="sa-panel__error" role="alert">
-                                    {mismatch ? labels.pinMismatch : labels.error(error!)}
+                                    {mismatch
+                                        ? labels.pinMismatch
+                                        : labels.error(error!, mode, retryAfter)}
                                 </p>
                             )}
 
