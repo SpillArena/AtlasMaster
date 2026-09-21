@@ -66,7 +66,19 @@ async function call<T>(
         const body: unknown = await response.json().catch(() => null)
         if (!response.ok) {
             const error = (body as { error?: unknown } | null)?.error
-            return { ok: false, error: isErrorCode(error) ? error : 'service_failed' }
+            /*
+             * `retryAfter` comes back with a lockout, in seconds. It is carried
+             * through rather than turned into a sentence here, so each game can
+             * phrase the wait in its own language.
+             */
+            const retryAfter = (body as { retryAfter?: unknown } | null)?.retryAfter
+            return {
+                ok: false,
+                error: isErrorCode(error) ? error : 'service_failed',
+                ...(typeof retryAfter === 'number' && Number.isFinite(retryAfter)
+                    ? { retryAfter }
+                    : {}),
+            }
         }
         return { ok: true, data: body as T }
     } catch {
