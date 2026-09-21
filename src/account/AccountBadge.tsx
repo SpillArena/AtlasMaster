@@ -175,6 +175,10 @@ export interface AccountBadgeLabels {
     register: string
     username: string
     pin: string
+    /** Shown only while registering. */
+    confirmPin: string
+    /** Shown when the two PINs differ. Not a server code — nothing was sent. */
+    pinMismatch: string
     submitSignIn: string
     submitRegister: string
     working: string
@@ -194,6 +198,8 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
     register: 'New account',
     username: 'Name',
     pin: 'PIN',
+    confirmPin: 'Repeat PIN',
+    pinMismatch: 'The two PINs are not the same.',
     submitSignIn: 'Sign in',
     submitRegister: 'Create account',
     working: 'Working…',
@@ -272,8 +278,16 @@ export function AccountBadge({
     const [mode, setMode] = useState<AuthAction>('login')
     const [name, setName] = useState('')
     const [pin, setPin] = useState('')
+    const [confirm, setConfirm] = useState('')
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<AuthErrorCode | null>(null)
+    /*
+     * Kept apart from `error` because it is not a server code and nothing was
+     * sent: the request is never made when the two PINs differ. Folding it into
+     * AuthErrorCode would put a client-only value into a type that describes
+     * what the account service can answer.
+     */
+    const [mismatch, setMismatch] = useState(false)
 
     const rootRef = useRef<HTMLDivElement>(null)
 
@@ -308,12 +322,31 @@ export function AccountBadge({
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (busy) return
+
+        /*
+         * A new PIN is confirmed before anything is sent.
+         *
+         * Registering with a typo makes an account nobody can get into — the
+         * PIN is never shown back, there is no email to reset it with, and the
+         * name is taken from then on. Signing in has no such trap: a wrong PIN
+         * just fails and can be retried, so the second field would only be in
+         * the way there.
+         */
+        if (mode === 'register' && pin !== confirm) {
+            setMismatch(true)
+            setError(null)
+            setConfirm('')
+            return
+        }
+
         setBusy(true)
         setError(null)
+        setMismatch(false)
         const result = await authenticate(mode, name, pin)
         setBusy(false)
         // the PIN is never kept around, whether it worked or not
         setPin('')
+        setConfirm('')
         if (!result.ok) {
             setError(result.error)
             return
@@ -321,6 +354,13 @@ export function AccountBadge({
         setName('')
         setOpen(false)
         onSignedIn?.(result.session.username)
+    }
+
+    const switchMode = (next: AuthAction) => {
+        setMode(next)
+        setError(null)
+        setMismatch(false)
+        setConfirm('')
     }
 
     const level = progress ? levelProgress(progress.xp) : null
@@ -375,10 +415,7 @@ export function AccountBadge({
                                     role="tab"
                                     className="sa-panel__tab"
                                     aria-selected={mode === 'login'}
-                                    onClick={() => {
-                                        setMode('login')
-                                        setError(null)
-                                    }}
+                                    onClick={() => switchMode('login')}
                                 >
                                     {labels.signIn}
                                 </button>
@@ -387,10 +424,7 @@ export function AccountBadge({
                                     role="tab"
                                     className="sa-panel__tab"
                                     aria-selected={mode === 'register'}
-                                    onClick={() => {
-                                        setMode('register')
-                                        setError(null)
-                                    }}
+                                    onClick={() => switchMode('register')}
                                 >
                                     {labels.register}
                                 </button>
@@ -428,16 +462,42 @@ export function AccountBadge({
                                 maxLength={6}
                             />
 
-                            {error && (
+                            {mode === 'register' && (
+                                <>
+                                    <label className="sa-panel__label" htmlFor="sa-pin2">
+                                        {labels.confirmPin}
+                                    </label>
+                                    <input
+                                        id="sa-pin2"
+                                        className="sa-panel__input"
+                                        value={confirm}
+                                        onChange={(event) => {
+                                            setConfirm(event.target.value.replace(/\D/g, ''))
+                                            setMismatch(false)
+                                        }}
+                                        inputMode="numeric"
+                                        autoComplete="new-password"
+                                        type="password"
+                                        maxLength={6}
+                                    />
+                                </>
+                            )}
+
+                            {(error || mismatch) && (
                                 <p className="sa-panel__error" role="alert">
-                                    {labels.error(error)}
+                                    {mismatch ? labels.pinMismatch : labels.error(error!)}
                                 </p>
                             )}
 
                             <button
                                 type="submit"
                                 className="sa-panel__submit"
-                                disabled={busy || name.trim().length === 0 || pin.length < 4}
+                                disabled={
+                                    busy ||
+                                    name.trim().length === 0 ||
+                                    pin.length < 4 ||
+                                    (mode === 'register' && confirm.length < 4)
+                                }
                             >
                                 {busy
                                     ? labels.working

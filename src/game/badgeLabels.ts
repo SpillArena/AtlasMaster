@@ -32,6 +32,8 @@ export function badgeLabels(
         register: t('account.register'),
         username: t('account.usernameLabel'),
         pin: t('account.pinLabel'),
+        confirmPin: t('account.repeatPinLabel'),
+        pinMismatch: t('account.errPinMismatch'),
         submitSignIn: t('account.submitSignIn'),
         submitRegister: t('account.submitRegister'),
         working: t('account.working'),

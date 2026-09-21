@@ -282,8 +282,10 @@
       "locked": "Too many tries. Wait fifteen minutes and try again.",
       "service_failed": "The account service is having a bad day. Try again shortly.",
       "unreachable": "No answer from the server. You can still play without an account.",
-      "failed": "That did not work. Try again."
-    }
+      "failed": "That did not work. Try again.",
+      "pin_mismatch": "The two PINs are not the same."
+    },
+    "repeatPinPlaceholder": "Repeat PIN"
   },
   "profile": {
     "eyebrow": "Field logbook",
@@ -399,6 +401,8 @@
     "errLocked": "Too many attempts. Try again in a few minutes.",
     "errNotConfigured": "Accounts are unavailable right now.",
     "errUnreachable": "No answer from the account service.",
-    "errGeneric": "Something went wrong. Try again."
+    "errGeneric": "Something went wrong. Try again.",
+    "repeatPinLabel": "Repeat PIN",
+    "errPinMismatch": "The two PINs are not the same."
   }
 }

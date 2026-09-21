@@ -282,8 +282,10 @@
       "locked": "For mange forsøk. Vent et kvarter og prøv igjen.",
       "service_failed": "Kontotjenesten har en dårlig dag. Prøv igjen om litt.",
       "unreachable": "Ikke noe svar fra tjeneren. Du kan fortsatt spille uten konto.",
-      "failed": "Det gikk ikke. Prøv igjen."
-    }
+      "failed": "Det gikk ikke. Prøv igjen.",
+      "pin_mismatch": "De to PIN-kodene er ikke like."
+    },
+    "repeatPinPlaceholder": "Gjenta PIN"
   },
   "profile": {
     "eyebrow": "Feltbok",
@@ -399,6 +401,8 @@
     "errLocked": "For mange forsøk. Prøv igjen om noen minutter.",
     "errNotConfigured": "Kontoer er utilgjengelige akkurat nå.",
     "errUnreachable": "Ingen svar fra kontotjenesten.",
-    "errGeneric": "Noe gikk galt. Prøv igjen."
+    "errGeneric": "Noe gikk galt. Prøv igjen.",
+    "repeatPinLabel": "Gjenta PIN",
+    "errPinMismatch": "De to PIN-kodene er ikke like."
   }
 }

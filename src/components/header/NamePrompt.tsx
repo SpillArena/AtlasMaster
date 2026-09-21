@@ -37,14 +37,31 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
   const [mode, setMode] = useState<AuthAction>('login')
   const [name, setNameValue] = useState(() => session?.username ?? getName())
   const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const trimmed = name.trim()
   const pinOk = /^\d{4,6}$/.test(pin)
+  const confirmOk = mode !== 'register' || confirmPin.length >= 4
 
   const submit = async () => {
-    if (!trimmed || !pinOk || busy) return
+    if (!trimmed || !pinOk || !confirmOk || busy) return
+
+    /*
+     * En ny PIN bekreftes før noe sendes.
+     *
+     * Registrerer du deg med en tastefeil, har du en konto ingen kommer inn i:
+     * PIN-en vises aldri tilbake, det finnes ingen e-post å nullstille med, og
+     * navnet er opptatt fra da av. Innlogging har ingen slik felle — feil PIN
+     * feiler bare, og kan prøves på nytt.
+     */
+    if (mode === 'register' && pin !== confirmPin) {
+      setError('pin_mismatch')
+      setConfirmPin('')
+      return
+    }
+
     setBusy(true)
     setError(null)
     const result = await authenticate(mode, trimmed, pin)
@@ -127,6 +144,27 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
         </Field>
       </div>
 
+      {mode === 'register' && (
+        <div className="mt-2">
+          <Field icon="seal">
+            <input
+              value={confirmPin}
+              onChange={(e) => {
+                setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                setError(null)
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && void submit()}
+              placeholder={t('auth.repeatPinPlaceholder')}
+              type="password"
+              inputMode="numeric"
+              autoComplete="new-password"
+              className="w-full bg-transparent text-base tracking-[0.4em] outline-none"
+              style={{ color: 'var(--text)' }}
+            />
+          </Field>
+        </div>
+      )}
+
       <p className="mt-2 text-caption" style={{ color: 'var(--text-subtle)' }}>
         {t('auth.pinHint')}
       </p>
@@ -142,6 +180,7 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
           type="button"
           onClick={() => {
             setMode(mode === 'register' ? 'login' : 'register')
+            setConfirmPin('')
             setError(null)
           }}
           className="text-sm font-bold underline underline-offset-2"
@@ -153,7 +192,7 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
           <Button variant="secondary" size="sm" onClick={playAsGuest} disabled={!trimmed || busy}>
             {t('auth.guest')}
           </Button>
-          <Button size="sm" onClick={() => void submit()} disabled={!trimmed || !pinOk || busy}>
+          <Button size="sm" onClick={() => void submit()} disabled={!trimmed || !pinOk || !confirmOk || busy}>
             {t(mode === 'register' ? 'auth.register' : 'auth.signIn')}
           </Button>
         </div>
