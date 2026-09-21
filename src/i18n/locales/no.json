@@ -381,6 +381,24 @@
   },
   "account": {
     "signedOut": "Ikke logget inn",
-    "signedInAs": "Logget inn som {{name}}"
+    "signedInAs": "Logget inn som {{name}}",
+    "signIn": "Logg inn",
+    "register": "Ny konto",
+    "usernameLabel": "Navn",
+    "pinLabel": "PIN",
+    "submitSignIn": "Logg inn",
+    "submitRegister": "Opprett konto",
+    "working": "Jobber…",
+    "signOut": "Logg ut",
+    "profile": "Profil på spillarena.no",
+    "badgeGuestHint": "Du kan spille uten konto. Logger du inn, lagres resultatene på topplista.",
+    "errBadCredentials": "Feil navn eller PIN.",
+    "errBadUsername": "Det navnet kan ikke brukes.",
+    "errBadPin": "PIN-en må være 4–6 siffer.",
+    "errNameTaken": "Navnet er opptatt.",
+    "errLocked": "For mange forsøk. Prøv igjen om noen minutter.",
+    "errNotConfigured": "Kontoer er utilgjengelige akkurat nå.",
+    "errUnreachable": "Ingen svar fra kontotjenesten.",
+    "errGeneric": "Noe gikk galt. Prøv igjen."
   }
 }
