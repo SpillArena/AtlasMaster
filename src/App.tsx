@@ -248,8 +248,7 @@ function App() {
             AtlasMaster hadde kontoene alene; merket er det som er likt på tvers. */}
         <AccountBadge
           progress={getProgress()}
-          signedOutLabel={t('account.signedOut')}
-          signedInLabel={(name) => t('account.signedInAs', { name })}
+          labels={badgeLabels(t)}
           language={i18n.language}
         />
       </div>
