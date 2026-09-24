@@ -1,10 +1,29 @@
-export type ConsentStatus = 'accepted' | 'declined' | null
+import {
+  consentStorage,
+  declareStoredKeys,
+  getConsent as sharedGetConsent,
+  hasConsent as sharedHasConsent,
+  setConsent as sharedSetConsent,
+  type ConsentStatus,
+} from '../account'
 
-export const CONSENT_KEY = 'cookie-consent'
+export type { ConsentStatus }
+
+/*
+ * Samtykket eies av src/account/consent.ts, som er felles for forsiden og alle
+ * spillene: én nøkkel, ett svar for hele SpillArena. Denne fila er det samme
+ * API-et som før, så resten av AtlasMaster ikke trenger å endres — men svaret,
+ * og hva et nei betyr, bestemmes der.
+ *
+ * Et nei betyr ingenting på disken, ikke at ingenting virker: read/write under
+ * går til minnet for resten av fanen. En spiller som har sagt nei, kan logge
+ * inn, spille, og få fremgang og resultater lagret på kontoen sin.
+ */
+export { CONSENT_KEY } from '../account'
 
 /**
  * Alt spillet lagrer på enheten. Listen er kilden til sannhet både for
- * opprydding når samtykke avslås og for oversikten i personvern-panelet.
+ * opprydding når samtykke avslås og for «slett dataene mine» i innstillingene.
  */
 export const PREFERENCE_KEYS = [
   'theme',
@@ -18,58 +37,30 @@ export const PREFERENCE_KEYS = [
   'progress',
   // hvilken konto profilen sist tilhørte — se adoptRemoteProgress i game/progress.ts
   'progressOwner',
-  // innloggingsteiknet — med i lista så «slett mine data» faktisk logger ut
+  // den gamle innloggingsnøkkelen, fra før kontoen ble felles
   'auth',
 ] as const
 
-function storage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    return null
-  }
-}
+// meldes inn med en gang: et nei gitt på forsiden eller i et annet spill skal
+// rydde bort det AtlasMaster har lagret, også før noe her har lest det
+declareStoredKeys(PREFERENCE_KEYS)
 
-export function getConsent(): ConsentStatus {
-  const stored = storage()?.getItem(CONSENT_KEY)
-  return stored === 'accepted' || stored === 'declined' ? stored : null
-}
-
-export function hasConsent(): boolean {
-  return getConsent() === 'accepted'
-}
+export const getConsent = sharedGetConsent
+export const hasConsent = sharedHasConsent
 
 export function setConsent(status: Exclude<ConsentStatus, null>): void {
-  storage()?.setItem(CONSENT_KEY, status)
+  sharedSetConsent(status)
 }
 
 export function readPreference(key: string): string | null {
-  if (!hasConsent()) return null
-  try {
-    return storage()?.getItem(key) ?? null
-  } catch {
-    return null
-  }
+  return consentStorage.get(key)
 }
 
 export function writePreference(key: string, value: string): void {
-  if (!hasConsent()) return
-  try {
-    storage()?.setItem(key, value)
-  } catch {
-    /* full eller blokkert storage — valget gjelder fortsatt for økten */
-  }
+  consentStorage.set(key, value)
 }
 
 /** Fjerner alt spillet har lagret, men beholder selve samtykkevalget. */
 export function clearPreferences(): void {
-  const store = storage()
-  if (!store) return
-  for (const key of PREFERENCE_KEYS) {
-    try {
-      store.removeItem(key)
-    } catch {
-      /* ignore */
-    }
-  }
+  for (const key of PREFERENCE_KEYS) consentStorage.remove(key)
 }

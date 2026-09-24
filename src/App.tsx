@@ -17,7 +17,7 @@ import { AccountBadge, resolveIdentity } from './account'
 import { getProgress } from './game/progress'
 
 function App() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { motion, pace: lastPace, setPace: rememberPace } = useGameSettings()
   // enkel skjerm-state; bytter til react-router når flere skjermer trengs
   const [regionId, setRegionId] = useState<string | null>(null)
@@ -250,6 +250,7 @@ function App() {
           progress={getProgress()}
           signedOutLabel={t('account.signedOut')}
           signedInLabel={(name) => t('account.signedInAs', { name })}
+          language={i18n.language}
         />
       </div>
     </MotionConfig>

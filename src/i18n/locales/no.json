@@ -42,7 +42,7 @@
     "showDetails": "Vis hva som lagres",
     "hideDetails": "Skjul detaljer",
     "statusAccepted": "Spillet husker deg på denne enheten, og resultatene dine havner på den globale ledertavla.",
-    "statusDeclined": "Spillet lagrer ingenting og sender ingenting. Navn, poeng og valg forsvinner når du lukker fanen.",
+    "statusDeclined": "Ingenting lagres på denne enheten. Er du innlogget, lagres fremgang og resultater på kontoen din til du lukker fanen – neste gang må du logge inn igjen.",
     "statusUndecided": "Du har ikke valgt ennå. Spillet lagrer og sender ingenting før du gjør det.",
     "clear": "Slett alt som er lagret",
     "clearConfirm": "Dette sletter navn, ledertavle, nivå og innstillinger. Kan ikke angres.",
@@ -224,7 +224,7 @@
     "notCounted": "Denne runden kom ikke på den globale tavla.",
     "savedLocally": "Lagret på denne enheten. Tavla svarte ikke.",
     "signedOut": "Denne runden er ikke på den globale tavla. XP og nivå lagres på denne enheten uansett.",
-    "signInToPost": "Logg inn på spillarena.no for å sende inn resultater."
+    "signInToPost": "Logg inn fra merket i hjørnet for å sende inn resultater."
   },
   "meta": {
     "title": "AtlasMaster — kartspillet om verden",
