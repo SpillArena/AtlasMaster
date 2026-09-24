@@ -14,6 +14,7 @@ import { getName } from './game/leaderboard'
 import { syncProgress, watchProgressSync } from './game/profileSync'
 import type { Mode, Pace } from './game/types'
 import { AccountBadge, resolveIdentity } from './account'
+import { badgeLabels } from './game/badgeLabels'
 import { getProgress } from './game/progress'
 
 function App() {
