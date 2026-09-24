@@ -14,6 +14,7 @@ import { getName } from './game/leaderboard'
 import { syncProgress, watchProgressSync } from './game/profileSync'
 import type { Mode, Pace } from './game/types'
 import { AccountBadge, resolveIdentity } from './account'
+import { badgeLabels } from './game/badgeLabels'
 import { getProgress } from './game/progress'
 
 function App() {
@@ -248,8 +249,7 @@ function App() {
             AtlasMaster hadde kontoene alene; merket er det som er likt på tvers. */}
         <AccountBadge
           progress={getProgress()}
-          signedOutLabel={t('account.signedOut')}
-          signedInLabel={(name) => t('account.signedInAs', { name })}
+          labels={badgeLabels(t)}
           language={i18n.language}
         />
       </div>
