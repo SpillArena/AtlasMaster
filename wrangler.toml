@@ -2,22 +2,18 @@ name = "atlasmaster"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./dist"
 
-# Tavla ligger nå i `spillarena-hub`, databasen hele domenet deler, i tabellen
-# `atlasmaster_leaderboard`. Den het `leaderboard_entries` da AtlasMaster hadde
-# databasen `atlasmaster-leaderboard` for seg selv; navnet måtte endres fordi
-# FleetBot har en tabell med nøyaktig samme navn og andre kolonner.
-#
-# SKJEMAET EIES IKKE HERFRA LENGER. Det er derfor ingen migrations_dir her:
-# `d1_migrations` er én tabell per database med UNIQUE på navnet, og hvert av
-# spillene hadde sin egen `0001_*.sql`. Alle migrasjonene for denne databasen
-# ligger i SpillArena/migrations/. Skal tavla endre form, skjer det der.
+# `atlasmaster-leaderboard` er en ny database, opprettet da norgesmester ble
+# fjernet. D1 kan ikke døpes om, så omdøpingen måtte gjøres som ny database
+# pluss kopiering av radene — de 19 radene fra den gamle tavla ligger her, og
+# `region` er fylt med 'norway' slik migrasjon 0002 legger opp til.
 #
 # `database_id` er det som faktisk binder appen til dataene. Endrer du den, peker
 # ledertavla på en annen (tom) database.
 [[d1_databases]]
 binding = "DB"
-database_name = "spillarena-hub"
-database_id = "01624d56-fcd9-495d-9dd7-59b59a85da81"
+database_name = "atlasmaster-leaderboard"
+database_id = "65fe0353-af3a-4faf-b5e0-f5de2242c3d3"
+migrations_dir = "migrations"
 
 # AUTH_SECRET er ikke her med vilje.
 #
