@@ -21,7 +21,6 @@ import { submitScore } from '../../game/scoreApi'
 import { pushProgress } from '../../game/profileSync'
 import { rankFor } from '../../game/rank'
 import type { CloudOutcome } from './ResultScreen'
-import { useCookieConsent } from '../../contexts/useCookieConsent'
 import { MapCanvas } from './MapCanvas'
 import { GameHUD } from './GameHUD'
 import { GameTopBar } from './GameTopBar'
@@ -139,7 +138,6 @@ function Game({
 }) {
   const { t } = useTranslation()
   const { data, base, features, geom, projection, emblems } = loaded
-  const { consent } = useCookieConsent()
   const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
     useQuizEngine(features, mode, pace)
 
@@ -215,9 +213,14 @@ function Game({
       scoringVersion: SCORING_VERSION,
     })
 
-    // den globale tavla får resultatet bare når spilleren har sagt ja —
-    // den lokale runden er uansett lagret over
-    if (consent === 'accepted') {
+    /*
+     * Den globale tavla får resultatet uansett svar på lagring. Før krevde den
+     * et ja, og da havnet runder spilt av en innlogget spiller som hadde sagt
+     * nei aldri på kontoen. Samtykket gjelder hva som lagres på enheten; en
+     * innsending er noe annet, og uten konto svarer tjeneren 401 — som gir
+     * spilleren beskjeden om å logge inn.
+     */
+    {
       /*
        * Resultatet av innsendingen ble kastet før — `void submitScore(...)`.
        * En avvist innsending og en død tjener så like ut, og begge endte med

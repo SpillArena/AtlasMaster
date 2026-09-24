@@ -18,7 +18,7 @@ import { badgeLabels } from './game/badgeLabels'
 import { getProgress } from './game/progress'
 
 function App() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { motion, pace: lastPace, setPace: rememberPace } = useGameSettings()
   // enkel skjerm-state; bytter til react-router når flere skjermer trengs
   const [regionId, setRegionId] = useState<string | null>(null)
@@ -250,6 +250,7 @@ function App() {
         <AccountBadge
           progress={getProgress()}
           labels={badgeLabels(t)}
+          language={i18n.language}
         />
       </div>
     </MotionConfig>

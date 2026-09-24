@@ -1,5 +1,4 @@
 import { createProfileSync, getSession } from '../account'
-import { hasConsent } from '../lib/cookieConsent'
 import { adoptRemoteProgress, getProgress } from './progress'
 import type { Progress } from './progress'
 
@@ -14,8 +13,10 @@ import type { Progress } from './progress'
  * siste håndterer også kontobytte på samme enhet, som en ren smelting ville
  * limt to spilleres statistikk sammen på.
  *
- * Uten samtykke skjer ingenting: profilen ville ikke overlevd fanen uansett,
- * og en konto som får halve historien er verre enn en som får ingen.
+ * Samtykket avgjør IKKE om dette skjer. Det gjorde det før, og da fikk en
+ * spiller som hadde sagt nei til lagring, men logget inn, ingenting på kontoen
+ * — runde etter runde ble spilt som gjest. Et nei betyr at ingenting lagres på
+ * ENHETEN; kontoen er noe spilleren har bedt om ved å logge inn.
  */
 /*
  * Navnet smeltingen tilhører. adoptRemoteProgress trenger det for å se om
@@ -35,13 +36,11 @@ const sync = createProfileSync<Progress>({
 
 /** Henter kontoens profil, smelter den inn, og skriver resultatet tilbake. */
 export async function syncProgress(): Promise<void> {
-  if (!hasConsent()) return
   await sync.pull()
 }
 
 /** Sender den ferske lokale profilen til kontoen — kalles etter en fullført runde. */
 export function pushProgress(): void {
-  if (!hasConsent()) return
   sync.push()
 }
 

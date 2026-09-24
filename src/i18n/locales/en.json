@@ -42,7 +42,7 @@
     "showDetails": "Show what's stored",
     "hideDetails": "Hide details",
     "statusAccepted": "The game remembers you on this device, and your results reach the global leaderboard.",
-    "statusDeclined": "The game stores nothing and sends nothing. Your name, scores and choices disappear when you close the tab.",
+    "statusDeclined": "Nothing is stored on this device. While you're signed in, progress and results are saved to your account until you close the tab – next time you'll need to sign in again.",
     "statusUndecided": "You haven't chosen yet. The game stores and sends nothing until you do.",
     "clear": "Delete everything stored",
     "clearConfirm": "This deletes your name, leaderboard, level and settings. It can't be undone.",
@@ -224,7 +224,7 @@
     "notCounted": "This round didn't make it onto the global board.",
     "savedLocally": "Saved on this device. The board was unreachable.",
     "signedOut": "This round isn't on the global board. Your XP and level are saved on this device either way.",
-    "signInToPost": "Sign in on spillarena.no to post scores."
+    "signInToPost": "Sign in from the badge in the corner to post scores."
   },
   "meta": {
     "title": "AtlasMaster — the world map game",

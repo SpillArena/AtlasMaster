@@ -1,3 +1,5 @@
+import { getConsent, hasConsent as domainConsent } from './consent'
+import { SESSION_STORAGE_KEY } from './keys'
 import type { Session } from './types'
 
 /**
@@ -17,17 +19,23 @@ import type { Session } from './types'
  * Nothing here talks to the network; see api.ts for that.
  */
 
-const STORAGE_KEY = 'spillarena.session'
+export { SESSION_STORAGE_KEY }
+const STORAGE_KEY = SESSION_STORAGE_KEY
 
 /**
  * Consent gate.
  *
- * Every repo has its own cookie-consent module, and this folder is copied
- * between them, so it cannot import any of them. The host app injects the
- * check instead. Default: allowed — a game with no consent layer should not
- * silently fail to log anyone in.
+ * It used to be injected, because every repo had its own consent module and
+ * this folder could not import any of them — and it defaulted to "allowed", so
+ * a game without one stored the session no matter what the player had said on
+ * the front page. There is now ONE answer for the domain, in consent.ts, and
+ * that is the default. Declined, the session lives in memory only: the player
+ * can still sign in, play, and have progress and results saved to the account
+ * for as long as the tab is open.
+ *
+ * configureSession can still override it, for a game that has not moved over.
  */
-let hasConsent: () => boolean = () => true
+let hasConsent: () => boolean = () => domainConsent()
 
 /** Held in memory so a declined consent still gives a working session. */
 let session: Session | null | undefined
@@ -69,7 +77,14 @@ function read(): Session | null {
         return session
     }
     session = null
-    if (typeof window === 'undefined' || !hasConsent()) return session
+    /*
+     * Read while the question is still open, not only after a yes: a session
+     * from before anyone asked is still the player's, and hiding it while the
+     * dialog is up would sign them out for having been asked. Nothing is WRITTEN
+     * before a yes (setSession), and a no removes it from disk (consent.ts).
+     */
+    const readable = hasConsent() || getConsent() === null
+    if (typeof window === 'undefined' || !readable) return session
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
         const parsed: unknown = raw ? JSON.parse(raw) : null

@@ -649,6 +649,8 @@ export const RESERVED_NAMES: readonly string[] = [
   'official',
   'owner',
   'payment',
+  'pixel-panic',
+  'pixelpanic',
   'proportion-panic',
   'proportionpanic',
   'root',

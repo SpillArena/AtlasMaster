@@ -1,10 +1,10 @@
 // One SpillArena account, shared by every game on the domain.
 //
 // This folder is VENDORED: the same files exist in AtlasMaster, ScribbleBot,
-// HangBot, ProportionPanic and FleetBot, byte for byte. SpillArena is the
-// canonical copy — fix it here, then copy it out. That is why the comments in
-// this folder are English while the rest of this repo is Norwegian: this file
-// also lives in repos that are written in English.
+// HangBot, ProportionPanic, PixelPanic and FleetBot, byte for byte. SpillArena
+// is the canonical copy — fix it here, then copy it out. That is why the
+// comments in this folder are English while the rest of this repo is
+// Norwegian: this file also lives in repos that are written in English.
 
 /** A signed, non-secret proof of who the player is. Lives 30 days. */
 export interface Session {
@@ -43,6 +43,8 @@ export type AuthErrorCode =
     | 'bad_action'
     | 'name_taken'
     | 'locked'
+    /** Returned on sign-in with the right PIN, and as a 401 on any signed call. */
+    | 'banned'
     | 'not_configured'
     | 'unauthorized'
     | 'service_failed'
@@ -63,7 +65,7 @@ export type AuthResult = { ok: true; session: Session } | AuthFailure
 export type ApiResult<T> = { ok: true; data: T } | AuthFailure
 
 /** The path segment the game is served under: spillarena.no/<id>. */
-export type GameId = 'atlasmaster' | 'scribblebot' | 'hangbot' | 'proportionpanic' | 'fleetbot'
+export type GameId = 'atlasmaster' | 'scribblebot' | 'hangbot' | 'proportionpanic' | 'pixelpanic' | 'fleetbot'
 
 export interface ProfileResponse<T> {
     game: GameId
@@ -75,5 +77,10 @@ export interface AccountOverview {
     username: string
     createdAt: string
     lastSeen: string
+    /**
+     * Only the front page reads this, to decide whether to offer the admin panel.
+     * It opens nothing by itself: every admin call checks the flag again.
+     */
+    admin?: boolean
     games: Partial<Record<GameId, { progress: unknown; updatedAt: string }>>
 }

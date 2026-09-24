@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { authenticate } from './api'
 import { getSession, onSessionChange, signOut } from './session'
 import { levelProgress } from './progress'
+import { openConsentDialog } from './consent'
+import { detectLanguage } from './language'
+import { useConsent } from './useConsent'
 import type { AuthAction, AuthErrorCode } from './types'
 
 /**
@@ -86,6 +89,7 @@ const CSS = `
 
 .sa-panel {
   position: absolute;
+  text-align: left;
   width: min(84vw, 268px);
   padding: 14px;
   border-radius: 14px;
@@ -125,6 +129,14 @@ const CSS = `
   border-radius: 9px; border: 1px solid rgba(0,0,0,0.16); background: transparent; color: inherit;
   font: 600 12px/1 inherit;
 }
+.sa-panel__storage {
+  margin: 0 0 10px; padding: 8px 10px; border-radius: 9px;
+  background: #fef3c7; color: #451a03; font-size: 11.5px; line-height: 1.35;
+}
+.sa-panel__storage button {
+  display: block; margin-top: 4px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: inherit; font: 700 11.5px/1.3 inherit; text-decoration: underline; text-underline-offset: 2px;
+}
 .sa-panel__meter { margin: 10px 0 2px; height: 6px; border-radius: 999px; background: rgba(109, 40, 217, 0.18); overflow: hidden; }
 .sa-panel__meterfill { height: 100%; border-radius: 999px; background: #7c3aed; }
 
@@ -144,6 +156,7 @@ const CSS = `
   .sa-panel__submit { background: #8b5cf6; }
   .sa-panel__error { color: #fca5a5; }
   .sa-panel__signout { border-color: rgba(255,255,255,0.18); }
+  .sa-panel__storage { background: rgba(120, 53, 15, 0.45); color: #fffbeb; }
 }
 @media (max-width: 480px) { .sa-badge { font-size: 11px; padding: 6px 10px; } }
 @media (prefers-reduced-motion: reduce) { .sa-badge { transition: none; } }
@@ -195,6 +208,14 @@ export interface AccountBadgeLabels {
     guestHint: string
     level: (level: number) => string
     /**
+     * Shown in the panel while the player has declined storage (consent.ts):
+     * signing in works, but only until the tab closes. Defaults follow the
+     * page language, since most games do not pass labels at all.
+     */
+    notRemembered: string
+    /** The button under `notRemembered`, which opens the consent dialog. */
+    turnOnSaving: string
+    /**
      * Maps a stable error code to a sentence the player can read.
      *
      * `action` is passed because the same code deserves different advice
@@ -204,6 +225,13 @@ export interface AccountBadgeLabels {
      * `locked`.
      */
     error: (code: AuthErrorCode, action: AuthAction, retryAfter?: number) => string
+}
+
+/** Seconds as a Norwegian would say them. */
+function formatWaitNo(seconds: number): string {
+    if (seconds < 60) return `${seconds} sekunder`
+    const minutes = Math.ceil(seconds / 60)
+    return minutes === 1 ? 'ett minutt' : `${minutes} minutter`
 }
 
 const DEFAULT_LABELS: AccountBadgeLabels = {
@@ -222,6 +250,9 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
     profile: 'Profile on spillarena.no',
     guestHint: 'You can play without an account. Signing in saves your scores to the leaderboard.',
     level: (level) => `Lv ${level}`,
+    notRemembered:
+        "Storage is off. You stay signed in until you close this tab, and your progress and results are saved to your account until then. Next time you'll need to sign in again.",
+    turnOnSaving: 'Turn on saving',
     error: (code, action, retryAfter) => {
         switch (code) {
             /*
@@ -248,6 +279,8 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
                 return 'The PIN must be 4–6 digits.'
             case 'name_taken':
                 return 'That name is taken. If it is yours, sign in instead.'
+            case 'banned':
+                return 'This account is banned.'
             case 'locked':
                 return retryAfter && retryAfter > 0
                     ? `Too many wrong attempts. Try again in ${formatWait(retryAfter)}.`
@@ -266,6 +299,70 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
     },
 }
 
+/*
+ * The same labels in Norwegian. Most games pass no labels at all, and the site
+ * is Norwegian: a Norwegian game showing an English sign-in form in its corner
+ * looked like a different product. Chosen by `language`, or detected.
+ */
+const NORWEGIAN_LABELS: AccountBadgeLabels = {
+    signedOut: 'Ikke logget inn',
+    signedInAs: (username) => `Logget inn som ${username}`,
+    signIn: 'Logg inn',
+    register: 'Ny konto',
+    username: 'Navn',
+    pin: 'PIN',
+    confirmPin: 'Gjenta PIN',
+    pinMismatch: 'De to PIN-kodene er ikke like.',
+    submitSignIn: 'Logg inn',
+    submitRegister: 'Lag konto',
+    working: 'Jobber …',
+    signOut: 'Logg ut',
+    profile: 'Profil på spillarena.no',
+    guestHint: 'Du kan spille uten konto. Logger du inn, lagres resultatene dine på ledertavla.',
+    level: (level) => `Nv ${level}`,
+    notRemembered:
+        'Lagring er slått av. Du er innlogget til du lukker fanen, og fremgang og resultater lagres på kontoen din så lenge. Neste gang må du logge inn igjen.',
+    turnOnSaving: 'Slå på lagring',
+    error: (code, action, retryAfter) => {
+        switch (code) {
+            case 'bad_credentials':
+                return 'Feil navn eller PIN. Har du ikke laget konto ennå, velg Ny konto.'
+            case 'username_empty':
+                return 'Skriv inn et navn først.'
+            case 'username_too_long':
+                return 'Navnet er for langt – høyst 20 tegn.'
+            case 'username_chars':
+                return "Navn kan bare ha bokstaver, tall, mellomrom og . _ ' -"
+            case 'name_reserved':
+                return 'Det navnet er reservert. Velg et annet.'
+            case 'name_not_allowed':
+                return 'Det navnet er ikke tillatt. Velg et annet.'
+            case 'bad_username':
+                return 'Det navnet kan ikke brukes.'
+            case 'bad_pin':
+                return 'PIN-koden må være 4–6 siffer.'
+            case 'name_taken':
+                return 'Navnet er opptatt. Er det ditt, logg inn i stedet.'
+            case 'banned':
+                return 'Denne kontoen er utestengt.'
+            case 'locked':
+                return retryAfter && retryAfter > 0
+                    ? `For mange feil forsøk. Prøv igjen om ${formatWaitNo(retryAfter)}.`
+                    : 'For mange feil forsøk. Prøv igjen om noen minutter.'
+            case 'not_configured':
+                return 'Kontoer er ikke tilgjengelige akkurat nå. Du kan spille videre som gjest.'
+            case 'unreachable':
+                return 'Fikk ikke svar fra kontotjenesten. Sjekk nettet og prøv igjen.'
+            case 'unauthorized':
+                return 'Innloggingen har gått ut. Logg inn på nytt.'
+            default:
+                return action === 'register'
+                    ? 'Kunne ikke lage kontoen. Prøv igjen.'
+                    : 'Kunne ikke logge inn. Prøv igjen.'
+        }
+    },
+}
+
 export interface AccountBadgeProps {
     /**
      * Anything carrying an XP total — every game's profile qualifies, including
@@ -276,8 +373,14 @@ export interface AccountBadgeProps {
     corner?: keyof typeof CORNERS
     /** Where the full profile lives. The front page, unless a game says otherwise. */
     homeUrl?: string
-    /** Overrides for any label. Anything omitted falls back to English. */
+    /** Overrides for any label. Anything omitted falls back to `language`. */
     labels?: Partial<AccountBadgeLabels>
+    /**
+     * 'no' or 'en' for the built-in labels. Left out, it is detected from the
+     * page (`<html lang>`, then the browser). Games with a language switch pass
+     * their current language, since not all of them keep `<html lang>` in step.
+     */
+    language?: string
     /** Called after a successful sign-in, so the game can pull its profile. */
     onSignedIn?: (username: string) => void
     /**
@@ -296,6 +399,7 @@ export function AccountBadge({
     corner = 'bottom-right',
     homeUrl = 'https://spillarena.no',
     labels: overrides,
+    language: requestedLanguage,
     onSignedIn,
     signedOutLabel,
     signedInLabel,
@@ -303,14 +407,16 @@ export function AccountBadge({
     useInjectedStyle()
 
     // the deprecated props lose to `labels` when a caller passes both
+    const base = detectLanguage(requestedLanguage) === 'no' ? NORWEGIAN_LABELS : DEFAULT_LABELS
     const labels: AccountBadgeLabels = {
-        ...DEFAULT_LABELS,
+        ...base,
         ...(signedOutLabel ? { signedOut: signedOutLabel } : {}),
         ...(signedInLabel ? { signedInAs: signedInLabel } : {}),
         ...overrides,
     }
 
     const [username, setUsername] = useState<string | null>(() => getSession()?.username ?? null)
+    const consent = useConsent()
     const [open, setOpen] = useState(false)
     const [mode, setMode] = useState<AuthAction>('login')
     const [name, setName] = useState('')
@@ -438,6 +544,20 @@ export function AccountBadge({
                                     </p>
                                 </>
                             )}
+                            {consent !== 'accepted' && (
+                                <div className="sa-panel__storage">
+                                    {labels.notRemembered}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setOpen(false)
+                                            openConsentDialog()
+                                        }}
+                                    >
+                                        {labels.turnOnSaving}
+                                    </button>
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 className="sa-panel__signout"
@@ -523,6 +643,21 @@ export function AccountBadge({
                                         maxLength={6}
                                     />
                                 </>
+                            )}
+
+                            {consent !== 'accepted' && (
+                                <div className="sa-panel__storage">
+                                    {labels.notRemembered}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setOpen(false)
+                                            openConsentDialog()
+                                        }}
+                                    >
+                                        {labels.turnOnSaving}
+                                    </button>
+                                </div>
                             )}
 
                             {(error || mismatch) && (
