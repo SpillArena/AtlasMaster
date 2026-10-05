@@ -130,13 +130,17 @@ const SELECT_COLUMNS = `
  * som ville måle seg mot dem hadde ingen måte å se hvorfor. Nøyaktig samme
  * grunn som `mode` ble et filter i sin tid; tempoet ble stående halvferdig.
  *
- * DEDUPLISERINGEN sier nå hva den mener. Den stod som `HAVING score =
- * MAX(score)` — en tautologi, sann for hver eneste gruppe, som ikke gjorde
- * annet enn å utløse SQLites egen regel om at bare-kolonner i en gruppe med
- * `MAX()` hentes fra maksimumsraden. Den virket, men intensjonen «behold
- * spillerens beste rad» stod ingen steder, og enhver endring som la til et
- * aggregat til eller fjernet `HAVING` ville stille og rolig gitt vilkårlige
- * rader i stedet. `ROW_NUMBER()` sier det høyt.
+ * DEDUPLISERINGEN SKJER IKKE LENGER HER. Den har vandret gjennom tre former:
+ * først `HAVING score = MAX(score)`, en tautologi som bare utløste SQLites
+ * egen regel om hvilken rad bare-kolonner hentes fra; så et eksplisitt
+ * `ROW_NUMBER()`-vindu som i det minste sa hva det mente; nå ingenting.
+ *
+ * Grunnen er at problemet er borte i stedet for skjult. Tabellen har en unik
+ * indeks på (username, region, category, mode, pace) — se
+ * SpillArena/migrations/0006_one_row_per_exercise.sql — så det FINNES ikke to
+ * rader for samme spiller i samme øvelse å velge mellom. En regel i en
+ * spørring kan glemmes av neste endepunkt som leser tabellen; en regel i
+ * skjemaet kan ikke det.
  */
 export async function fetchTop(db, { region, category, mode, pace, limit }) {
   const filters = []
@@ -157,17 +161,22 @@ export async function fetchTop(db, { region, category, mode, pace, limit }) {
 
   const { results } = await db
     .prepare(
+      /*
+       * Ingen ROW_NUMBER lenger.
+       *
+       * Vinduet var her for å plukke den beste raden per øvelse ut av en
+       * tabell som hadde én rad per RUNDE. Nå kan tabellen ikke ha mer enn én
+       * rad per (username, region, category, mode, pace) — se den unike
+       * indeksen idx_atlasmaster_exercise i
+       * SpillArena/migrations/0006_one_row_per_exercise.sql — så
+       * dedupliseringa er alt gjort før raden kom inn.
+       *
+       * Det er ikke bare enklere: vinduet måtte lese og sortere HELE det
+       * filtrerte settet for å kaste det meste, mens dette stopper på LIMIT.
+       */
       `SELECT ${SELECT_COLUMNS}
-       FROM (
-         SELECT *,
-                ROW_NUMBER() OVER (
-                  PARTITION BY username, region, category, mode, pace
-                  ORDER BY score DESC, timestamp DESC, id DESC
-                ) AS rank_in_group
-         FROM leaderboard_entries
-         ${where}
-       )
-       WHERE rank_in_group = 1
+       FROM atlasmaster_leaderboard
+       ${where}
        ORDER BY score DESC, timestamp DESC, id DESC
        LIMIT ?`,
     )
@@ -189,14 +198,14 @@ export async function fetchTop(db, { region, category, mode, pace, limit }) {
 export async function rankOf(db, { region, category, mode, pace, score }) {
   const row = await db
     .prepare(
+      /*
+       * GROUP BY username er borte. Den var her for å redusere flere rader per
+       * spiller til den beste; tabellen kan ikke ha flere lenger, så filteret
+       * under plukker allerede nøyaktig én rad per spiller i denne øvelsen.
+       */
       `SELECT COUNT(*) + 1 AS rank
-       FROM (
-         SELECT MAX(score) AS best
-         FROM leaderboard_entries
-         WHERE region = ? AND category = ? AND mode = ? AND pace = ?
-         GROUP BY username
-       )
-       WHERE best > ?`,
+       FROM atlasmaster_leaderboard
+       WHERE region = ? AND category = ? AND mode = ? AND pace = ? AND score > ?`,
     )
     .bind(region, category, mode, pace, score)
     .first()
@@ -345,10 +354,39 @@ export async function onRequestPost(context) {
 
   try {
     await env.DB.prepare(
-      `INSERT INTO leaderboard_entries
+      /*
+       * Én rad per spiller per øvelse, og den beste vinner.
+       *
+       * Før la hver runde seg til som en ny rad, og lesinga plukket den beste
+       * med et ROW_NUMBER-vindu. Raden er nå unik på
+       * (username, region, category, mode, pace) — se
+       * SpillArena/migrations/0006_one_row_per_exercise.sql — så en ny runde i
+       * en øvelse spilleren alt har, OPPDATERER raden i stedet for å legge seg
+       * ved siden av.
+       *
+       * WHERE-en på slutten er hele poenget: uten den ville en dårligere runde
+       * overskrive en bedre. En runde som ikke slår rekorden er ikke en feil —
+       * den endrer bare ingenting, og spilleren får fortsatt plasseringa si
+       * fra rankOf().
+       *
+       * `id` og `timestamp` blir stående fra den beste runden, ikke den siste.
+       * Raden skal beskrive rekorden, ikke siste forsøk.
+       */
+      `INSERT INTO atlasmaster_leaderboard
         (id, timestamp, username, category, region, mode, pace, score,
          correct_count, total, mistakes, best_streak, elapsed_ms, scoring_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (username, region, category, mode, pace) DO UPDATE SET
+         id              = excluded.id,
+         timestamp       = excluded.timestamp,
+         score           = excluded.score,
+         correct_count   = excluded.correct_count,
+         total           = excluded.total,
+         mistakes        = excluded.mistakes,
+         best_streak     = excluded.best_streak,
+         elapsed_ms      = excluded.elapsed_ms,
+         scoring_version = excluded.scoring_version
+       WHERE excluded.score > atlasmaster_leaderboard.score`,
     )
       .bind(
         entry.id,
