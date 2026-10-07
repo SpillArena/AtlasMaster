@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { geoBounds, geoGraticule } from 'd3-geo'
 import { select } from 'd3-selection'
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom'
@@ -6,6 +7,7 @@ import type { FeatureCollection } from 'geojson'
 import { makeCoarsePath, makePath, makeProjection, naturalAspect } from '../../game/projection'
 import type { GeomKind, ProjectionSpec, QuizFeature } from '../../game/types'
 import type { Award } from '../../game/useQuizEngine'
+import { OCEAN_ANCHORS } from '../../game/oceanMap'
 import { Icon, type IconName } from '../Icon'
 
 /**
@@ -57,6 +59,7 @@ interface MeasuredPath {
   cx: number
   cy: number
   size: number
+  bounds: [[number, number], [number, number]]
 }
 
 /** En flate som er for liten til å kunne trykkes på, med plassen den har fått. */
@@ -142,6 +145,7 @@ interface Props {
   baseData?: FeatureCollection
   features: QuizFeature[]
   geom: GeomKind
+  surface?: 'water'
   status: Record<string, 'correct' | 'revealed'>
   /** sist feilklikkede id (rød) */
   flashId: string | null
@@ -168,6 +172,7 @@ export const MapCanvas = memo(function MapCanvas({
   baseData,
   features,
   geom,
+  surface,
   status,
   flashId,
   revealId,
@@ -177,6 +182,7 @@ export const MapCanvas = memo(function MapCanvas({
   onPick,
   disabled,
 }: Props) {
+  const { t } = useTranslation()
   const svgRef = useRef<SVGSVGElement>(null)
   /** gruppa all zoom og panorering blir skrevet på — utenom React */
   const layerRef = useRef<SVGGElement>(null)
@@ -201,7 +207,7 @@ export const MapCanvas = memo(function MapCanvas({
      */
     const landGeometry: GeoJSON.GeometryCollection = {
       type: 'GeometryCollection',
-      geometries: fitData.features.map((f) => f.geometry),
+      geometries: (baseData ?? fitData).features.map((f) => f.geometry),
     }
     const land = path(landGeometry) ?? ''
     // sokkelstripa kjører på en grovere kopi — se SHELF_TOLERANCE
@@ -257,16 +263,20 @@ export const MapCanvas = memo(function MapCanvas({
      * for liten til å kunne trykkes på; se kommentaren der.
      */
     const measured = features.map((f) => {
-      const c = path.centroid(f.geometry) as [number, number]
+      const anchor = surface === 'water' ? OCEAN_ANCHORS[f.id] : undefined
+      const c = (anchor ? projection(anchor) : path.centroid(f.geometry)) as [number, number]
       centers[f.id] = c
-      const [[x0, y0], [x1, y1]] = path.bounds(f.geometry)
+      const bounds = path.bounds(f.geometry) as [[number, number], [number, number]]
+      const [[x0, y0], [x1, y1]] = bounds
       // en tom eller ugyldig geometri får uendelig størrelse: da blir den aldri
       // regnet som for liten, og ingen usynlig flate blir lagt ut for den
-      const size = Number.isFinite(x0) ? Math.max(x1 - x0, y1 - y0) : Infinity
-      return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size }
+      const inView = c[0] >= 0 && c[0] <= W && c[1] >= 0 && c[1] <= H
+      const size = Number.isFinite(x0) && (surface !== 'water' || inView)
+        ? (surface === 'water' ? Math.min : Math.max)(x1 - x0, y1 - y0) : Infinity
+      return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size, bounds }
     })
     return { paths: measured, points: [], basePaths, land, shelf, graticule, centers, W }
-  }, [projectionSpec, fitData, baseData, features, geom])
+  }, [projectionSpec, fitData, baseData, features, geom, surface])
 
   /**
    * Hvor mange lerretsenheter det går på en CSS-piksel akkurat nå. `viewBox`
@@ -381,6 +391,20 @@ export const MapCanvas = memo(function MapCanvas({
     select(svgRef.current).call(zoomRef.current.transform, t)
   }, [highlightId, geom, points, W])
 
+  // Choice/typing already shows the location. Bring a small sea into view
+  // with coastlines around it, without moving the map during click questions.
+  useEffect(() => {
+    if (surface !== 'water' || !highlightId || !svgRef.current || !zoomRef.current) return
+    const target = paths.find((p) => p.id === highlightId)
+    if (!target || !Number.isFinite(target.bounds[0][0])) return
+    const [[x0, y0], [x1, y1]] = target.bounds
+    const scale = Math.max(1, Math.min(8, W / ((x1 - x0) * 2), H / ((y1 - y0) * 2)))
+    const transform = scale > 1
+      ? zoomIdentity.translate(W / 2, H / 2).scale(scale).translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
+      : zoomIdentity
+    select(svgRef.current).call(zoomRef.current.transform, transform)
+  }, [surface, highlightId, paths, W])
+
   const zoomBy = useCallback((factor: number) => {
     if (!svgRef.current || !zoomRef.current) return
     select(svgRef.current).call(zoomRef.current.scaleBy, factor)
@@ -395,13 +419,14 @@ export const MapCanvas = memo(function MapCanvas({
   return (
     // havet fortsetter utenfor selve viewBox-en, så letterbox-stripene på
     // brede skjermer leser som åpent farvann og ikke som tom appbakgrunn
-    <div className="relative h-full w-full" style={{ background: 'var(--ocean-deep)' }}>
+    <div className={`relative h-full w-full${surface === 'water' ? ' water-map' : ''}`} style={{ background: 'var(--ocean-deep)' }}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
         className="h-full w-full touch-none select-none"
         role="img"
+        aria-label={surface === 'water' ? t('game.oceanMap') : undefined}
       >
         <defs>
           <radialGradient id={oceanId} cx="50%" cy="45%" r="75%">
@@ -420,12 +445,15 @@ export const MapCanvas = memo(function MapCanvas({
           verdien React kjenner, midt i en gest.
         */}
         <g ref={layerRef}>
-          <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
+          {surface !== 'water' && (
+            <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
+          )}
 
           {geom !== 'point' && (
             <ShapeLayer
               paths={paths}
               isLine={geom === 'line'}
+              blockAnswered={surface === 'water'}
               status={status}
               flashId={flashId}
               revealId={revealId ?? null}
@@ -433,6 +461,10 @@ export const MapCanvas = memo(function MapCanvas({
               live={interactive && !disabled}
               onPick={onPick}
             />
+          )}
+
+          {surface === 'water' && (
+            <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} blockLand />
           )}
 
           {/*
@@ -493,9 +525,9 @@ export const MapCanvas = memo(function MapCanvas({
 
       {/* zoom-kontroller */}
       <div className="absolute right-2 top-2 flex flex-col gap-1.5 sm:right-3 sm:top-3">
-        <ZoomBtn icon="plus" onClick={() => zoomBy(1.6)} />
-        <ZoomBtn icon="minus" onClick={() => zoomBy(1 / 1.6)} />
-        <ZoomBtn icon="reset" onClick={resetZoom} />
+        <ZoomBtn icon="plus" label={t('game.zoomIn')} onClick={() => zoomBy(1.6)} />
+        <ZoomBtn icon="minus" label={t('game.zoomOut')} onClick={() => zoomBy(1 / 1.6)} />
+        <ZoomBtn icon="reset" label={t('game.resetMap')} onClick={resetZoom} />
       </div>
     </div>
   )
@@ -507,10 +539,12 @@ export const MapCanvas = memo(function MapCanvas({
  * knappen på nytt for hver bilderamme mens kartet flyttet seg under. En
  * ugjennomsiktig flate koster ingenting og leser like tydelig.
  */
-function ZoomBtn({ icon, onClick }: { icon: IconName; onClick: () => void }) {
+function ZoomBtn({ icon, label, onClick }: { icon: IconName; label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      aria-label={label}
+      title={label}
       className="flex h-11 w-11 items-center justify-center rounded-xl border transition-colors hover:bg-[var(--surface-card)]"
       style={{
         color: 'var(--text)',
@@ -724,6 +758,7 @@ const SmallMarkers = memo(function SmallMarkers({
 const ShapeLayer = memo(function ShapeLayer({
   paths,
   isLine,
+  blockAnswered,
   status,
   flashId,
   revealId,
@@ -733,6 +768,7 @@ const ShapeLayer = memo(function ShapeLayer({
 }: {
   paths: MeasuredPath[]
   isLine: boolean
+  blockAnswered: boolean
   status: Record<string, 'correct' | 'revealed'>
   flashId: string | null
   revealId: string | null
@@ -785,12 +821,14 @@ const ShapeLayer = memo(function ShapeLayer({
           ),
         )}
 
-      {paths.map(({ id, d }) => (
+      {paths.map(({ id, d }, index) => (
         <FeatureShape
           key={id}
           id={id}
           d={d}
           isLine={isLine}
+          blockAnswered={blockAnswered}
+          idleFill={blockAnswered ? `var(--water-area-${index % 3 + 1})` : 'transparent'}
           state={stateOf(id, status, flashId, revealId, highlightId)}
           live={live}
         />
@@ -812,17 +850,21 @@ const FeatureShape = memo(function FeatureShape({
   isLine,
   state,
   live,
+  blockAnswered,
+  idleFill,
 }: {
   id: string
   d: string
   isLine: boolean
   state: ShapeState
   live: boolean
+  blockAnswered: boolean
+  idleFill: string
 }) {
   // et løst sted er ute av spillet: det skal verken ta imot klikk, vise
   // peker eller lyse opp under musa
   const clickable = live && state !== 'correct' && state !== 'revealed'
-  const color = isLine && state === 'idle' ? 'var(--text-subtle)' : STATE_COLOR[state]
+  const color = state === 'idle' ? (isLine ? 'var(--text-subtle)' : idleFill) : STATE_COLOR[state]
 
   return (
     <path
@@ -831,7 +873,7 @@ const FeatureShape = memo(function FeatureShape({
       vectorEffect="non-scaling-stroke"
       fill={isLine ? 'none' : color}
       stroke={isLine ? color : 'var(--map-border)'}
-      strokeWidth={isLine ? 6 : 0.9}
+      strokeWidth={isLine ? 6 : blockAnswered ? 1.5 : 0.9}
       strokeLinecap={isLine ? 'round' : undefined}
       strokeLinejoin={isLine ? 'round' : undefined}
       className={[
@@ -843,7 +885,9 @@ const FeatureShape = memo(function FeatureShape({
           ? isLine
             ? 'cursor-pointer hover:stroke-[var(--accent)]'
             : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
-          : 'pointer-events-none',
+          // A solved sea still blocks the larger ocean underneath. It has
+          // no data-id, so clicking it cannot submit another ocean answer.
+          : blockAnswered && live ? '' : 'pointer-events-none',
       ].join(' ')}
     />
   )
@@ -1058,11 +1102,13 @@ const BaseMap = memo(function BaseMap({
   shelf,
   graticule,
   basePaths,
+  blockLand = false,
 }: {
   land: string
   shelf: string
   graticule: string
   basePaths: { id: string; d: string }[]
+  blockLand?: boolean
 }) {
   return (
     <g pointerEvents="none">
@@ -1078,8 +1124,8 @@ const BaseMap = memo(function BaseMap({
       <path
         d={shelf}
         fill="none"
-        stroke="var(--shelf-3)"
-        strokeWidth={9}
+        stroke={blockLand ? 'var(--coast)' : 'var(--shelf-3)'}
+        strokeWidth={blockLand ? 2 : 9}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
@@ -1087,6 +1133,7 @@ const BaseMap = memo(function BaseMap({
       {/* landmassen, med kystlinja som si eiga strek i same passering */}
       <path
         d={land}
+        pointerEvents={blockLand ? 'all' : 'none'}
         fill="var(--map-land)"
         stroke="var(--coast)"
         strokeWidth={1.1}
@@ -1106,7 +1153,7 @@ const BaseMap = memo(function BaseMap({
       )}
 
       {/* bakgrunns-omriss — grensene rundt features som ikke er i spill */}
-      {basePaths.map(({ id, d }) => (
+      {!blockLand && basePaths.map(({ id, d }) => (
         <path
           key={id}
           d={d}

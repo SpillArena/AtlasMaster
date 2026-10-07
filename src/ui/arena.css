@@ -1,0 +1,75 @@
+/* SpillArena shell: 1760px including EraShuffle's responsive page gutters. */
+:root {
+  --arena-max-width: 1760px;
+  --arena-gutter: 36px;
+  --arena-ink: var(--text, var(--ink, var(--text-primary, #263a33)));
+  --arena-muted: var(--text-subtle, var(--muted, var(--text-muted, #687872)));
+  --arena-rule: var(--border, var(--line, var(--line-soft, #b8c2bc)));
+  --arena-paper: var(--surface, var(--paper, var(--surface-0, #f5f3eb)));
+}
+.arena-container { box-sizing: border-box; width: 100%; max-width: var(--arena-max-width); margin-inline: auto; padding-inline: var(--arena-gutter); }
+.arena-header { position: relative; z-index: 45; flex: 0 0 auto; width: 100%; border-bottom: 1px solid var(--arena-rule); color: var(--arena-ink); }
+.arena-header-row { min-height: 86px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.arena-brand { display: inline-flex; align-items: center; gap: 12px; min-width: 0; color: inherit; text-decoration: none; }
+.arena-brand-mark { width: 42px; height: 42px; flex-shrink: 0; object-fit: contain; display: grid; place-items: center; }
+.arena-brand-mark > svg { width: 30px; height: 30px; }
+.arena-brand-name { font-size: 23px; font-weight: 700; line-height: 1.1; letter-spacing: -0.5px; }
+.arena-header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-shrink: 0; }
+.arena-lobby-link { display: inline-flex; align-items: center; gap: 8px; color: var(--arena-muted); font-size: 12px; font-weight: 600; text-decoration: none; padding-block: 12px; }
+.arena-lobby-link:hover, .arena-footer a:hover, .arena-footer button:hover { color: var(--arena-ink); }
+.arena-footer { flex: 0 0 auto; width: 100%; margin-top: auto; border-top: 1px solid var(--arena-rule); color: var(--arena-muted); padding-block: 0; }
+.arena-footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding-block: 17px; font-size: 11px; line-height: 1.5; }
+.arena-footer a, .arena-footer button { color: inherit; font: inherit; text-decoration: none; }
+.arena-footer button { background: none; border: 0; padding: 0; cursor: pointer; }
+.arena-footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+.arena-footer details { padding-bottom: 12px; font-size: 11px; line-height: 1.6; }
+.arena-footer summary { cursor: pointer; }
+.arena-footer details p { font-size: inherit; margin: 8px 0 0; color: inherit; }
+.arena-storage { border-top: 1px solid var(--arena-rule); padding-top: 14px; text-align: left; }
+.arena-storage h3 { font-weight: 700; font-size: 11px; line-height: 1.5; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 8px; color: var(--arena-muted); }
+.arena-storage p { font-size: 12px; line-height: 1.6; color: var(--arena-muted); margin: 0 0 10px; }
+.arena-storage-actions { display: flex; gap: 8px; }
+.arena-storage-actions button { flex: 1; border: 1px solid var(--arena-rule); padding: 8px 12px; border-radius: 8px; color: var(--arena-ink); background: var(--arena-paper); cursor: pointer; font-size: 12px; font-weight: 600; }
+.arena-text-link { background: none; border: 0; padding: 0; color: var(--arena-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 12px; }
+.arena-settings { position: relative; }
+.arena-settings-trigger { width: 40px; height: 40px; border: 1px solid var(--arena-rule); background: transparent; color: var(--arena-ink); border-radius: 10px; display: grid; place-items: center; cursor: pointer; }
+.arena-settings-panel { position: absolute; top: calc(100% + 10px); right: 0; width: 300px; max-width: calc(100vw - 34px); max-height: 75vh; overflow-y: auto; border: 1px solid var(--arena-rule); background: var(--arena-paper); color: var(--arena-ink); border-radius: 12px; box-shadow: 0 15px 45px #0003; padding: 18px; text-align: left; }
+.arena-settings-panel h2 { font: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none; margin: 0 0 14px; }
+.arena-settings-panel label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; font-size: 12px; }
+.arena-settings-panel select { background: var(--arena-paper); color: inherit; border: 1px solid var(--arena-rule); border-radius: 6px; padding: 5px; }
+.arena-settings-panel .arena-storage { margin-top: 16px; }
+.arena-brand:focus-visible, .arena-lobby-link:focus-visible, .arena-footer :focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
+@media (max-width: 720px) {
+  :root { --arena-gutter: 22px; }
+  .arena-header-row { min-height: 76px; gap: 12px; }
+  .arena-brand-name { font-size: 19px; }
+  .arena-brand { gap: 8px; }
+  .arena-brand-mark { width: 36px; height: 36px; }
+  .arena-header-actions { gap: 10px; }
+  .arena-footer-row { padding-bottom: 68px; }
+}
+@media (max-width: 420px) {
+  :root { --arena-gutter: 17px; }
+  .arena-brand-name { font-size: 17px; }
+  .arena-lobby-label { display: none; }
+  .arena-lobby-link { justify-content: center; width: 32px; }
+  .arena-header-actions { gap: 5px; }
+}
+
+.arena-header { background: var(--nav-bg); }
+.arena-header-row--centered { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.arena-header-row--centered .arena-header-actions { justify-self: end; }
+.arena-header-center { min-width: 0; max-width: 38vw; text-align: center; }
+.atlas-header-trail { display: block; color: var(--arena-muted); font-size: 11px; line-height: 1.5; }
+@media (max-width: 1100px) {
+  .arena-header-row--centered { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; padding-block: 12px; }
+  .arena-header-row--centered .arena-brand { grid-column: 1; grid-row: 1; }
+  .arena-header-row--centered .arena-header-actions { grid-column: 2; grid-row: 1; }
+  .arena-header-center { grid-column: 1 / -1; grid-row: 2; justify-self: center; max-width: 100%; }
+}
+@media (max-width: 600px) { .atlas-round-back button { padding-inline: 10px; font-size: 11px; } }
+
+.arena-main > section, .arena-main > div { max-width: var(--arena-max-width); margin-inline: auto; width: 100%; }
+.arena-main > section > .max-w-\[1760px\] { padding-inline: calc(var(--arena-gutter) - 16px); }
+
+@media (max-width: 600px) { .atlas-round-back button span { display: none; } }

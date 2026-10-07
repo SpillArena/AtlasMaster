@@ -49,7 +49,7 @@ export function Leaderboard({ regionId }: Props) {
   const myPlace = me ? entries.findIndex((e) => e.name.trim().toLowerCase() === me) : -1
 
   return (
-    <section aria-label={t('leaderboard.title')} className="mx-auto max-w-6xl px-4 py-4">
+    <section aria-label={t('leaderboard.title')} className="mx-auto max-w-[1760px] px-4 py-4">
       <h1 className="text-h2 mb-4 flex items-center gap-2">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}

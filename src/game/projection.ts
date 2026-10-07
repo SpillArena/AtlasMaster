@@ -2,12 +2,23 @@ import {
   geoAlbersUsa,
   geoAzimuthalEqualArea,
   geoConicConformal,
+  geoEquirectangular,
   geoNaturalEarth1,
   geoPath,
 } from 'd3-geo'
 import type { GeoPath, GeoProjection, GeoStream, GeoStreamWrapper } from 'd3-geo'
 import type { FeatureCollection } from 'geojson'
 import type { ProjectionSpec } from './types'
+
+/** Include both scenery and answers when fitting regional waters on the globe. */
+export function mapFitData(
+  data: FeatureCollection,
+  base?: FeatureCollection,
+  surface?: 'water',
+): FeatureCollection {
+  if (surface !== 'water' || !base) return base ?? data
+  return { type: 'FeatureCollection', features: [...base.features, ...data.features] }
+}
 
 /**
  * Hver region velger sin egen projeksjon. Et land som strekker seg nord-sør
@@ -29,6 +40,8 @@ function fromSpec(spec: ProjectionSpec): GeoProjection {
       return geoAlbersUsa()
     case 'naturalEarth':
       return geoNaturalEarth1()
+    case 'equirectangular':
+      return geoEquirectangular().rotate([-spec.centre, 0])
   }
 }
 
@@ -39,13 +52,18 @@ export function makeProjection(
   height: number,
   padding = 12,
 ): GeoProjection {
-  return fromSpec(spec).fitExtent(
+  const projection = fromSpec(spec).fitExtent(
     [
       [padding, padding],
       [width - padding, height - padding],
     ],
     data,
   )
+  // Clip water geometry to the map frame, including polygons crossing the
+  // date line after rotating the world toward Europe.
+  return spec.kind === 'equirectangular'
+    ? projection.clipExtent([[padding, padding], [width - padding, height - padding]])
+    : projection
 }
 
 export function makePath(projection: GeoProjection): GeoPath {

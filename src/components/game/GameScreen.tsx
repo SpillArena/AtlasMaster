@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { FeatureCollection } from 'geojson'
 import type { EmblemSet } from '../../game/flags'
 import { getCategory, getRegion } from '../../game/regions'
+import { mapFitData } from '../../game/projection'
 import {
   PACE_META,
   toQuizFeatures,
@@ -51,6 +52,7 @@ interface Loaded {
   base?: FeatureCollection
   features: QuizFeature[]
   geom: GeomKind
+  surface?: 'water'
   projection: ProjectionSpec
   /** merkesettet kategorien viser ved siden av navnene, om noen */
   emblems: EmblemSet | null
@@ -82,7 +84,8 @@ export function GameScreen({
           base,
           features: toQuizFeatures(data, lang),
           geom: cat.geom,
-          projection: region.projection,
+          surface: cat.surface,
+          projection: cat.projection ?? region.projection,
           emblems: cat.emblems ?? null,
         })
     })
@@ -137,12 +140,12 @@ function Game({
   onRunRecorded: () => void
 }) {
   const { t } = useTranslation()
-  const { data, base, features, geom, projection, emblems } = loaded
+  const { data, base, features, geom, surface, projection, emblems } = loaded
   const { state, target, done, guess, type, skip, giveUp, timeout, resume, restart } =
     useQuizEngine(features, mode, pace)
 
   // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
-  const fitData = base ?? data
+  const fitData = useMemo(() => mapFitData(data, base, surface), [data, base, surface])
   const isClick = mode === 'click'
   // kartet peker ut målet i flervalg og skriv. I flaggmodus ville et opplyst
   // land vært fasiten, så der står kartet stille som bakgrunn.
@@ -335,6 +338,7 @@ function Game({
           baseData={base}
           features={features}
           geom={geom}
+          surface={surface}
           status={state.status}
           flashId={state.flash?.id ?? null}
           revealId={state.reveal?.id ?? null}

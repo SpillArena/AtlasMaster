@@ -79,7 +79,7 @@ export const GameHUD = memo(function GameHUD({
     <footer className="shrink-0 px-2.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 sm:px-4">
       <div
         ref={panelRef}
-        className={`panel mx-auto flex max-w-6xl rounded-atlas-lg px-3 py-1.5 sm:px-4 sm:py-2 ${mode === 'click' ? 'items-center justify-between gap-2' : 'flex-col gap-1.5'
+        className={`panel mx-auto flex max-w-[1760px] rounded-atlas-lg px-3 py-1.5 sm:px-4 sm:py-2 ${mode === 'click' ? 'items-center justify-between gap-2' : 'flex-col gap-1.5'
           }`}
       >
         {mode === 'click' ? (

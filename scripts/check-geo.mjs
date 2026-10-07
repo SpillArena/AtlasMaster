@@ -76,6 +76,29 @@ const CASES = [
     box: { minLon: -83, maxLon: -32, minLat: -57, maxLat: 14 },
   },
   {
+    region: 'Nord-Amerika',
+    file: 'src/data/north-america/outline.json',
+    box: { minLon: -180, maxLon: -10, minLat: 7, maxLat: 85 },
+  },
+  {
+    region: 'Oseania',
+    file: 'src/data/oceania/outline.json',
+    box: { minLon: -180, maxLon: 180, minLat: -56, maxLat: 23 },
+    wrapsDateline: true,
+  },
+  {
+    region: 'Antarktis',
+    file: 'src/data/antarctica/outline.json',
+    box: { minLon: -180, maxLon: 180, minLat: -90, maxLat: -59 },
+  },
+  {
+    region: 'Verdenshav',
+    file: 'src/data/world/oceans.json',
+    box: { minLon: -180, maxLon: 180, minLat: -90, maxLat: 90 },
+    wrapsDateline: true,
+    maxFeatureKm2: 2e8,
+  },
+  {
     region: 'USA',
     file: 'src/data/usa/states.json',
     box: { minLon: -180, maxLon: -66, minLat: 18, maxLat: 72 },
@@ -142,7 +165,7 @@ for (const c of CASES) {
 
   const oversized = fc.features
     .map((f) => ({ name: f.properties?.name, km2: (geoArea(f) / (4 * Math.PI)) * EARTH_KM2 }))
-    .filter((f) => f.km2 > MAX_FEATURE_KM2)
+    .filter((f) => f.km2 > (c.maxFeatureKm2 ?? MAX_FEATURE_KM2))
 
   const lonEscaped = c.wrapsDateline ? false : lon0 < c.box.minLon || lon1 > c.box.maxLon
   const escaped = lonEscaped || lat0 < c.box.minLat || lat1 > c.box.maxLat

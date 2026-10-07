@@ -1,17 +1,24 @@
 {
   "name": "AtlasMaster",
   "short_name": "AtlasMaster",
-  "description": "Kartspillet om verden, én region om gangen. Land, byer, elver og fjelltopper — på tid.",
-  "lang": "no",
-  "start_url": "/atlasmaster/",
-  "scope": "/atlasmaster/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#05070f",
-  "theme_color": "#05070f",
-  "categories": ["games", "education"],
   "icons": [
-    { "src": "/atlasmaster/logo.png", "sizes": "any", "type": "image/png" },
-    { "src": "/atlasmaster/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

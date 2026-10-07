@@ -1,5 +1,6 @@
 import type { FeatureCollection } from 'geojson'
 import type { Category, Region } from './types'
+import { OCEAN_PROJECTION } from './oceanMap'
 
 /**
  * Registeret over spillbare regioner. Dette er det eneste stedet som må
@@ -19,6 +20,11 @@ const europeCountries = json(() => import('../data/europe/countries.json'))
 const asiaCountries = json(() => import('../data/asia/countries.json'))
 const africaCountries = json(() => import('../data/africa/countries.json'))
 const southAmericaCountries = json(() => import('../data/south-america/countries.json'))
+const northAmericaCountries = json(() => import('../data/north-america/countries.json'))
+const northAmericaOutline = json(() => import('../data/north-america/outline.json'))
+const oceaniaCountries = json(() => import('../data/oceania/countries.json'))
+const oceaniaOutline = json(() => import('../data/oceania/outline.json'))
+const antarcticaOutline = json(() => import('../data/antarctica/outline.json'))
 const usStates = json(() => import('../data/usa/states.json'))
 const worldCountries = json(() => import('../data/world/countries.json'))
 /**
@@ -32,6 +38,12 @@ const worldCountries = json(() => import('../data/world/countries.json'))
  * Begge kommer fra scripts/build-world.mjs og deler id-er.
  */
 const worldOutline = json(() => import('../data/world/outline.json'))
+
+/** Ocean practice needs Antarctica as scenery as well as the existing world. */
+const oceanLand = async (): Promise<FeatureCollection> => {
+  const [world, antarctica] = await Promise.all([worldOutline(), antarcticaOutline()])
+  return { type: 'FeatureCollection', features: [...world.features, ...antarctica.features] }
+}
 
 /**
  * MERK — kategori-id-ene til Norge er med vilje norske og uendret
@@ -341,14 +353,54 @@ const southAmericaCategories: Category[] = [
   },
 ]
 
-/**
- * Verden — hele kloden, med to kategorier bygd på samme landdatasett.
- *
- * «Land» er et vanlig kartspill: klikk, flervalg eller skriv. «Flagg» bruker
- * flaggmodusene i stedet — se flagget og velg landet, eller se landet og velg
- * flagget — og har derfor `modes` satt eksplisitt. Begge deler `emblems:
- * 'world'`, bildesettet fra scripts/build-world.mjs.
- */
+/** Same five-category layout and shared flag ids as Africa/South America. */
+function continentCategories(
+  prefix: string,
+  countries: Category['load'],
+  outline: Category['load'],
+  capitals: Category['load'],
+  rivers: Category['load'],
+  peaks: Category['load'],
+): Category[] {
+  return [
+    { id: `${prefix}Countries`, labelKey: 'cat.countries', geom: 'polygon', icon: 'map',
+      color: '#0d9488', gradient: 'from-teal-600 via-[#134e4a] to-[#0b2b29]',
+      load: countries, base: outline, emblems: 'world' },
+    { id: `${prefix}Capitals`, labelKey: 'cat.capitals', geom: 'point', icon: 'buildings',
+      color: '#e11d48', gradient: 'from-rose-600 via-[#7f1d1d] to-[#2a0a12]',
+      load: capitals, base: outline },
+    { id: `${prefix}Rivers`, labelKey: 'cat.rivers', geom: 'line', icon: 'river',
+      color: '#06b6d4', gradient: 'from-cyan-600 via-[#0e7490] to-[#0b3a4a]',
+      load: rivers, base: outline },
+    { id: `${prefix}Peaks`, labelKey: 'cat.peaks', geom: 'point', icon: 'mountain',
+      color: '#f59e0b', gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+      load: peaks, base: outline },
+    { id: `${prefix}Flags`, labelKey: 'cat.worldFlags', geom: 'polygon', icon: 'seal',
+      color: '#d97706', gradient: 'from-amber-600 via-[#78350f] to-[#231003]',
+      load: countries, base: outline, emblems: 'world', modes: ['flag', 'pick'] },
+  ]
+}
+
+const northAmericaCategories = continentCategories('northAmerica', northAmericaCountries, northAmericaOutline,
+  json(() => import('../data/north-america/capitals.json')),
+  json(() => import('../data/north-america/rivers.json')),
+  json(() => import('../data/north-america/peaks.json')))
+
+const oceaniaCategories = continentCategories('oceania', oceaniaCountries, oceaniaOutline,
+  json(() => import('../data/oceania/capitals.json')),
+  json(() => import('../data/oceania/rivers.json')),
+  json(() => import('../data/oceania/peaks.json')))
+
+const antarcticaCategories: Category[] = [
+  { id: 'antarcticaStations', labelKey: 'cat.stations', geom: 'point', icon: 'buildings',
+    color: '#0ea5e9', gradient: 'from-sky-600 via-[#0c4a6e] to-[#08283d]',
+    load: json(() => import('../data/antarctica/stations.json')), base: antarcticaOutline },
+  { id: 'antarcticaPeaks', labelKey: 'cat.peaks', geom: 'point', icon: 'mountain',
+    color: '#f59e0b', gradient: 'from-amber-500 via-[#78350f] to-[#1c1917]',
+    load: json(() => import('../data/antarctica/peaks.json')), base: antarcticaOutline },
+]
+
+/** World country/flag exercises share data; oceans use water polygons. */
 const worldCategories: Category[] = [
   {
     id: 'worldCountries',
@@ -370,6 +422,18 @@ const worldCategories: Category[] = [
     load: worldCountries,
     emblems: 'world',
     modes: ['flag', 'pick'],
+  },
+  {
+    id: 'worldOceans',
+    projection: OCEAN_PROJECTION,
+    labelKey: 'cat.oceans',
+    geom: 'polygon',
+    surface: 'water',
+    icon: 'anchor',
+    color: '#0ea5e9',
+    gradient: 'from-sky-600 via-[#0c4a6e] to-[#08283d]',
+    load: json(() => import('../data/world/oceans.json')),
+    base: oceanLand,
   },
 ]
 
@@ -443,6 +507,34 @@ export const regions: Region[] = [
     projection: { kind: 'azimuthalEqualArea', centre: [-60, -15] },
     outline: southAmericaCountries,
     categories: southAmericaCategories,
+  },
+  {
+    id: 'northAmerica',
+    labelKey: 'region.northAmerica',
+    code: 'NA',
+    gradient: 'from-teal-700 via-[#134e4a] to-[#0b2b29]',
+    projection: { kind: 'azimuthalEqualArea', centre: [-100, 40] },
+    outline: northAmericaOutline,
+    categories: northAmericaCategories,
+  },
+  {
+    id: 'oceania',
+    labelKey: 'region.oceania',
+    code: 'OC',
+    gradient: 'from-sky-700 via-[#0c4a6e] to-[#08283d]',
+    // Rotate around the Pacific so Fiji, Kiribati and Samoa stay together.
+    projection: { kind: 'azimuthalEqualArea', centre: [165, -18] },
+    outline: oceaniaOutline,
+    categories: oceaniaCategories,
+  },
+  {
+    id: 'antarctica',
+    labelKey: 'region.antarctica',
+    code: 'AQ',
+    gradient: 'from-cyan-700 via-[#155e75] to-[#083344]',
+    projection: { kind: 'azimuthalEqualArea', centre: [0, -90] },
+    outline: antarcticaOutline,
+    categories: antarcticaCategories,
   },
   {
     id: 'world',

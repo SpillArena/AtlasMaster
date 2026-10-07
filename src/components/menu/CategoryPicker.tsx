@@ -19,7 +19,7 @@ export function CategoryPicker({ region, onPick }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-4 px-4 py-6">
+    <div className="mx-auto flex min-h-full w-full max-w-[1760px] flex-col justify-center gap-4 px-4 py-6">
       <div>
         <p className="eyebrow">{t(region.labelKey)}</p>
         <h2 className="text-h2">{t('cat.subtitle')}</h2>

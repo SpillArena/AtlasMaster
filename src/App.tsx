@@ -144,7 +144,7 @@ function App() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain arena-main"
         >
           {showLeaderboard ? (
             <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} />

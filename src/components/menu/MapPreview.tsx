@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FeatureCollection, Point } from 'geojson'
-import { makePath, makeProjection } from '../../game/projection'
+import { makePath, makeProjection, mapFitData } from '../../game/projection'
 import type { Category, ProjectionSpec } from '../../game/types'
 
 const W = 700
@@ -30,8 +30,8 @@ export function MapPreview({ category, projection: spec }: Props) {
     ]).then(([data, base]) => {
       if (!alive) return
       // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
-      const fit = base ?? data
-      const projection = makeProjection(spec, fit, W, H)
+      const fit = mapFitData(data, base, category.surface)
+      const projection = makeProjection(category.projection ?? spec, fit, W, H)
       const path = makePath(projection)
       const basePaths = base
         ? base.features.map((f) => path(f.geometry) ?? '')
@@ -63,7 +63,7 @@ export function MapPreview({ category, projection: spec }: Props) {
       aria-hidden
     >
       {/* dempet bakgrunns-omriss — blekk på platen */}
-      {r.basePaths.map((d, i) => (
+      {category.surface !== 'water' && r.basePaths.map((d, i) => (
         <path
           key={`b-${i}`}
           d={d}
@@ -102,6 +102,11 @@ export function MapPreview({ category, projection: spec }: Props) {
             strokeWidth={0.8}
           />
         ))}
+
+      {/* Land masks ocean answers, matching the playable map. */}
+      {category.surface === 'water' && r.basePaths.map((d, i) => (
+        <path key={`land-${i}`} d={d} fill="var(--map-land)" stroke="var(--coast)" strokeWidth={0.7} />
+      ))}
 
       {/* uthevede punkter (byer/topper) — nålestikk */}
       {r.points.map((p, i) => (

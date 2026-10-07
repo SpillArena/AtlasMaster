@@ -70,7 +70,22 @@ const REGION_CATEGORIES = {
     southAmericaPeaks: MAP_MODES,
     southAmericaFlags: FLAG_MODES,
   },
-  world: { worldCountries: MAP_MODES, worldFlags: FLAG_MODES },
+  northAmerica: {
+    northAmericaCountries: MAP_MODES,
+    northAmericaCapitals: MAP_MODES,
+    northAmericaRivers: MAP_MODES,
+    northAmericaPeaks: MAP_MODES,
+    northAmericaFlags: FLAG_MODES,
+  },
+  oceania: {
+    oceaniaCountries: MAP_MODES,
+    oceaniaCapitals: MAP_MODES,
+    oceaniaRivers: MAP_MODES,
+    oceaniaPeaks: MAP_MODES,
+    oceaniaFlags: FLAG_MODES,
+  },
+  antarctica: { antarcticaStations: MAP_MODES, antarcticaPeaks: MAP_MODES },
+  world: { worldCountries: MAP_MODES, worldFlags: FLAG_MODES, worldOceans: MAP_MODES },
 }
 
 const hasRegion = (region) => Object.hasOwn(REGION_CATEGORIES, region)

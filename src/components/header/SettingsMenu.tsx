@@ -1,3 +1,5 @@
+import { PlayerChip } from './PlayerChip'
+import { StorageSettings } from '../../ui/SiteShell'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FiSettings } from 'react-icons/fi'
@@ -143,12 +145,12 @@ function Toggle({
   )
 }
 
-export default function SettingsMenu() {
+export default function SettingsMenu({ onProfile, profileVersion }: { onProfile: () => void; profileVersion: number }) {
   const { i18n, t } = useTranslation()
   const { theme, currentTheme, setTheme } = useTheme()
   const { accent, setAccent } = useAccent()
   const { sound, motion, setSound, setMotion } = useGameSettings()
-  const { consent, accept, decline, showBanner, clearStoredData } = useCookieConsent()
+  const { clearStoredData } = useCookieConsent()
   const [open, setOpen] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -199,12 +201,7 @@ export default function SettingsMenu() {
     window.location.reload()
   }
 
-  const consentStatusKey =
-    consent === 'accepted'
-      ? 'cookieConsent.statusAccepted'
-      : consent === 'declined'
-        ? 'cookieConsent.statusDeclined'
-        : 'cookieConsent.statusUndecided'
+
 
   return (
     <div ref={rootRef} className="relative inline-flex">
@@ -252,6 +249,7 @@ export default function SettingsMenu() {
         `}
       >
         <div className="flex flex-col gap-4 p-4">
+          <PlayerChip key={profileVersion} onEdit={() => { setOpen(false); onProfile() }} />
           <Section title={t('languageSwitcher.section')}>
             <div
               role="listbox"
@@ -365,44 +363,8 @@ export default function SettingsMenu() {
             />
           </Section>
 
-          <Section title={t('cookieConsent.section')}>
-            <p className="mb-2 px-1 text-xs" style={{ color: 'var(--text-subtle)' }}>
-              {t(consentStatusKey)}
-            </p>
-
-            {consent === null ? (
-              <div className="flex gap-2 px-1">
-                <button
-                  type="button"
-                  onClick={accept}
-                  className="flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  style={{ background: 'var(--accent)', color: 'var(--color-surface)' }}
-                >
-                  {t('cookieConsent.accept')}
-                </button>
-                <button
-                  type="button"
-                  onClick={decline}
-                  className="flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors duration-200 hover:text-[var(--text)]"
-                  style={{ borderColor: 'var(--border)', color: 'var(--text-subtle)' }}
-                >
-                  {t('cookieConsent.decline')}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  showBanner()
-                  setOpen(false)
-                }}
-                className="w-full px-1 text-left text-xs font-semibold underline underline-offset-2 hover:text-[var(--text)]"
-                style={{ color: 'var(--text-subtle)' }}
-              >
-                {t('cookieConsent.manage')}
-              </button>
-            )}
-
+          <div>
+            <StorageSettings language={i18n.language} onManage={() => setOpen(false)} />
             {confirmClear ? (
               <div className="mt-3 px-1">
                 <p className="mb-2 text-xs" style={{ color: 'var(--text-subtle)' }}>
@@ -437,7 +399,7 @@ export default function SettingsMenu() {
                 {t('cookieConsent.clear')}
               </button>
             )}
-          </Section>
+          </div>
         </div>
       </div>
     </div>

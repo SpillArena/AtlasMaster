@@ -35,7 +35,7 @@ export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, type: 'spring', stiffness: 120 }}
-      className="panel mx-auto w-full max-w-6xl rounded-2xl p-4"
+      className="panel mx-auto w-full max-w-[1760px] rounded-2xl p-4"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-display flex items-center gap-2 text-xl font-semibold tracking-[-0.005em]">
