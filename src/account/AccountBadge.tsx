@@ -124,6 +124,7 @@ const CSS = `
 .sa-panel__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .sa-panel__who { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sa-panel__link { color: inherit; opacity: 0.7; font-size: 12px; text-underline-offset: 2px; }
+.sa-panel__forgot { display: block; margin-top: 8px; color: inherit; opacity: 0.75; font-size: 12px; text-align: center; text-underline-offset: 2px; }
 .sa-panel__signout {
   margin-top: 11px; width: 100%; padding: 8px; cursor: pointer;
   border-radius: 9px; border: 1px solid rgba(0,0,0,0.16); background: transparent; color: inherit;
@@ -179,6 +180,9 @@ const CORNERS = {
     'top-left': { top: 16, left: 16 },
 } as const
 
+/** The front page, opened straight into the forgotten-PIN form. */
+const recoverUrl = (homeUrl: string) => `${homeUrl.replace(/\/+$/, '')}/?recover=1`
+
 /** The panel opens away from whichever edge the badge sits on. */
 const PANEL_POSITION = {
     'bottom-right': { bottom: 'calc(100% + 10px)', right: 0 },
@@ -201,6 +205,11 @@ export interface AccountBadgeLabels {
     pinMismatch: string
     submitSignIn: string
     submitRegister: string
+    /**
+     * The link under the sign-in form. A PIN is reset on the front page, not in
+     * the badge: that is where the code is shown and kept, once.
+     */
+    forgotPin: string
     working: string
     signOut: string
     profile: string
@@ -245,6 +254,7 @@ const DEFAULT_LABELS: AccountBadgeLabels = {
     pinMismatch: 'The two PINs are not the same.',
     submitSignIn: 'Sign in',
     submitRegister: 'Create account',
+    forgotPin: 'Forgot your PIN?',
     working: 'Working…',
     signOut: 'Sign out',
     profile: 'Profile on spillarena.no',
@@ -315,6 +325,7 @@ const NORWEGIAN_LABELS: AccountBadgeLabels = {
     pinMismatch: 'De to PIN-kodene er ikke like.',
     submitSignIn: 'Logg inn',
     submitRegister: 'Lag konto',
+    forgotPin: 'Glemt PIN?',
     working: 'Jobber …',
     signOut: 'Logg ut',
     profile: 'Profil på spillarena.no',
@@ -684,6 +695,12 @@ export function AccountBadge({
                                       ? labels.submitSignIn
                                       : labels.submitRegister}
                             </button>
+
+                            {mode === 'login' && (
+                                <a className="sa-panel__forgot" href={recoverUrl(homeUrl)}>
+                                    {labels.forgotPin}
+                                </a>
+                            )}
 
                             <p className="sa-panel__hint">{labels.guestHint}</p>
                         </form>

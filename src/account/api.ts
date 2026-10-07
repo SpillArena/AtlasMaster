@@ -7,6 +7,7 @@ import type {
     AuthResult,
     GameId,
     ProfileResponse,
+    RecoverResult,
     Session,
 } from './types'
 
@@ -58,12 +59,21 @@ async function call<T>(
          * changed, and every later call would fail the same way. Dropping the
          * session turns an endless stream of 401s into one sign-in prompt.
          */
+        const body: unknown = await response.json().catch(() => null)
+
+        /*
+         * Except a wrong PIN or code. That is a 401 too, but the token was
+         * fine — the player mistyped while confirming a change, and signing
+         * them out for it would be a punishment, not a fix.
+         */
         if (response.status === 401) {
+            if ((body as { error?: unknown } | null)?.error === 'bad_credentials') {
+                return { ok: false, error: 'bad_credentials' }
+            }
             signOut()
             return { ok: false, error: 'unauthorized' }
         }
 
-        const body: unknown = await response.json().catch(() => null)
         if (!response.ok) {
             const error = (body as { error?: unknown } | null)?.error
             /*
@@ -115,6 +125,45 @@ export async function authenticate(
     const session: Session = { username: name, token, expiresAt }
     setSession(session)
     return { ok: true, session }
+}
+
+/**
+ * Forgotten PIN: sets a new one with a recovery code, or a one-time code from
+ * an admin, and signs in.
+ *
+ * The code is sent as typed. The service forgives case, dashes, spaces and the
+ * look-alikes (O for 0, I or L for 1), so the form does not have to.
+ *
+ * Every token issued before this is refused by the account service from now on
+ * — if someone else got in, this is what throws them out.
+ */
+export async function recoverAccount(
+    username: string,
+    code: string,
+    newPin: string,
+): Promise<RecoverResult> {
+    const result = await call<Session & { recoveryCode: string }>('/auth', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'recover', username: username.trim(), code, newPin }),
+    })
+    if (!result.ok) return result
+    const { username: name, token, expiresAt, recoveryCode } = result.data
+    if (!name || !token || !expiresAt || !recoveryCode) return { ok: false, error: 'service_failed' }
+    const session: Session = { username: name, token, expiresAt }
+    setSession(session)
+    return { ok: true, session, recoveryCode }
+}
+
+/**
+ * A new recovery code for the signed-in account. The old one stops working.
+ * Needs the PIN, like every other change to the account.
+ */
+export function createRecoveryCode(pin: string): Promise<ApiResult<{ recoveryCode: string }>> {
+    return call<{ recoveryCode: string }>('/account', {
+        auth: true,
+        method: 'POST',
+        body: JSON.stringify({ action: 'recovery-code', pin }),
+    })
 }
 
 /**
