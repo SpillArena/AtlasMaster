@@ -6,6 +6,7 @@ import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { Icon } from '../Icon'
 import { Button } from '../ui'
+import { BackButton } from '../header/BackToArena'
 
 interface Props {
   regionId: string
@@ -14,6 +15,7 @@ interface Props {
   /** forrige tempo — forhåndsvalgt, men runden starter først på START */
   initialPace: Pace
   onStart: (pace: Pace) => void
+  onBack: () => void
 }
 
 /**
@@ -21,13 +23,14 @@ interface Props {
  * hvor hardt runden presser og hva den er verdt — det hører hjemme i
  * oppstarten, ikke i en innstillingsmeny du åpner én gang.
  */
-export function PacePicker({ regionId, category, mode, initialPace, onStart }: Props) {
+export function PacePicker({ regionId, category, mode, initialPace, onStart, onBack }: Props) {
   const { t } = useTranslation()
   const [pace, setPace] = useState<Pace>(initialPace)
   const best = bestFor(regionId, category.id, mode)
 
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-5 px-4 py-6">
+      <BackButton onBack={onBack} />
       <div className="text-center">
         <p className="eyebrow">
           {t(category.labelKey)} · {t(`mode.${mode}.title`)}

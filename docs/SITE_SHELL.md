@@ -20,7 +20,7 @@ The editable preview source is `public/og-image.svg`; export it as `public/og-im
 
 ## Project details
 
-The compass mark returns to AtlasMaster. Region breadcrumbs sit in the centre of the navigation bar, with the back/give-up control on the right. On narrow screens the breadcrumbs use a centred second row so they remain readable beside compact controls. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
+The compass mark returns to AtlasMaster. Region breadcrumbs sit in the centre of the navigation bar. Menu back buttons sit above the category, mode, pace and leaderboard headings; an active round keeps its give-up control on the right of the navigation bar. On narrow screens the breadcrumbs use a centred second row so they remain readable beside compact controls. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
 
 ## Validation
 

@@ -49,17 +49,7 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
   const { t } = useTranslation()
 
   if (inGame) {
-    return (
-      <button
-        onClick={onGiveUp}
-        aria-label={t('giveUp.action')}
-        className={pillClass}
-        style={dangerStyle}
-      >
-        <Icon name="x" className="h-4 w-4" />
-        <span className="text-sm">{t('giveUp.action')}</span>
-      </button>
-    )
+    return <GiveUpButton onGiveUp={onGiveUp} />
   }
 
   if (atRoot) {
@@ -86,15 +76,39 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
     )
   }
 
+  return <BackButton onBack={onBack} />
+}
+
+/** Menu navigation belongs beside the menu content, above its heading. */
+export function BackButton({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation()
   return (
     <button
+      type="button"
       onClick={onBack}
       aria-label={t('mode.back')}
-      className="group flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-bold tracking-tight transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[var(--border-hover)]"
+      className="group flex h-11 shrink-0 self-start items-center gap-2 rounded-full border px-4 font-bold tracking-tight transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[var(--border-hover)]"
       style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
     >
       <Arrow />
       <span className="text-sm">{t('mode.back')}</span>
+    </button>
+  )
+}
+
+/** Active rounds keep their give-up action in the site header. */
+export function GiveUpButton({ onGiveUp }: { onGiveUp: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <button
+      type="button"
+      onClick={onGiveUp}
+      aria-label={t('giveUp.action')}
+      className={pillClass}
+      style={dangerStyle}
+    >
+      <Icon name="x" className="h-4 w-4" />
+      <span className="text-sm">{t('giveUp.action')}</span>
     </button>
   )
 }

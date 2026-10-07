@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MotionConfig, motion as fm } from 'framer-motion'
 import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
@@ -77,8 +77,6 @@ function App() {
   const region = regionId ? getRegion(regionId) : undefined
   const category = region && categoryId ? getCategory(region.id, categoryId) : undefined
 
-  // toppnivå = ingenting valgt — da viser headeren "Tilbake til Spillarena"
-  const atRoot = !region && !category && !mode && !showLeaderboard
   // en runde er i gang når tempo er valgt og ledertavla ikke dekker skjermen
   const inGame = Boolean(category && mode && pace && !showLeaderboard)
 
@@ -89,14 +87,16 @@ function App() {
    * samme bakgrunn, samme plate, samme tilbake-knapp — og ingenting sa om man
    * var på vei inn i Europa eller i Asia.
    */
+  const parent = region?.parent ? getRegion(region.parent) : undefined
   const trail = [
+    parent && t(parent.labelKey),
     region && t(region.labelKey),
     category && t(category.labelKey),
     mode && t(`mode.${mode}.title`),
   ].filter((part): part is string => Boolean(part))
 
   // ett steg tilbake: ledertavle > tempo > modus > kategori > region
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (showLeaderboard) {
       setShowLeaderboard(false)
     } else if (pace) {
@@ -106,9 +106,46 @@ function App() {
     } else if (categoryId) {
       setCategoryId(null)
     } else if (regionId) {
-      setRegionId(null)
+      // en underregion (USA) går tilbake til menyen den ligger i, ikke hjem
+      setRegionId(region?.parent ?? null)
     }
-  }
+  }, [showLeaderboard, pace, mode, categoryId, regionId, region])
+
+  /*
+   * Escape er «tilbake» i menyene — samme steg som tilbake-knappen.
+   *
+   * Ikke i en runde: der betyr et feiltrykk at runden er borte, og spillet har
+   * egen «gi opp» med bekreftelse. Ikke mens noe ligger oppå heller —
+   * innstillinger, kontopanelet, samtykke, navnefeltet. De lukker seg selv på
+   * Escape, og ett trykk skal gjøre én ting: lukke det øverste, ikke lukke det
+   * *og* hoppe en skjerm tilbake bak det. Alle slike flater har
+   * `role="dialog"` mens de er åpne.
+   *
+   * MERK — lytteren står i capture-fasen med vilje. Popoverne lukker seg i
+   * vanlige lyttere, og React tømmer tilstanden sin i en mikrooppgave mellom
+   * to lyttere: når en bobblende lytter her fikk spørre, var dialogen alt
+   * borte fra DOM-en, og samme trykk lukket panelet og gikk tilbake. I
+   * capture-fasen spør vi før noen av dem har rørt seg.
+   */
+  const overlayOpen = editingName || showProfile || confirmGiveUp || pendingPace !== null
+  useEffect(() => {
+    if (inGame || overlayOpen) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      const active = document.activeElement
+      if (
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        active instanceof HTMLSelectElement ||
+        (active instanceof HTMLElement && active.isContentEditable)
+      ) return
+      // innstillingspanelet står i DOM-en hele tiden, lukket som `inert`
+      if (document.querySelector('[role="dialog"]:not([inert]):not([aria-hidden="true"])')) return
+      goBack()
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [goBack, inGame, overlayOpen])
 
   return (
     // «Mindre bevegelse» må også stoppe JS-animasjonene, ikke bare CSS-ene
@@ -120,9 +157,7 @@ function App() {
         {/* bakveggen viser regionen du står i — standardregionen før du har valgt */}
         <BackgroundMap regionId={regionId ?? DEFAULT_REGION_ID} />
         <Header
-          atRoot={atRoot}
           inGame={inGame}
-          onBack={goBack}
           onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
           onEditName={() => setShowProfile(true)}
@@ -147,7 +182,7 @@ function App() {
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain arena-main"
         >
           {showLeaderboard ? (
-            <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} />
+            <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} onBack={goBack} />
           ) : !region ? (
             <section
               aria-label={t('menu.title')}
@@ -174,9 +209,9 @@ function App() {
               <FooterSection />
             </section>
           ) : !category ? (
-            <CategoryPicker region={region} onPick={setCategoryId} />
+            <CategoryPicker region={region} onPick={setCategoryId} onPickRegion={setRegionId} onBack={goBack} />
           ) : !mode ? (
-            <ModePicker regionId={region.id} category={category} onPick={setMode} />
+            <ModePicker regionId={region.id} category={category} onPick={setMode} onBack={goBack} />
           ) : !pace ? (
             <PacePicker
               regionId={region.id}
@@ -184,6 +219,7 @@ function App() {
               mode={mode}
               initialPace={lastPace}
               onStart={startRound}
+              onBack={goBack}
             />
           ) : (
             <GameScreen

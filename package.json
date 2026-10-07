@@ -15,6 +15,7 @@
     "data:south-america": "node scripts/build-south-america.mjs",
     "data:usa": "node scripts/build-usa.mjs",
     "data:world": "node scripts/build-world.mjs",
+    "data:landing": "node scripts/build-landing-borders.mjs",
     "data:north-america": "node scripts/build-remaining-regions.mjs north-america",
     "data:oceania": "node scripts/build-remaining-regions.mjs oceania",
     "data:antarctica": "node scripts/build-remaining-regions.mjs antarctica",

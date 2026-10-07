@@ -93,7 +93,9 @@ interface RegionSkin {
 }
 
 /**
- * Norge og USA sjekkes først; Asia kommer før Europa — se kommentaren over
+ * USA har ingen egen flekk: landet er en del av Nord-Amerika, og delstatene
+ * er et valg inne i Nord-Amerika-menyen (se `Region.parent`). Norge sjekkes
+ * først; Asia kommer før Europa — se kommentaren over
  * id-listene. Fargene er dempede kartograftoner, ikke rene primærfarger, så
  * kloden fortsatt leser som et blad fra feltboka.
  */
@@ -108,18 +110,12 @@ const REGION_SKINS: RegionSkin[] = [
     anchor: [2, 66],
   },
   {
-    id: "usa",
-    labelKey: "region.usa",
-    color: "#b06f4e",
-    match: (c) => c === 840,
-    anchor: [-99, 40],
-  },
-  {
     id: "northAmerica",
     labelKey: "region.northAmerica",
     color: "#488d89",
     match: (c) => NORTH_AMERICA_IDS.has(c),
-    anchor: [-105, 61],
+    // sørlige Canada: med USA inne er dette midt i landmassen, ikke helt nord
+    anchor: [-100, 52],
   },
   {
     id: "oceania",
@@ -148,9 +144,8 @@ const REGION_SKINS: RegionSkin[] = [
   {
     id: "africa",
     labelKey: "region.africa",
-    // olivengrønn, ikke enda en brun. USA er terrakotta og Asia er okergul;
-    // et tredje jordfarget felt mellom dem var ikke til å skille fra hverandre
-    // i prikkene under kartet, der de tre står ved siden av hverandre.
+    // olivengrønn, ikke enda en brun ved siden av Asias okergule — to
+    // jordfarger var ikke til å skille fra hverandre i prikkene under kartet.
     color: "#7f8f55",
     match: (c) => AFRICA_IDS.has(c),
     // Sentral-Afrika, nord for Kongobassenget: kontinentet er bredest her, og
@@ -225,6 +220,7 @@ interface Built {
   /** midtpunkt for regionetiketten, i lerretskoordinater */
   labels: Record<string, [number, number]>;
   height: number;
+  path: ReturnType<typeof makePath>;
 }
 
 /**
@@ -236,6 +232,7 @@ export function WorldMapPicker({ onPick }: Props) {
   const { t } = useTranslation();
   const [data, setData] = useState<FeatureCollection | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [inner, setInner] = useState<FeatureCollection | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -243,6 +240,16 @@ export function WorldMapPicker({ onPick }: Props) {
       .then(([world, antarctica]) => {
         if (alive) setData({ type: "FeatureCollection", features: [...world.features, ...antarctica.features] });
       });
+    /*
+     * De indre grensene hentes ved siden av, ikke sammen med kloden. De er
+     * pynt: kartet skal ikke vente på dem, og skulle de feile, er USA, Canada
+     * og Mexico bare ett land hver igjen, slik de var.
+     */
+    import("../../data/landing/borders.json")
+      .then((m) => {
+        if (alive) setInner(m.default as unknown as FeatureCollection);
+      })
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -280,28 +287,32 @@ export function WorldMapPicker({ onPick }: Props) {
       if (xy) labels[skin.id] = [xy[0], xy[1]];
     }
 
-    return { shapes, labels, height };
+    return { shapes, labels, height, path };
   }, [data]);
-
-  /*
-   * Peilingen kompasset skal vise: fra midten av kartet til regionen musa er
-   * over. Nålen har alltid hatt en overgang som kunne ta den dit — den
-   * fyrte bare aldri, fordi ingen sendte inn en peiling.
-   */
-  const heading = useMemo(() => {
-    if (!built || !hover) return null;
-    const target = built.labels[hover];
-    if (!target) return null;
-    const dx = target[0] - W / 2;
-    const dy = target[1] - built.height / 2;
-    // atan2(øst, nord): null grader er opp, og vinkelen øker med klokka
-    return (Math.round((Math.atan2(dx, -dy) * 180) / Math.PI) + 360) % 360;
-  }, [built, hover]);
 
   const pick = (regionId: string) => {
     playSfx("ui");
     onPick(regionId);
   };
+
+  /*
+   * Delstats- og provinsgrensene i USA, Canada og Mexico, én sti per region.
+   * Alle de andre store landmassene har landegrenser tegnet inn; de tre var
+   * hver sin tomme flate og så ut som hull i mønsteret. Bare de *indre*
+   * grensene — kysten og riksgrensene tegner verdenskartet allerede. Se
+   * scripts/build-landing-borders.mjs.
+   */
+  const innerByRegion = useMemo(() => {
+    const groups: Record<string, string> = {};
+    if (!built || !inner) return groups;
+    for (const f of inner.features) {
+      const d = built.path(f.geometry);
+      if (!d) continue;
+      const region = classify(codeOf(f));
+      groups[region] = (groups[region] ?? "") + d;
+    }
+    return groups;
+  }, [built, inner]);
 
   const byRegion = useMemo(() => {
     const groups: Record<string, string[]> = { world: [] };
@@ -440,6 +451,22 @@ export function WorldMapPicker({ onPick }: Props) {
                         strokeWidth={active ? 1 : 0.5}
                       />
                     ))}
+                    {/*
+                      Tynnere og blekere enn landegrensene: en delstat er
+                      ikke et land, og kartet skal fortsatt lese regionen som
+                      én flate man trykker på.
+                    */}
+                    {innerByRegion[skin.id] && (
+                      <path
+                        d={innerByRegion[skin.id]}
+                        fill="none"
+                        stroke="var(--coast)"
+                        strokeOpacity={active ? 0.7 : 0.4}
+                        strokeWidth={active ? 0.6 : 0.35}
+                        strokeLinejoin="round"
+                        pointerEvents="none"
+                      />
+                    )}
                   </g>
                 );
               })}
@@ -502,7 +529,6 @@ export function WorldMapPicker({ onPick }: Props) {
         <div className="pointer-events-none absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-8">
           <PirateCompass
             size="clamp(96px, 16vmin, 168px)"
-            heading={heading}
             label={t("region.title")}
             className="drop-shadow-lg"
           />

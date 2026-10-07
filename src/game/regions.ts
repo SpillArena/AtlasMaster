@@ -481,6 +481,9 @@ export const regions: Region[] = [
     projection: { kind: 'albersUsa' },
     outline: usStates,
     categories: usaCategories,
+    // USA er en del av Nord-Amerika på kartet; delstatene er et valg inne i
+    // Nord-Amerika-menyen, ikke en egen region på landingssiden
+    parent: 'northAmerica',
   },
   {
     id: 'africa',
@@ -554,6 +557,11 @@ export const DEFAULT_REGION_ID = 'norway'
 
 export function getRegion(id: string): Region | undefined {
   return regions.find((r) => r.id === id)
+}
+
+/** Regionene som ligger under `id` i menyen — se `Region.parent`. */
+export function childRegions(id: string): Region[] {
+  return regions.filter((r) => r.parent === id)
 }
 
 export function getCategory(regionId: string, categoryId: string): Category | undefined {
