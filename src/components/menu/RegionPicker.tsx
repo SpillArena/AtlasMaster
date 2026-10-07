@@ -21,7 +21,7 @@ export function RegionPicker({ onPick }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4">
+    <div className="mx-auto w-full max-w-[1760px] px-4">
       <ul className="grid grid-cols-1 gap-4 pb-6 sm:grid-cols-2">
         {regions.map((region, i) => {
           const best = bestForRegion(region.id)

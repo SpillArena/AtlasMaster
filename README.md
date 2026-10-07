@@ -222,3 +222,7 @@ a clicking round are never ranked against each other.
 > rename from `norgesmester-leaderboard` was done as a new database plus copying
 > the 19 rows across. `database_id` is what actually binds the app to the data.
 > See the comment in `wrangler.toml`.
+
+## Shared site shell
+
+The site follows the 1760px SpillArena shell, with consistent navigation, a slim footer, shared storage controls and game-specific link previews. See [site shell and branding](docs/SITE_SHELL.md).

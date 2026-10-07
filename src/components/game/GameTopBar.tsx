@@ -50,7 +50,7 @@ export const GameTopBar = memo(function GameTopBar({
 
   return (
     <header className="shrink-0 px-2.5 pt-0.5 sm:px-4 sm:pt-1">
-      <div className="panel mx-auto flex max-w-6xl items-center gap-3 rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2">
+      <div className="panel mx-auto flex max-w-[1760px] items-center gap-3 rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2">
         {/*
           Kronometeret står montert på siden av panelet, ikke inne i den nedre
           raden. Skiva er femtito piksler høy og raden den lå i var laget for

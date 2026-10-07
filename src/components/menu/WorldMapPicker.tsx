@@ -312,13 +312,13 @@ export function WorldMapPicker({ onPick }: Props) {
 
   return (
     /*
-      Kartet bryter ut av `max-w-6xl`-spalta resten av appen står i. Det er
+      Kartet bryter ut av `max-w-[1760px]`-spalta resten av appen står i. Det er
       ikke et innslag på landingssida — det *er* landingssida, og det eneste
       man kan gjøre der er å trykke på det. I spalta ble Norge rundt tolv
       piksler bredt; her er hele klodens plass målt opp etter det minste man
       skal kunne treffe, ikke etter tekstbredden under.
     */
-    <div className="mx-auto w-full max-w-[100rem] px-4">
+    <div className="mx-auto w-full max-w-[1760px] px-4">
       {/*
         Kompasset ligger utenfor selve platen, ikke inni den. Platen bærer den
         revne kanten, og en maske klipper alt den inneholder — instrumentet
