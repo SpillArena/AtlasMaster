@@ -102,6 +102,9 @@
     "error": "Ledertavla svarte ikke. Tavla er ikke tom; vi fikk ikke lest den.",
     "notListed": "Du er ikke blant de viste ennå. Spill en runde for å komme på tavla."
   },
+  "subregion": {
+    "usa": "Delstater, byer, elver og fjell"
+  },
   "tile": {
     "fylker": "Lær alle de 15 fylkene",
     "storbyer": "Finn Norges største byer",

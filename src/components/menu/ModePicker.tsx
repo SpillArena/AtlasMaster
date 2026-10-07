@@ -7,11 +7,13 @@ import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { ModeDemo } from './ModeDemo'
 import { Icon, type IconName } from '../Icon'
+import { BackButton } from '../header/BackToArena'
 
 interface Props {
   regionId: string
   category: Category
   onPick: (mode: Mode) => void
+  onBack: () => void
 }
 
 /** Hvor krevende modusen er å svare i — 1–3 fylte pips. */
@@ -37,7 +39,7 @@ const INSTRUMENT: Record<Mode, IconName> = {
  * instrumenter. Hver rad viser instrumentet, en levende demo av hvordan du
  * svarer, vanskegrad som blekk-pips, og hva runden er verdt.
  */
-export function ModePicker({ regionId, category, onPick }: Props) {
+export function ModePicker({ regionId, category, onPick, onBack }: Props) {
   const { t } = useTranslation()
 
   // kategorien kan overstyre modussettet — flaggkategorien bruker flag/pick
@@ -59,6 +61,7 @@ export function ModePicker({ regionId, category, onPick }: Props) {
 
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
+      <BackButton onBack={onBack} />
       <div>
         <p className="eyebrow">{t(category.labelKey)}</p>
         <h2 className="text-h2">{t('mode.subtitle')}</h2>

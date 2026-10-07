@@ -14,13 +14,15 @@ Storage controls show the same accept, decline, status and manage actions in Eng
 
 ## Branding and link previews
 
-Page titles describe the game, without author or lobby suffixes. Author metadata and footer credit identify Emil Berglund / EmilB04. Canonical, Open Graph, Twitter and structured-data URLs use the public game URL. Favicons, touch icons and manifests resolve under the game's base path.
+Page titles describe the game, without author or lobby suffixes. Author metadata identifies Emil Berglund / EmilB04. The footer links to SpillArena with “En del av SpillArena” in Norwegian or “Part of SpillArena” in English, with the SpillArena logo on the left. Canonical, Open Graph, Twitter and structured-data URLs use the public game URL. Favicons, touch icons and manifests resolve under the game's base path.
+
+`src/ui/spillarena-logo.svg` is an unchanged copy of `SpillArena/src/assets/logo.svg`. Bundle it locally so the footer does not depend on another repository or a remote image. Keep this copy synchronized when the SpillArena logo changes.
 
 The editable preview source is `public/og-image.svg`; export it as `public/og-image.png` at 1200 × 675 after changing the artwork. Game marks are SVG, with 180px touch icons and 512px install icons exported from the same artwork.
 
 ## Project details
 
-The compass mark returns to AtlasMaster. Region breadcrumbs sit in the centre of the navigation bar, with the back/give-up control on the right. On narrow screens the breadcrumbs use a centred second row so they remain readable beside compact controls. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
+The compass mark returns to AtlasMaster. Region breadcrumbs sit in the centre of the navigation bar. Menu back buttons sit above the category, mode, pace and leaderboard headings; an active round keeps its give-up control on the right of the navigation bar. On narrow screens the breadcrumbs use a centred second row so they remain readable beside compact controls. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
 
 ## Validation
 

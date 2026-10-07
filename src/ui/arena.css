@@ -21,6 +21,8 @@
 .arena-footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding-block: 17px; font-size: 11px; line-height: 1.5; }
 .arena-footer a, .arena-footer button { color: inherit; font: inherit; text-decoration: none; }
 .arena-footer button { background: none; border: 0; padding: 0; cursor: pointer; }
+.arena-footer-affiliation { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.arena-footer-logo { display: block; width: 20px; height: 20px; flex-shrink: 0; object-fit: contain; }
 .arena-footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
 .arena-footer details { padding-bottom: 12px; font-size: 11px; line-height: 1.6; }
 .arena-footer summary { cursor: pointer; }

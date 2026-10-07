@@ -7,11 +7,13 @@
  * skrøv en `<style>`-blokk inn i DOM-en på nytt, med farger som ikke visste at
  * appen har et mørkt tema.
  *
- * Nå peker det. `heading` kommer fra regionen musa er over, og nålen svinger
- * dit med overgangen som alltid har ligget der. Uten en peiling driver den
- * sakte rundt nord, slik en magnetnål gjør når ingenting drar i den.
+ * Nå peker nålen på musepekeren, hvor den enn er på skjermen — ikke bare
+ * når den står over en region. Den svinger dit som en ekte magnetnål: med
+ * treghet, et lite oversving og noen dempede svingninger før den legger seg.
+ * Uten en peker (berøringsskjerm, musa utenfor vinduet) finner den nord igjen
+ * og driver sakte rundt der.
  */
-import type { CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 type PirateCompassProps = {
     /**
@@ -25,8 +27,6 @@ type PirateCompassProps = {
      */
     size?: number | string;
     className?: string;
-    /** 0-359, der 0 = nord. `null` = ingenting å peke på, nålen driver. */
-    heading?: number | null;
     showNeedle?: boolean;
     /** tilgjengelig navn — må komme utenfra, appen snakker to språk */
     label?: string;
@@ -50,14 +50,149 @@ type PirateCompassProps = {
  *   <div className="absolute bottom-5 left-5"><PirateCompass … /></div>
  */
 
+/*
+ * Nålens fjær.
+ *
+ * Nålen er en dempet fjær mot peilingen til pekeren: akselerasjonen er
+ * `K · avvik − C · fart`. Med ζ = C / (2√K) ≈ 0,45 svinger den rundt 20 %
+ * forbi målet og har lagt seg etter et knapt sekund — nok til å se ut som et
+ * instrument med masse, lite nok til at det ikke vingler. «Mindre bevegelse»
+ * får kritisk demping: ingen oversving, bare en rask glidning dit.
+ *
+ * En CSS-overgang klarer ikke dette. Den starter på nytt for hvert nytt mål,
+ * og musa gir et nytt mål seksti ganger i sekundet — nåla hadde aldri fått
+ * fart, bare krøpet etter.
+ */
+const SPRING = { k: 90, c: 8.5 };
+const SPRING_CALM = { k: 400, c: 40 };
+
+/**
+ * Hvor nær midten pekeren kan komme før nåla slutter å følge den, som andel
+ * av instrumentets bredde. Rett over navet snur peilingen 180° for hver
+ * piksel musa flytter seg, og nåla hadde snurret rundt.
+ */
+const HOLD_RADIUS = 0.2;
+
+/**
+ * Driver nålelagene med fjæra over, direkte i DOM-en.
+ *
+ * Ingen React-tilstand her: en `setState` per bilde ville rendret hele
+ * instrumentet seksti ganger i sekundet. Lagene får `style.transform` skrevet
+ * rett inn, og løkka stopper når nåla har lagt seg — en mus som står stille
+ * koster ingenting. Når nåla er hjemme i nord, overtar CSS-animasjonen
+ * `compass-adrift`, som går på kompositoren og heller ikke koster noe.
+ */
+function useNeedle() {
+    const root = useRef<HTMLDivElement>(null);
+    const needle = useRef<SVGSVGElement>(null);
+    const shadow = useRef<SVGSVGElement>(null);
+
+    useEffect(() => {
+        const el = root.current;
+        if (!el) return;
+        const layers = [needle, shadow];
+        const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        let pointer: { x: number; y: number } | null = null;
+        let angle = 0;
+        let velocity = 0;
+        let target = 0;
+        let frame = 0;
+        let last = 0;
+
+        const draw = () => {
+            for (const layer of layers) {
+                if (layer.current) layer.current.style.transform = `rotate(${angle}deg)`;
+            }
+        };
+
+        const aim = () => {
+            if (!pointer) return 0;
+            const r = el.getBoundingClientRect();
+            const dx = pointer.x - (r.left + r.width / 2);
+            const dy = pointer.y - (r.top + r.height / 2);
+            if (Math.hypot(dx, dy) < r.width * HOLD_RADIUS) return target;
+            // atan2(øst, nord): null grader er opp, og vinkelen øker med klokka
+            return (Math.atan2(dx, -dy) * 180) / Math.PI;
+        };
+
+        const tick = (now: number) => {
+            // et skjult faneark gir ett langt bilde; uten taket skyter nåla ut
+            const dt = Math.min((now - last) / 1000, 1 / 30);
+            last = now;
+            target = aim();
+            // korteste vei rundt: −180…180, så nåla aldri tar omveien om sør
+            const diff = ((((target - angle) % 360) + 540) % 360) - 180;
+            const { k, c } = calm.matches ? SPRING_CALM : SPRING;
+            velocity += (k * diff - c * velocity) * dt;
+            angle += velocity * dt;
+
+            if (Math.abs(diff) < 0.05 && Math.abs(velocity) < 0.05) {
+                angle += diff;
+                velocity = 0;
+                draw();
+                frame = 0;
+                if (!pointer) el.dataset.adrift = "";
+                return;
+            }
+            draw();
+            frame = requestAnimationFrame(tick);
+        };
+
+        const wake = () => {
+            delete el.dataset.adrift;
+            if (frame) return;
+            last = performance.now();
+            frame = requestAnimationFrame(tick);
+        };
+        const follow = (e: PointerEvent) => {
+            pointer = { x: e.clientX, y: e.clientY };
+            wake();
+        };
+        const release = () => {
+            if (!pointer) return;
+            pointer = null;
+            wake();
+        };
+        // en finger som slipper skjermen er borte; en mus som slipper knappen er det ikke
+        const lift = (e: PointerEvent) => {
+            if (e.pointerType !== "mouse") release();
+        };
+        // pekeren står stille, men kompasset flytter seg under den
+        const scrolled = () => {
+            if (pointer) wake();
+        };
+
+        el.dataset.adrift = "";
+        window.addEventListener("pointermove", follow, { passive: true });
+        window.addEventListener("pointerdown", follow, { passive: true });
+        window.addEventListener("pointerup", lift, { passive: true });
+        window.addEventListener("pointercancel", release, { passive: true });
+        window.addEventListener("scroll", scrolled, { passive: true });
+        window.addEventListener("blur", release);
+        document.documentElement.addEventListener("mouseleave", release);
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener("pointermove", follow);
+            window.removeEventListener("pointerdown", follow);
+            window.removeEventListener("pointerup", lift);
+            window.removeEventListener("pointercancel", release);
+            window.removeEventListener("scroll", scrolled);
+            window.removeEventListener("blur", release);
+            document.documentElement.removeEventListener("mouseleave", release);
+        };
+    }, []);
+
+    return { root, needle, shadow };
+}
+
 export default function PirateCompass({
     size = 240,
     className = "",
-    heading = null,
     showNeedle = true,
     label = "Compass",
 }: PirateCompassProps) {
-    const pointing = heading !== null && Number.isFinite(heading);
+    const { root, needle, shadow } = useNeedle();
     const center = 200;
 
     /*
@@ -118,6 +253,7 @@ export default function PirateCompass({
 
     return (
         <div
+            ref={root}
             className={`pirate-compass ${className}`}
             /*
              * Størrelsen går inn som en egenskap, ikke som `width`/`height`.
@@ -279,9 +415,6 @@ export default function PirateCompass({
                             opacity="0.9"
                         />
                     ))}
-
-                    <circle cx="200" cy="200" r="20" fill="url(#pc-brass-dark)" stroke="#25474a" strokeWidth="3" />
-                    <circle cx="200" cy="200" r="7" fill="#fff0b0" stroke="#80501e" strokeWidth="2" />
                 </g>
 
                 {/*
@@ -309,54 +442,6 @@ export default function PirateCompass({
                             </text>
                         );
                     })}
-                </g>
-
-                <g>
-                    {/*
-                      Uten en peiling driver nålen sakte rundt nord — en
-                      magnetnål står aldri helt stille. Med en peiling slår
-                      driften av, og overgangen i stilarket tar nåla dit.
-
-                      MERK — `rotate()` står uten dreiepunkt med vilje.
-                      Punktet ligger i stilarket, som `transform-origin` på
-                      `.pirate-compass__needleWrap`, og det gjelder både denne
-                      rotasjonen og driftanimasjonen. Skriver vi senteret her
-                      også, blir det lagt på to ganger: nåla dreier først om
-                      (200 200) og så om (200 200) én gang til, og havner
-                      `c − R(c)` unna — 400 enheter rett ut av urskiva ved 90°.
-                    */}
-                    <g
-                        transform={`rotate(${pointing ? heading : 0})`}
-                        className={`pirate-compass__needleWrap${pointing ? "" : " is-adrift"}`}
-                    >
-                        {/*
-                          Nåla stopper på radius 98 — inne i rosen, og klar av
-                          bokstavbåndet. Den delen som snurrer har rosen for
-                          seg selv, og kortet under beholder liljen og
-                          bokstavene sine udekket, uansett hvor nåla står.
-                          Rakk den lenger, lå den permanent oppå nordmerket.
-
-                          Den lille fløtefargede hetta over den røde spissen er
-                          av samme grunn borte. Den nådde dessuten radius 145,
-                          utenfor papirskiva på 142, og ble klippet av kanten.
-                        */}
-                        {showNeedle && (
-                            <>
-                                <path
-                                    d="M 200 102 L 212 192 L 200 176 L 188 192 Z"
-                                    fill="url(#pc-needle-red)"
-                                    stroke="#45150f"
-                                    strokeWidth="2"
-                                />
-                                <path
-                                    d="M 200 298 L 210 210 L 200 226 L 190 210 Z"
-                                    fill="url(#pc-needle-light)"
-                                    stroke="#5b4627"
-                                    strokeWidth="2"
-                                />
-                            </>
-                        )}
-                    </g>
                 </g>
 
                 {/*
@@ -396,7 +481,66 @@ export default function PirateCompass({
 
                 <circle cx="200" cy="200" r="150" fill="none" stroke="#efd39b" strokeWidth="1.5" opacity="0.3" />
                 <circle cx="200" cy="200" r="154" fill="none" stroke="#3a2412" strokeWidth="2" opacity="0.2" />
+            </svg>
 
+            {/*
+              Nåla ligger i sine egne lag over urskiva, ikke inni den.
+
+              Urskiva har tre SVG-filtre — støy i papiret, forskyvning i
+              messingen, skygge under rosen. Lå nåla i samme `<svg>`, måtte hele
+              tegningen males på nytt for hvert bilde nåla flytter seg, filtrene
+              med. Som egne lag med `will-change: transform` males hvert av dem
+              én gang, og kompositoren dreier ferdige bilder.
+
+              Skyggen er en kopi av nåla, uskarp og forskjøvet. Forskyvningen
+              står som `translate` i stilarket og legges *utenpå* dreiningen:
+              lyset kommer fra samme hjørne uansett hvor nåla peker, slik en
+              ekte skygge gjør.
+
+              Nåla stopper på radius 98 — inne i rosen, og klar av
+              bokstavbåndet, så liljen og bokstavene aldri dekkes.
+            */}
+            {showNeedle && (
+                <>
+                    <svg
+                        ref={shadow}
+                        viewBox="0 0 400 400"
+                        className="pirate-compass__needle pirate-compass__needle--shadow"
+                        aria-hidden
+                    >
+                        <defs>
+                            <filter id="pc-needle-blur" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="3.5" />
+                            </filter>
+                        </defs>
+                        <path
+                            d="M 200 102 L 212 192 L 200 176 L 188 192 Z M 200 298 L 210 210 L 200 226 L 190 210 Z"
+                            fill="#1e120b"
+                            filter="url(#pc-needle-blur)"
+                        />
+                    </svg>
+                    <svg ref={needle} viewBox="0 0 400 400" className="pirate-compass__needle" aria-hidden>
+                        <path
+                            d="M 200 102 L 212 192 L 200 176 L 188 192 Z"
+                            fill="url(#pc-needle-red)"
+                            stroke="#45150f"
+                            strokeWidth="2"
+                        />
+                        <path
+                            d="M 200 298 L 210 210 L 200 226 L 190 210 Z"
+                            fill="url(#pc-needle-light)"
+                            stroke="#5b4627"
+                            strokeWidth="2"
+                        />
+                        {/* navet holder nåla nede, og ligger derfor over den */}
+                        <circle cx="200" cy="200" r="20" fill="url(#pc-brass-dark)" stroke="#25474a" strokeWidth="3" />
+                        <circle cx="200" cy="200" r="7" fill="#fff0b0" stroke="#80501e" strokeWidth="2" />
+                    </svg>
+                </>
+            )}
+
+            {/* ripene sitter i glasset, over nåla — de dreier ikke med den */}
+            <svg viewBox="0 0 400 400" className="pirate-compass__glass" aria-hidden>
                 <g opacity="0.22">
                     <path d="M120 112 C146 97, 163 102, 176 119" stroke="#5c3514" strokeWidth="2" fill="none" />
                     <path d="M245 89 C275 101, 287 118, 291 146" stroke="#5c3514" strokeWidth="1.8" fill="none" />

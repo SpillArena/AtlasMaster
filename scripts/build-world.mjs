@@ -274,7 +274,51 @@ const OUTLINE_MIN_SPAN = 1
  */
 const OUTLINE_DETAILED = new Set([
   '840', // USA
+  /*
+   * Oseania. Landingssiden tegner hvert land med egen kontur, og her er
+   * landene øyer: kysten *er* grensen. Med en firedel av punktene ble
+   * Australia 519 punkter, New Zealand 159 og Fiji 30 — Salomonøyene og
+   * Vanuatu leste som klatter, ikke som øyrekker. Full 50m-kyst koster
+   * rundt fire tusen punkter for hele regionen.
+   */
+  '036', // Australia
+  '090', // Salomonøyene
+  '242', // Fiji
+  '540', // Ny-Caledonia
+  '548', // Vanuatu
+  '554', // New Zealand
+  '598', // Papua Ny-Guinea
+  /*
+   * Mexico, Mellom-Amerika og Karibia, av samme grunn som Oseania: Mexico ble
+   * 276 punkter og Jamaica 15, og Karibia leste som prikker. Hele regionen
+   * koster rundt tre tusen punkter.
+   */
+  '484', // Mexico
+  '084', // Belize
+  '188', // Costa Rica
+  '222', // El Salvador
+  '320', // Guatemala
+  '340', // Honduras
+  '558', // Nicaragua
+  '591', // Panama
+  '044', // Bahamas
+  '192', // Cuba
+  '214', // Den dominikanske republikk
+  '332', // Haiti
+  '388', // Jamaica
+  '630', // Puerto Rico
+  '780', // Trinidad og Tobago
 ])
+
+/*
+ * Canada og Grønland er for store til å slippe unna forenklinga helt: Canada
+ * har 11 500 punkter i 50m, de fleste i den arktiske øygruppa, og hele
+ * omrisset ville vokst med en femdel for den ene. De forenkles i en egen
+ * omgang med en mildere andel — kvantilen regnes da bare ut fra deres egne
+ * punkter, så de får beholde det dobbelte av det resten av kloden gjør.
+ */
+const OUTLINE_RICHER = new Set(['124', '304'])
+const OUTLINE_RICHER_KEEP = 0.5
 
 function largestRingSpan(geometry) {
   let largest = 0
@@ -298,26 +342,62 @@ function largestRingSpan(geometry) {
 
 const big = []
 const bigAt = []
+const richer = []
+const richerAt = []
 const outlineFeatures = features.slice()
 features.forEach((f, i) => {
   if (largestRingSpan(f.geometry) < OUTLINE_MIN_SPAN) return
   if (OUTLINE_DETAILED.has(f.properties.id)) {
     const geometry = dropRepeats(roundGeometry(f.geometry, 2))
     if (geometry) outlineFeatures[i] = { ...f, geometry }
+  } else if (OUTLINE_RICHER.has(f.properties.id)) {
+    richer.push(f)
+    richerAt.push(i)
   } else {
     big.push(f)
     bigAt.push(i)
   }
 })
-const topo = presimplify(toTopology({ layer: { type: 'FeatureCollection', features: big } }))
-const thinned = feature(simplify(topo, quantile(topo, OUTLINE_KEEP)), 'layer')
-bigAt.forEach((at, i) => {
-  // to desimaler etter forenklinga: punktene ligger nå titalls kilometer fra
-  // hverandre, så en kilometers avrunding flytter ingenting man kan se — den
-  // bare gjør hvert tall kortere, og filen er tusenvis av tall
-  const geometry = dropRepeats(roundGeometry(thinned.features[i].geometry, 2))
-  if (geometry) outlineFeatures[at] = { ...thinned.features[i], geometry }
-})
+/**
+ * Fyller inn punkt på lange, rette segment — hver halve grad.
+ *
+ * d3-geo tegner et segment som en storsirkel, ikke langs breddegraden. Den
+ * 49. breddegraden mellom USA og Canada er et par lange segment etter
+ * forenklinga, og storsirkelen mellom endepunktene buer nordover. USA
+ * forenkles ikke og følger breddegraden; Canada buet fra den, og det ble en
+ * lys stripe av hav mellom landene fra Stillehavet til Lake of the Woods.
+ * Med punkt hver halve grad blir buen under en tidels piksel.
+ */
+const DENSIFY_STEP = 0.5
+function densify(geometry) {
+  const ring = (points) =>
+    points.flatMap((a, i) => {
+      if (i === points.length - 1) return [a]
+      const b = points[i + 1]
+      const steps = Math.max(1, Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) / DENSIFY_STEP))
+      return Array.from({ length: steps }, (_, k) => [a[0] + ((b[0] - a[0]) * k) / steps, a[1] + ((b[1] - a[1]) * k) / steps])
+    })
+  return {
+    ...geometry,
+    coordinates:
+      geometry.type === 'Polygon' ? geometry.coordinates.map(ring) : geometry.coordinates.map((p) => p.map(ring)),
+  }
+}
+
+for (const [group, at, keep, after] of [
+  [big, bigAt, OUTLINE_KEEP, (g) => g],
+  [richer, richerAt, OUTLINE_RICHER_KEEP, densify],
+]) {
+  const topo = presimplify(toTopology({ layer: { type: 'FeatureCollection', features: group } }))
+  const thinned = feature(simplify(topo, quantile(topo, keep)), 'layer')
+  at.forEach((index, i) => {
+    // to desimaler etter forenklinga: punktene ligger nå titalls kilometer fra
+    // hverandre, så en kilometers avrunding flytter ingenting man kan se — den
+    // bare gjør hvert tall kortere, og filen er tusenvis av tall
+    const geometry = dropRepeats(roundGeometry(after(thinned.features[i].geometry), 2))
+    if (geometry) outlineFeatures[index] = { ...thinned.features[i], geometry }
+  })
+}
 const outline = { type: 'FeatureCollection', features: outlineFeatures }
 writeFileSync(OUT_OUTLINE, JSON.stringify(outline))
 

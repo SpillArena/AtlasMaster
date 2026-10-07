@@ -8,13 +8,15 @@ import { getName } from '../../game/leaderboard'
 import { LeaderboardRow } from './LeaderboardRow'
 import { useBoard, type BoardScope } from './useBoard'
 import { Icon } from '../Icon'
+import { BackButton } from '../header/BackToArena'
 
 interface Props {
   /** regionen spilleren står i — tavla åpner der */
   regionId: string
+  onBack: () => void
 }
 
-export function Leaderboard({ regionId }: Props) {
+export function Leaderboard({ regionId, onBack }: Props) {
   const { t } = useTranslation()
   const [scope, setScope] = useState<BoardScope>('global')
   const [region, setRegion] = useState<string>(regionId)
@@ -50,6 +52,7 @@ export function Leaderboard({ regionId }: Props) {
 
   return (
     <section aria-label={t('leaderboard.title')} className="mx-auto max-w-[1760px] px-4 py-4">
+      <div className="mb-4"><BackButton onBack={onBack} /></div>
       <h1 className="text-h2 mb-4 flex items-center gap-2">
         <Icon name="trophy" className="h-6 w-6" style={{ color: 'var(--gold)' }} />
         {t('leaderboard.title')}

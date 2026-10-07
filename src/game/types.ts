@@ -128,6 +128,12 @@ export interface Region {
    */
   outline: () => Promise<FeatureCollection>
   categories: Category[]
+  /**
+   * Regionen denne ligger under i menyen. Satt betyr at regionen ikke har
+   * egen plass på landingskartet, men vises som et kort blant kategoriene til
+   * forelderen — og at «tilbake» går dit, ikke helt hjem.
+   */
+  parent?: string
 }
 
 /**
