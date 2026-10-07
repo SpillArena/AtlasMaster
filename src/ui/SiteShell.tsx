@@ -1,9 +1,10 @@
 import type { MouseEvent, ReactNode } from 'react'
 import { openConsentDialog, setConsent, useConsent } from '../account'
+import spillArenaLogo from './spillarena-logo.svg'
 
 const copy = {
-  en: { lobby: 'Back to lobby', settings: 'Settings', storage: 'Cookies & storage', accepted: 'Storage is on. Your results and settings are remembered on this device.', declined: 'Storage is off. Results and settings stay in this tab only.', undecided: 'Nothing new is saved until you choose.', accept: 'Accept', decline: 'Decline', manage: 'Manage storage choice', credit: 'Made by' },
-  no: { lobby: 'Tilbake til lobbyen', settings: 'Innstillinger', storage: 'Informasjonskapsler og lagring', accepted: 'Lagring er på. Resultatene og innstillingene dine huskes på denne enheten.', declined: 'Lagring er av. Resultater og innstillinger beholdes bare i denne fanen.', undecided: 'Ingenting nytt lagres før du velger.', accept: 'Godta', decline: 'Avslå', manage: 'Endre lagringsvalg', credit: 'Laget av' },
+  en: { lobby: 'Back to lobby', settings: 'Settings', storage: 'Cookies & storage', accepted: 'Storage is on. Your results and settings are remembered on this device.', declined: 'Storage is off. Results and settings stay in this tab only.', undecided: 'Nothing new is saved until you choose.', accept: 'Accept', decline: 'Decline', manage: 'Manage storage choice', affiliation: 'Part of SpillArena' },
+  no: { lobby: 'Tilbake til lobbyen', settings: 'Innstillinger', storage: 'Informasjonskapsler og lagring', accepted: 'Lagring er på. Resultatene og innstillingene dine huskes på denne enheten.', declined: 'Lagring er av. Resultater og innstillinger beholdes bare i denne fanen.', undecided: 'Ingenting nytt lagres før du velger.', accept: 'Godta', decline: 'Avslå', manage: 'Endre lagringsvalg', affiliation: 'En del av SpillArena' },
 }
 const labels = (language: string) => copy[language.startsWith('no') || language.startsWith('nb') ? 'no' : 'en']
 
@@ -48,7 +49,10 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
   return <footer className="arena-footer">
     <div className="arena-container">
       <div className="arena-footer-row">
-        <span>{t.credit} <a href="https://github.com/EmilB04" target="_blank" rel="noreferrer">Emil Berglund</a></span>
+        <a className="arena-footer-affiliation" href="https://spillarena.no/">
+          <img className="arena-footer-logo" src={spillArenaLogo} alt="" width={20} height={20} />
+          <span>{t.affiliation}</span>
+        </a>
         <div className="arena-footer-links">
           {children}
           <button type="button" onClick={openConsentDialog}>{t.storage}</button>

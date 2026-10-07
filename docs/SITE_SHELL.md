@@ -14,7 +14,9 @@ Storage controls show the same accept, decline, status and manage actions in Eng
 
 ## Branding and link previews
 
-Page titles describe the game, without author or lobby suffixes. Author metadata and footer credit identify Emil Berglund / EmilB04. Canonical, Open Graph, Twitter and structured-data URLs use the public game URL. Favicons, touch icons and manifests resolve under the game's base path.
+Page titles describe the game, without author or lobby suffixes. Author metadata identifies Emil Berglund / EmilB04. The footer links to SpillArena with “En del av SpillArena” in Norwegian or “Part of SpillArena” in English, with the SpillArena logo on the left. Canonical, Open Graph, Twitter and structured-data URLs use the public game URL. Favicons, touch icons and manifests resolve under the game's base path.
+
+`src/ui/spillarena-logo.svg` is an unchanged copy of `SpillArena/src/assets/logo.svg`. Bundle it locally so the footer does not depend on another repository or a remote image. Keep this copy synchronized when the SpillArena logo changes.
 
 The editable preview source is `public/og-image.svg`; export it as `public/og-image.png` at 1200 × 675 after changing the artwork. Game marks are SVG, with 180px touch icons and 512px install icons exported from the same artwork.
 
