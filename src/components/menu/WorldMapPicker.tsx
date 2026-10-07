@@ -64,6 +64,15 @@ const AFRICA_IDS = new Set([
 const SOUTH_AMERICA_IDS = new Set([
   32, 68, 76, 152, 170, 218, 328, 600, 604, 740, 858, 862,
 ]);
+const NORTH_AMERICA_IDS = new Set([
+  28, 44, 52, 84, 124, 188, 192, 212, 214, 222, 308, 320, 332, 340, 388, 484,
+  558, 591, 659, 662, 670, 780, 840, 304, 660, 533, 60, 92, 136, 531, 500,
+  630, 652, 663, 666, 534, 796, 850,
+]);
+const OCEANIA_IDS = new Set([
+  36, 242, 296, 520, 554, 583, 584, 585, 598, 882, 90, 776, 798, 548,
+  16, 184, 316, 540, 570, 580, 574, 258, 612, 772, 876,
+]);
 
 interface RegionSkin {
   id: string;
@@ -84,7 +93,7 @@ interface RegionSkin {
 }
 
 /**
- * Norge og USA sjekkes først, så Asia, så Europa — se kommentaren over
+ * Norge og USA sjekkes først; Asia kommer før Europa — se kommentaren over
  * id-listene. Fargene er dempede kartograftoner, ikke rene primærfarger, så
  * kloden fortsatt leser som et blad fra feltboka.
  */
@@ -104,6 +113,27 @@ const REGION_SKINS: RegionSkin[] = [
     color: "#b06f4e",
     match: (c) => c === 840,
     anchor: [-99, 40],
+  },
+  {
+    id: "northAmerica",
+    labelKey: "region.northAmerica",
+    color: "#488d89",
+    match: (c) => NORTH_AMERICA_IDS.has(c),
+    anchor: [-105, 61],
+  },
+  {
+    id: "oceania",
+    labelKey: "region.oceania",
+    color: "#5597b5",
+    match: (c) => OCEANIA_IDS.has(c),
+    anchor: [147, -25],
+  },
+  {
+    id: "antarctica",
+    labelKey: "region.antarctica",
+    color: "#829aab",
+    match: (c) => c === 10,
+    anchor: [20, -78],
   },
   {
     id: "asia",
@@ -148,17 +178,19 @@ const REGION_SKINS: RegionSkin[] = [
 ];
 
 /**
- * Fransk Guyana — en ring i Frankrikes MultiPolygon, med Frankrikes ID (250),
- * men liggende i Sør-Amerika, ikke Europa. `classify` går på landkode, og en
- * hel feature får én farge; uten dette unntaket ville ringen arvet Europas
- * farge fra resten av moderlandet. Boksen dekker bare Fransk Guyana, ikke
- * Frankrikes andre oversjøiske ringer (Réunion, Guadeloupe, Martinique) —
- * de har ingen spillbar region å høre til og forblir «Verden».
+ * Fransk Guyana har Frankrikes ID (250), men ligger i Sør-Amerika. Andre
+ * franske og nederlandske oversjøiske polygoner klassifiseres også per ring
+ * når de ligger i Nord-Amerika eller Oseania.
  */
 const FRENCH_GUIANA_BOX = { minLon: -55, maxLon: -51, minLat: 1, maxLat: 6 };
 
 function classify(code: number, centre?: [number, number]): string {
   if (code === 250 && centre && inBox(centre, FRENCH_GUIANA_BOX)) return "southAmerica";
+  if ((code === 250 || code === 528) && centre) {
+    if (inBox(centre, { minLon: -90, maxLon: -52, minLat: 10, maxLat: 30 })) return "northAmerica";
+    if (inBox(centre, { minLon: 110, maxLon: 180, minLat: -50, maxLat: 22 }) ||
+        inBox(centre, { minLon: -180, maxLon: -125, minLat: -50, maxLat: 10 })) return "oceania";
+  }
   for (const skin of REGION_SKINS) if (skin.match(code)) return skin.id;
   return "world";
 }
@@ -207,10 +239,9 @@ export function WorldMapPicker({ onPick }: Props) {
 
   useEffect(() => {
     let alive = true;
-    getRegion("world")
-      ?.outline()
-      .then((fc) => {
-        if (alive) setData(fc);
+    Promise.all([getRegion("world")!.outline(), getRegion("antarctica")!.outline()])
+      .then(([world, antarctica]) => {
+        if (alive) setData({ type: "FeatureCollection", features: [...world.features, ...antarctica.features] });
       });
     return () => {
       alive = false;
@@ -227,11 +258,10 @@ export function WorldMapPicker({ onPick }: Props) {
     const shapes: Shape[] = [];
     for (const f of data.features) {
       const code = codeOf(f);
-      // Frankrike er det eneste landet med en oversjøisk ring i en annen
-      // spillbar region enn moderlandet — se FRENCH_GUIANA_BOX. Bare
+      // Frankrike og Nederland har oversjøiske ringer i andre regioner. Bare
       // MultiPolygon-features splittes per polygon; alle andre tegnes som
       // én sammenhengende sti, som før.
-      if (code === 250 && f.geometry.type === "MultiPolygon") {
+      if ((code === 250 || code === 528) && f.geometry.type === "MultiPolygon") {
         for (const polygon of f.geometry.coordinates) {
           const d = path({ type: "Polygon", coordinates: polygon });
           if (!d) continue;

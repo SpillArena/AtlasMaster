@@ -129,6 +129,19 @@
     "southAmericaRivers": "Lær Sør-Amerikas store elver",
     "southAmericaPeaks": "Lær Sør-Amerikas høyeste topper",
     "southAmericaFlags": "Koble flagg til land i Sør-Amerika",
+    "northAmericaCountries": "Lær alle de 23 landene",
+    "northAmericaCapitals": "Finn Nord-Amerikas hovedsteder",
+    "northAmericaRivers": "Lær Nord-Amerikas store elver",
+    "northAmericaPeaks": "Lær Nord-Amerikas høyeste topper",
+    "northAmericaFlags": "Koble flagg til land i Nord-Amerika",
+    "oceaniaCountries": "Lær alle de 14 landene",
+    "oceaniaCapitals": "Finn Oseanias hovedsteder",
+    "oceaniaRivers": "Lær Oseanias store elver",
+    "oceaniaPeaks": "Lær Oseanias fjelltopper",
+    "oceaniaFlags": "Koble flagg til land i Oseania",
+    "antarcticaStations": "Finn forskningsstasjonene i Antarktis",
+    "antarcticaPeaks": "Lær Antarktis' fjelltopper",
+    "worldOceans": "Finn de fem verdenshavene og kjente havområder på kartet",
     "worldCountries": "Lær alle land i verden",
     "worldFlags": "Koble flagg til land i hele verden"
   },
@@ -144,6 +157,8 @@
     "capitals": "Hovedsteder",
     "rivers": "Elver",
     "peaks": "Fjelltopper",
+    "stations": "Forskningsstasjoner",
+    "oceans": "Verdenshav",
     "states": "Delstater",
     "cities": "Storbyer",
     "worldCountries": "Land",
@@ -179,7 +194,19 @@
     "worth": "Verdt ×{{multiplier}} poeng"
   },
   "game": {
-    "loading": "Laster kart …"
+    "loading": "Laster kart …",
+    "oceanMap": "Kart over hav og havområder",
+    "oceanViews": "Velg kartutsnitt",
+    "oceanView": {
+      "world": "Verden",
+      "europe": "Europa",
+      "asia": "Asia",
+      "americas": "Amerika",
+      "pacific": "Vest-Stillehavet"
+    },
+    "zoomIn": "Zoom inn",
+    "zoomOut": "Zoom ut",
+    "resetMap": "Nullstill kartet"
   },
   "hud": {
     "findThis": "Finn på kartet",
@@ -251,6 +278,9 @@
     "usa": "USA",
     "africa": "Afrika",
     "southAmerica": "Sør-Amerika",
+    "northAmerica": "Nord-Amerika",
+    "oceania": "Oseania",
+    "antarctica": "Antarktis",
     "world": "Verden",
     "count": "{{count}} kategorier",
     "plate": "Plate {{n}}",

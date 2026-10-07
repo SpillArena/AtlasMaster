@@ -10,7 +10,7 @@ interface Props {
   onPick: (regionId: string) => void
 }
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
 
 /**
  * Første valg: hvilket kartblad. Hver flis er en plate i feltboka — papir med

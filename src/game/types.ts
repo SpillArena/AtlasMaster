@@ -57,6 +57,10 @@ export interface Category {
   /** i18n-nøkkel for visningsnavn */
   labelKey: string
   geom: GeomKind
+  /** Water exercises draw answer polygons below the non-interactive land. */
+  surface?: 'water'
+  /** Category-specific map layout, for example an ocean-centred world map. */
+  projection?: ProjectionSpec
   /**
    * Modusene kategorien tilbyr, om den ikke bruker standardsettet (`MODES`).
    * Flaggkategorien setter `['flag', 'pick']`; en vanlig kartkategori lar
@@ -100,6 +104,7 @@ export type ProjectionSpec =
   | { kind: 'azimuthalEqualArea'; centre: [number, number] }
   | { kind: 'albersUsa' }
   | { kind: 'naturalEarth' }
+  | { kind: 'equirectangular'; centre: number }
 
 /**
  * En spillbar region — Norge, Europa, og senere ett kontinent om gangen.
@@ -152,10 +157,13 @@ export function toQuizFeatures(fc: FeatureCollection, lang = 'no'): QuizFeature[
   return fc.features.filter(isPlayable).map((f) => {
     const no = String(f.properties?.name ?? '')
     const en = f.properties?.nameEn ? String(f.properties.nameEn) : ''
+    const extraAliases = Array.isArray(f.properties?.aliases)
+      ? f.properties.aliases.filter((alias: unknown): alias is string => typeof alias === 'string')
+      : []
     return {
       id: String(f.properties?.id ?? f.id),
       name: preferEnglish && en ? en : no,
-      aliases: en && en !== no ? [no, en] : [no],
+      aliases: [...new Set([no, ...(en ? [en] : []), ...extraAliases])],
       geometry: f.geometry,
     }
   })

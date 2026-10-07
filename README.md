@@ -17,8 +17,29 @@ The game was called NorgesMester and covered only Norway until August 2026.
 | Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area, centred 87°E/22°N |
 | Africa | Countries (54), capitals, rivers, peaks, flags | Azimuthal equal area, centred 20°E/2°N |
 | South America | Countries (12), capitals, rivers, peaks, flags | Azimuthal equal area, centred 60°W/15°S |
+| North America | Countries (23), capitals (23), rivers (8), peaks (8), flags | Azimuthal equal area, centred 100°W/40°N |
+| Oceania | Countries (14), capitals (14), rivers (5), peaks (8), flags | Azimuthal equal area, centred 165°E/18°S |
+| Antarctica | Research stations (8), peaks (6) | Azimuthal equal area, centred on the South Pole |
 | USA | States (50), cities, rivers, peaks | Albers USA (Alaska and Hawaii in inset boxes) |
-| World | Countries (195), flags | Natural Earth 1 |
+| World | Countries (195), flags, oceans and seas (17) | Natural Earth 1 |
+
+North America includes Central America and the Caribbean; USA state practice
+remains a separate region. Greenland and other territories are background
+features, not country answers. Oceania keeps island geometry on both sides of
+the date line and rotates the map around the Pacific. Antarctica has no country
+or flag category; practise its research stations and peaks instead.
+
+Choose **World → Oceans** to practise the five oceans and 12 well-known seas:
+North, Black, Mediterranean, South China, East China, Baltic, Red, Caribbean,
+Norwegian, Arabian, Bering and Coral. The exercise uses the existing click,
+multiple-choice and typing modes at any pace, with Norwegian and English
+names. Land sits above the water polygons; smaller seas sit above the broader
+ocean basins. The Southern Ocean starts at 60°S and the Arctic cap at 66.56°N.
+Ocean practice uses a rectangular map centred at 110°E, keeping the Pacific
+and Atlantic basins together. Blue water areas have clear borders and muted
+land; regional view buttons enlarge the seas without changing the question.
+Small water areas have tap aids, and highlighted seas in choice/typing mode
+automatically zoom in with the surrounding coastlines.
 
 The World region ships two files from the same build. `countries.json` is the
 playable map at Natural Earth 50m; `outline.json` is the same features with a
@@ -116,7 +137,12 @@ npm run data:asia      # countries, capitals, rivers and peaks in Asia
 npm run data:africa    # countries, capitals, rivers and peaks in Africa
 npm run data:south-america # countries, capitals, rivers and peaks in South America
 npm run data:usa       # states, cities, rivers and peaks in the USA
+npm run data:north-america # countries, capitals, rivers and peaks in North America
+npm run data:oceania   # countries, capitals, rivers and peaks in Oceania
+npm run data:antarctica # outline, research stations and peaks in Antarctica
+npm run data:oceans    # five oceans and a short selection of well-known seas
 npm run check:geo      # extent, ring winding and emblem coverage
+npm run check:regions  # lazy loaders, projections, translations, modes and score validation
 npm run check:engine   # the game rules, run directly against the reducer
 npm run check:sql      # verifies migrations + queries against SQLite
 npm run bench:map      # what the map layer costs per region
@@ -159,6 +185,14 @@ an atoll but the atoll.
 The geometry comes from outside; the names do not. Each builder keeps its own
 list of Norwegian and English names and takes only coordinates from the
 sources.
+
+`build-remaining-regions.mjs` follows the same cached-source pipeline and reuses
+the checked-in World country's geometry and three-digit flag ids. Rebuild World
+before these continents when the shared country geometry changes. The new
+builder needs no extra atlas/topology packages. Capitals, rivers, peaks,
+Antarctica and [marine boundaries](https://www.naturalearthdata.com/downloads/50m-physical-vectors/)
+come from Natural Earth. Yaren is used as Nauru's seat of government; Palau's
+capital is Ngerulmud rather than the old capital still labelled by the source.
 
 ## Migrations
 

@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
   /*
@@ -36,6 +35,7 @@
 
     /* --- typografi --- */
     --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-family-hud: 'Spline Sans Mono', ui-monospace, SFMono-Regular, monospace;
     --text-caption-size: 12px;
     --text-caption-line: 16px;
 
@@ -87,6 +87,14 @@
 
     --map-land: var(--color-land);
     --map-border: #7a6b47;
+
+    --water-area-1: #8bbdcc;
+    --water-area-2: #a5d2da;
+    --water-area-3: #72aeba;
+    --water-border: #f5faf8;
+    --water-land: #e8dfcb;
+    --water-coast: #7c887d;
+    --water-hover: #bde5ec;
 
     /* --- slitasje: det som gjør papiret gammelt ---
        Fire lag, og de gjør hver sin jobb. Fibrene er trykket selve arket har.
@@ -151,6 +159,14 @@
 
     --map-idle: rgba(235, 226, 205, 0.1);
 
+    --water-area-1: #245567;
+    --water-area-2: #326c7e;
+    --water-area-3: #1b4356;
+    --water-border: #8bbbc7;
+    --water-land: #272b27;
+    --water-coast: #687f78;
+    --water-hover: #438fa3;
+
     /* Mørk modus snur lyset: bretten fanger lampen i stedet for å skygge, og
        riften viser bordet under i stedet for lyset gjennom. */
     --paper-fibre: rgba(0, 0, 0, 0.2);
@@ -170,7 +186,8 @@
   }
 
   html {
-    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-family: var(--font-family);
   }
 
@@ -245,6 +262,16 @@
 }
 
 @layer components {
+  .water-map {
+    --ocean: var(--water-area-2);
+    --ocean-deep: var(--water-area-3);
+    --map-land: var(--water-land);
+    --coast: var(--water-coast);
+    --map-border: var(--water-border);
+    --map-idle-hover: var(--water-hover);
+    --graticule: color-mix(in srgb, var(--water-border) 18%, transparent);
+  }
+
   /*
    * Vellum-panelet: HUD, menyer, faktabokser. Ligger lett over kartet, varm tone.
    */
@@ -446,11 +473,31 @@
    * tyngre enn en skjermtittel.
    */
   .text-h1 {
-    @apply font-display text-3xl font-semibold tracking-[-0.01em] sm:text-4xl;
-  }
-  .text-h2 {
-    @apply font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl;
-  }
+     font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', serif;
+     font-size: 1.875rem;
+     line-height: 2.25rem;
+     font-weight: 600;
+     letter-spacing: -0.01em;
+   }
+   @media (min-width: 640px) {
+     .text-h1 {
+       font-size: 2.25rem;
+       line-height: 2.5rem;
+     }
+   }
+   .text-h2 {
+     font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', serif;
+     font-size: 1.5rem;
+     line-height: 2rem;
+     font-weight: 600;
+     letter-spacing: -0.005em;
+   }
+   @media (min-width: 640px) {
+     .text-h2 {
+       font-size: 1.875rem;
+       line-height: 2.25rem;
+     }
+   }
   .text-caption {
     font-size: var(--text-caption-size);
     line-height: var(--text-caption-line);
@@ -459,7 +506,7 @@
 
   /* Store tall: poeng, combo, klokke — ledger-mono, alltid tabulære. */
   .numeric {
-    font-family: theme('fontFamily.hud');
+    font-family: var(--font-family-hud);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
@@ -475,7 +522,10 @@
 
   /* Etikett over et tall — liten, sperret, dempet. */
   .stat-label {
-    @apply text-[0.625rem] font-bold uppercase tracking-[0.18em];
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
     color: var(--text-subtle);
   }
 }
