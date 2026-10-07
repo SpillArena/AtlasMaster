@@ -20,7 +20,7 @@ The editable preview source is `public/og-image.svg`; export it as `public/og-im
 
 ## Project details
 
-The compass mark returns to AtlasMaster. Region breadcrumbs and the back/give-up control remain available, with compact controls on narrow screens. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
+The compass mark returns to AtlasMaster. Region breadcrumbs sit in the centre of the navigation bar, with the back/give-up control on the right. On narrow screens the breadcrumbs use a centred second row so they remain readable beside compact controls. The player profile is available at the top of Settings. Map, category and leaderboard containers use the wide site bounds; small forms remain compact.
 
 ## Validation
 
@@ -28,4 +28,4 @@ Production build and consent/component rendering checks passed. The checks cover
 
 Full lint passes.
 
-Browser viewport checks and live gameplay verification remain to be performed.
+Browser checks passed for centred Norwegian breadcrumbs from 320px to 1920px and complete 17-place ocean rounds on desktop and phone, including touch input. API responses were stubbed during these local gameplay checks.

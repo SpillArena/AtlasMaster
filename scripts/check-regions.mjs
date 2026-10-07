@@ -20,7 +20,7 @@ try {
   const { makeProjection, makePath, naturalAspect, mapFitData } = await server.ssrLoadModule('/src/game/projection.ts')
   const { init, reducer } = await server.ssrLoadModule('/src/game/quizReducer.ts')
   const { MapCanvas } = await server.ssrLoadModule('/src/components/game/MapCanvas.tsx')
-  const { OCEAN_ANCHORS, OCEAN_VIEWS } = await server.ssrLoadModule('/src/game/oceanViews.ts')
+  const { OCEAN_ANCHORS } = await server.ssrLoadModule('/src/game/oceanMap.ts')
   const ids = new Set()
   const sample = (region, category, mode, total) => ({
     region, category, mode, total, pace: 'relaxed', score: 0,
@@ -144,23 +144,13 @@ try {
     assert(geoContains(oceans.features.find((f) => f.properties.id === id), point), `Water marker misplaced: ${id}`)
     assert(!oceanLand.features.some((f) => geoContains(f, point)), `Water marker placed on land: ${id}`)
   }
-  for (const view of OCEAN_VIEWS) {
-    assert(locales.every((l) => l.game.oceanView[view.id]), `Missing ocean view label: ${view.id}`)
-    const fit = view.fit ?? mapFitData(oceans, oceanLand, 'water')
-    const aspect = naturalAspect(view.projection, fit)
-    assert(aspect > 0.4 && aspect < 3, `Unusable ocean view: ${view.id}`)
-    const path = makePath(makeProjection(view.projection, fit, 900 * aspect, 900))
-    for (const f of oceans.features) {
-      assert(!/NaN|Infinity/.test(path(f.geometry) ?? ''), `Invalid clipped water path: ${view.id}/${f.properties.id}`)
-    }
-  }
-  // Pacific basin remains a single broad area instead of two narrow map edges.
+  // Europe's central meridian stays in the middle of the playable world map.
   const fit = mapFitData(oceans, oceanLand, 'water')
   const spec = getCategory('world', 'worldOceans').projection
   const width = 900 * naturalAspect(spec, fit)
   const projection = makeProjection(spec, fit, width, 900)
-  assert(Math.abs(projection([170, 20])[0] - projection([-140, 20])[0]) < width / 3,
-    'Pacific basin is still split across opposite map edges')
+  assert(Math.abs(projection([15, 50])[0] - width / 2) < 1,
+    'Oceans map is not centred on Europe')
   assert(markup.includes('var(--water-area-') && markup.includes('water-map'), 'Water boundaries lack visible fills')
   console.log(`ok  ${ids.size} unique categories; rounds, ocean/sea locations, water layers and bilingual answers work`)
 } finally {

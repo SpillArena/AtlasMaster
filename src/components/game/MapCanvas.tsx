@@ -7,7 +7,7 @@ import type { FeatureCollection } from 'geojson'
 import { makeCoarsePath, makePath, makeProjection, naturalAspect } from '../../game/projection'
 import type { GeomKind, ProjectionSpec, QuizFeature } from '../../game/types'
 import type { Award } from '../../game/useQuizEngine'
-import { OCEAN_ANCHORS } from '../../game/oceanViews'
+import { OCEAN_ANCHORS } from '../../game/oceanMap'
 import { Icon, type IconName } from '../Icon'
 
 /**

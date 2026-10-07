@@ -7,16 +7,17 @@ const copy = {
 }
 const labels = (language: string) => copy[language.startsWith('no') || language.startsWith('nb') ? 'no' : 'en']
 
-export function SiteHeader({ name, logo, mark, language = 'en', onHome, children }: {
+export function SiteHeader({ name, logo, mark, language = 'en', onHome, center, children }: {
   name: string; logo?: string; mark?: ReactNode; language?: string
-  onHome?: (event: MouseEvent<HTMLAnchorElement>) => void; children: ReactNode
+  onHome?: (event: MouseEvent<HTMLAnchorElement>) => void; center?: ReactNode; children: ReactNode
 }) {
   return <header className="arena-header">
-    <div className="arena-container arena-header-row">
+    <div className={`arena-container arena-header-row${center ? ' arena-header-row--centered' : ''}`}>
       <a className="arena-brand" href={import.meta.env.BASE_URL} onClick={onHome} aria-label={name}>
         {logo ? <img src={logo} alt="" className="arena-brand-mark" /> : <span className="arena-brand-mark" aria-hidden="true">{mark}</span>}
         <span className="arena-brand-name">{name}</span>
       </a>
+      {center && <div className="arena-header-center">{center}</div>}
       <nav className="arena-header-actions" aria-label={labels(language).settings}>{children}</nav>
     </div>
   </header>

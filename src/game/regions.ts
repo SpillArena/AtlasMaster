@@ -1,6 +1,6 @@
 import type { FeatureCollection } from 'geojson'
 import type { Category, Region } from './types'
-import { OCEAN_PROJECTION } from './oceanViews'
+import { OCEAN_PROJECTION } from './oceanMap'
 
 /**
  * Registeret over spillbare regioner. Dette er det eneste stedet som må

@@ -11,8 +11,8 @@ interface Props {
 export function Header({ atRoot, inGame, onBack, onGiveUp, onHome, onEditName, profileVersion, trail = [] }: Props) {
   const { i18n } = useTranslation()
   return <SiteHeader name="AtlasMaster" mark={<AtlasMark />} language={i18n.language}
+    center={trail.length > 0 ? <span className="atlas-header-trail">{trail.join(' / ')}</span> : undefined}
     onHome={(event) => { event.preventDefault(); if (inGame) onGiveUp(); else onHome() }}>
-    {trail.length > 0 && <span className="atlas-header-trail">{trail.join(' / ')}</span>}
     {!atRoot && <span className="atlas-round-back"><BackToArena atRoot={false} inGame={inGame} onBack={onBack} onGiveUp={onGiveUp} /></span>}
     <LobbyLink language={i18n.language} onClick={(event) => { if (inGame && !window.confirm(i18n.language.startsWith('no') ? 'Forlate runden og gå til lobbyen?' : 'Leave this round and return to the lobby?')) event.preventDefault() }} />
     <SettingsMenu onProfile={onEditName} profileVersion={profileVersion} />

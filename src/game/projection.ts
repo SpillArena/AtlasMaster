@@ -59,8 +59,8 @@ export function makeProjection(
     ],
     data,
   )
-  // Regional water views show the same world geometry, clipped to their
-  // viewport. Out-of-view seas must not leave stray markers on the map.
+  // Clip water geometry to the map frame, including polygons crossing the
+  // date line after rotating the world toward Europe.
   return spec.kind === 'equirectangular'
     ? projection.clipExtent([[padding, padding], [width - padding, height - padding]])
     : projection

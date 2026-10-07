@@ -196,14 +196,6 @@
   "game": {
     "loading": "Loading map …",
     "oceanMap": "Oceans and seas map",
-    "oceanViews": "Choose a map view",
-    "oceanView": {
-      "world": "World",
-      "europe": "Europe",
-      "asia": "Asia",
-      "americas": "Americas",
-      "pacific": "West Pacific"
-    },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "resetMap": "Reset map"

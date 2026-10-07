@@ -57,8 +57,16 @@
 }
 
 .arena-header { background: var(--nav-bg); }
-.atlas-header-trail { color: var(--arena-muted); font-size: 11px; }
-@media (max-width: 950px) { .atlas-header-trail { display: none; } }
+.arena-header-row--centered { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.arena-header-row--centered .arena-header-actions { justify-self: end; }
+.arena-header-center { min-width: 0; max-width: 38vw; text-align: center; }
+.atlas-header-trail { display: block; color: var(--arena-muted); font-size: 11px; line-height: 1.5; }
+@media (max-width: 1100px) {
+  .arena-header-row--centered { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; padding-block: 12px; }
+  .arena-header-row--centered .arena-brand { grid-column: 1; grid-row: 1; }
+  .arena-header-row--centered .arena-header-actions { grid-column: 2; grid-row: 1; }
+  .arena-header-center { grid-column: 1 / -1; grid-row: 2; justify-self: center; max-width: 100%; }
+}
 @media (max-width: 600px) { .atlas-round-back button { padding-inline: 10px; font-size: 11px; } }
 
 .arena-main > section, .arena-main > div { max-width: var(--arena-max-width); margin-inline: auto; width: 100%; }

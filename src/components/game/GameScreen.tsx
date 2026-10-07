@@ -23,7 +23,6 @@ import { pushProgress } from '../../game/profileSync'
 import { rankFor } from '../../game/rank'
 import type { CloudOutcome } from './ResultScreen'
 import { MapCanvas } from './MapCanvas'
-import { OceanMap } from './OceanMap'
 import { GameHUD } from './GameHUD'
 import { GameTopBar } from './GameTopBar'
 import { ResultScreen } from './ResultScreen'
@@ -147,7 +146,6 @@ function Game({
 
   // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
   const fitData = useMemo(() => mapFitData(data, base, surface), [data, base, surface])
-  const Map = surface === 'water' ? OceanMap : MapCanvas
   const isClick = mode === 'click'
   // kartet peker ut målet i flervalg og skriv. I flaggmodus ville et opplyst
   // land vært fasiten, så der står kartet stille som bakgrunn.
@@ -334,7 +332,7 @@ function Game({
 
       {/* Kart fyller tilgjengelig høyde. */}
       <div className="relative min-h-0 flex-1">
-        <Map
+        <MapCanvas
           projectionSpec={projection}
           fitData={fitData}
           baseData={base}

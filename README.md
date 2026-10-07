@@ -35,9 +35,9 @@ Norwegian, Arabian, Bering and Coral. The exercise uses the existing click,
 multiple-choice and typing modes at any pace, with Norwegian and English
 names. Land sits above the water polygons; smaller seas sit above the broader
 ocean basins. The Southern Ocean starts at 60°S and the Arctic cap at 66.56°N.
-Ocean practice uses a rectangular map centred at 110°E, keeping the Pacific
-and Atlantic basins together. Blue water areas have clear borders and muted
-land; regional view buttons enlarge the seas without changing the question.
+Ocean practice uses a rectangular world map centred on Europe at 15°E.
+Blue water areas have clear borders and muted land. Use the map's zoom and
+pan controls to enlarge a sea.
 Small water areas have tap aids, and highlighted seas in choice/typing mode
 automatically zoom in with the surrounding coastlines.
 

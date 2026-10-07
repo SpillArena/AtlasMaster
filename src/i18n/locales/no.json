@@ -196,14 +196,6 @@
   "game": {
     "loading": "Laster kart …",
     "oceanMap": "Kart over hav og havområder",
-    "oceanViews": "Velg kartutsnitt",
-    "oceanView": {
-      "world": "Verden",
-      "europe": "Europa",
-      "asia": "Asia",
-      "americas": "Amerika",
-      "pacific": "Vest-Stillehavet"
-    },
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut",
     "resetMap": "Nullstill kartet"
