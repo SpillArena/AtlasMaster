@@ -52,45 +52,51 @@ const STYLE_ID = 'spillarena-account-badge-style'
  * reads: light text on a dark pill, or the reverse.
  */
 const CSS = `
-.sa-root { position: fixed; z-index: 2147483000; }
+.sa-root { --sa-edge: clamp(10px, 1.2vw, 16px); position: fixed; z-index: 2147483000; }
 .sa-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
+  box-sizing: border-box;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.82);
   color: #1e293b;
-  font: 500 12px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 500 11px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   text-decoration: none;
   letter-spacing: 0.01em;
   box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-  max-width: min(72vw, 320px);
+  max-width: min(calc(100vw - 2 * var(--sa-edge)), 280px);
   cursor: pointer;
 }
 .sa-badge:hover { transform: translateY(-1px); box-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.5); }
 .sa-badge:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
-.sa-badge__name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sa-badge__muted { opacity: 0.66; }
+.sa-badge__name { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sa-badge__name--compact { display: none; }
+.sa-badge__muted { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.66; }
 .sa-badge__level {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px; flex: none; white-space: nowrap;
   padding: 2px 7px; border-radius: 999px;
   background: rgba(139, 92, 246, 0.16); color: #6d28d9; font-weight: 700; font-size: 11px;
 }
-.sa-badge__bar { width: 34px; height: 4px; border-radius: 999px; background: rgba(109, 40, 217, 0.22); overflow: hidden; }
-.sa-badge__fill { height: 100%; border-radius: 999px; background: #7c3aed; }
+.sa-badge__bar { display: block; flex: none; width: 32px; height: 4px; border-radius: 999px; background: rgba(109, 40, 217, 0.22); overflow: hidden; }
+.sa-badge__fill { display: block; height: 100%; border-radius: 999px; background: #7c3aed; }
 .sa-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex: none; }
 .sa-badge__dot--out { background: #94a3b8; }
-.sa-badge__chev { opacity: 0.5; font-size: 9px; }
+.sa-badge__chev { flex: none; opacity: 0.5; font-size: 9px; }
 
 .sa-panel {
   position: absolute;
   text-align: left;
-  width: min(84vw, 268px);
+  box-sizing: border-box;
+  width: min(calc(100vw - 2 * var(--sa-edge)), 296px);
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
   padding: 14px;
   border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -159,7 +165,16 @@ const CSS = `
   .sa-panel__signout { border-color: rgba(255,255,255,0.18); }
   .sa-panel__storage { background: rgba(120, 53, 15, 0.45); color: #fffbeb; }
 }
-@media (max-width: 480px) { .sa-badge { font-size: 11px; padding: 6px 10px; } }
+@media (max-width: 1280px), (max-height: 720px) {
+  .sa-badge { max-width: min(calc(100vw - 2 * var(--sa-edge)), 220px); }
+  .sa-badge__name--full { display: none; }
+  .sa-badge__name--compact { display: block; }
+}
+@media (max-width: 480px) {
+  .sa-badge { gap: 5px; padding: 5px 8px; max-width: min(60vw, 200px); }
+  .sa-badge__level { gap: 4px; padding: 2px 5px; font-size: 10px; }
+  .sa-badge__bar { width: 28px; }
+}
 @media (prefers-reduced-motion: reduce) { .sa-badge { transition: none; } }
 `
 
@@ -174,10 +189,10 @@ function useInjectedStyle(): void {
 }
 
 const CORNERS = {
-    'bottom-right': { bottom: 16, right: 16 },
-    'bottom-left': { bottom: 16, left: 16 },
-    'top-right': { top: 16, right: 16 },
-    'top-left': { top: 16, left: 16 },
+    'bottom-right': { bottom: 'max(var(--sa-edge), env(safe-area-inset-bottom))', right: 'max(var(--sa-edge), env(safe-area-inset-right))' },
+    'bottom-left': { bottom: 'max(var(--sa-edge), env(safe-area-inset-bottom))', left: 'max(var(--sa-edge), env(safe-area-inset-left))' },
+    'top-right': { top: 'max(var(--sa-edge), env(safe-area-inset-top))', right: 'max(var(--sa-edge), env(safe-area-inset-right))' },
+    'top-left': { top: 'max(var(--sa-edge), env(safe-area-inset-top))', left: 'max(var(--sa-edge), env(safe-area-inset-left))' },
 } as const
 
 /** The front page, opened straight into the forgotten-PIN form. */
@@ -712,6 +727,7 @@ export function AccountBadge({
                 type="button"
                 className="sa-badge"
                 onClick={() => setOpen((value) => !value)}
+                aria-label={`${title}${username && level ? ` · ${labels.level(level.level)} · ${level.pct}%` : ''}`}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 title={title}
@@ -722,7 +738,8 @@ export function AccountBadge({
                 />
                 {username ? (
                     <>
-                        <span className="sa-badge__name">{labels.signedInAs(username)}</span>
+                        <span className="sa-badge__name sa-badge__name--full" aria-hidden>{labels.signedInAs(username)}</span>
+                        <span className="sa-badge__name sa-badge__name--compact" aria-hidden>{username}</span>
                         {level && (
                             <span className="sa-badge__level">
                                 {labels.level(level.level)}
