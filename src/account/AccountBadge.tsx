@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { authenticate } from './api'
 import { getSession, onSessionChange, signOut } from './session'
 import { levelProgress } from './progress'
+import { PlayerAvatar } from './avatar'
 import { openConsentDialog } from './consent'
 import { detectLanguage } from './language'
 import { useConsent } from './useConsent'
@@ -345,7 +346,7 @@ const NORWEGIAN_LABELS: AccountBadgeLabels = {
     signOut: 'Logg ut',
     profile: 'Profil på spillarena.no',
     guestHint: 'Du kan spille uten konto. Logger du inn, lagres resultatene dine på ledertavla.',
-    level: (level) => `Nv ${level}`,
+    level: (level) => `Nivå ${level}`,
     notRemembered:
         'Lagring er slått av. Du er innlogget til du lukker fanen, og fremgang og resultater lagres på kontoen din så lenge. Neste gang må du logge inn igjen.',
     turnOnSaving: 'Slå på lagring',
@@ -552,7 +553,10 @@ export function AccountBadge({
                     {username ? (
                         <>
                             <div className="sa-panel__row">
-                                <span className="sa-panel__who">{username}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                                    <PlayerAvatar size={26} />
+                                    <span className="sa-panel__who">{username}</span>
+                                </span>
                                 <a className="sa-panel__link" href={homeUrl}>
                                     {labels.profile}
                                 </a>
@@ -738,6 +742,7 @@ export function AccountBadge({
                 />
                 {username ? (
                     <>
+                        <PlayerAvatar size={18} />
                         <span className="sa-badge__name sa-badge__name--full" aria-hidden>{labels.signedInAs(username)}</span>
                         <span className="sa-badge__name sa-badge__name--compact" aria-hidden>{username}</span>
                         {level && (

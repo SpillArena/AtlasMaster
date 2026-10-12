@@ -9,6 +9,7 @@ import { getCategory, getRegion, regions } from '../../game/regions'
 import { MODES, FLAG_MODES, type Mode } from '../../game/types'
 import { Icon } from '../Icon'
 import { Button } from '../ui'
+import { PlayerAvatar } from '../../account'
 
 interface Props {
   /** åpner innlogging / kontodialogen */
@@ -88,6 +89,7 @@ export function ProfilePanel({ onAccount, onClose }: Props) {
               id="profile-title"
               className="font-display truncate text-2xl font-semibold tracking-[-0.005em]"
             >
+              {session && <PlayerAvatar size={26} />}
               {name || t('nav.setName')}
             </h2>
             <p className="text-caption" style={{ color: 'var(--text-subtle)' }}>
