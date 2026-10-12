@@ -6,6 +6,7 @@ import { authenticate, getSession, signOut, type AuthAction } from '../../game/a
 import { syncProgress } from '../../game/profileSync'
 import { Icon } from '../Icon'
 import { Button } from '../ui'
+import { PlayerAvatar } from '../../account'
 
 interface Props {
   onConfirm: () => void
@@ -105,6 +106,9 @@ export function NamePrompt({ onConfirm, onCancel, variant = 'start' }: Props) {
   if (session && variant === 'edit') {
     return (
       <Shell onCancel={onCancel} title={t('auth.signedInTitle')} desc={t('auth.signedInDesc', { name: session.username })}>
+        <div className="mt-4 h-16 w-16 overflow-hidden rounded-2xl empty:hidden">
+          <PlayerAvatar />
+        </div>
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={onCancel}>
             {t('namePrompt.cancel')}
