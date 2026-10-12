@@ -3,8 +3,8 @@ import { openConsentDialog, setConsent, useConsent } from '../account'
 import spillArenaLogo from './spillarena-logo.svg'
 
 const copy = {
-  en: { lobby: 'Back to lobby', settings: 'Settings', storage: 'Cookies & storage', accepted: 'Storage is on. Your results and settings are remembered on this device.', declined: 'Storage is off. Results and settings stay in this tab only.', undecided: 'Nothing new is saved until you choose.', accept: 'Accept', decline: 'Decline', manage: 'Manage storage choice', affiliation: 'Part of SpillArena' },
-  no: { lobby: 'Tilbake til lobbyen', settings: 'Innstillinger', storage: 'Informasjonskapsler og lagring', accepted: 'Lagring er på. Resultatene og innstillingene dine huskes på denne enheten.', declined: 'Lagring er av. Resultater og innstillinger beholdes bare i denne fanen.', undecided: 'Ingenting nytt lagres før du velger.', accept: 'Godta', decline: 'Avslå', manage: 'Endre lagringsvalg', affiliation: 'En del av SpillArena' },
+  en: { lobby: 'Back to the Arena', settings: 'Settings', storage: 'Cookies & storage', accepted: 'Storage is on. Your results and settings are remembered on this device.', declined: 'Storage is off. Results and settings stay in this tab only.', undecided: 'Nothing new is saved until you choose.', accept: 'Accept', decline: 'Decline', manage: 'Manage storage choice', affiliation: 'Part of SpillArena' },
+  no: { lobby: 'Tilbake til Arenaen', settings: 'Innstillinger', storage: 'Informasjonskapsler og lagring', accepted: 'Lagring er på. Resultatene og innstillingene dine huskes på denne enheten.', declined: 'Lagring er av. Resultater og innstillinger beholdes bare i denne fanen.', undecided: 'Ingenting nytt lagres før du velger.', accept: 'Godta', decline: 'Avslå', manage: 'Endre lagringsvalg', affiliation: 'En del av SpillArena' },
 }
 const labels = (language: string) => copy[language.startsWith('no') || language.startsWith('nb') ? 'no' : 'en']
 
