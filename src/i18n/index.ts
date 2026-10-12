@@ -10,6 +10,8 @@ const STORAGE_KEY = 'lang'
 function initialLanguage(): string {
   const saved = readPreference(STORAGE_KEY)
   if (saved === 'no' || saved === 'en') return saved
+  // search crawlers render as English; the site is Norwegian first
+  if (typeof navigator !== 'undefined' && /bot|crawl|spider|slurp|lighthouse|prerender/i.test(navigator.userAgent)) return 'no'
   const browser = typeof navigator === 'undefined' ? '' : navigator.language.toLowerCase()
   return browser.startsWith('nb') || browser.startsWith('no') ? 'no' : 'en'
 }

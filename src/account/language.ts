@@ -22,6 +22,8 @@ export function detectLanguage(requested?: string | null): Language {
         const fromPage = pick(document.documentElement.lang)
         if (fromPage) return fromPage
     }
+    // crawlers render as English; the site is Norwegian first
+    if (typeof navigator !== 'undefined' && /bot|crawl|spider|slurp|lighthouse|prerender/i.test(navigator.userAgent)) return 'no'
     if (typeof navigator !== 'undefined') {
         for (const candidate of navigator.languages ?? [navigator.language]) {
             const found = pick(candidate)
