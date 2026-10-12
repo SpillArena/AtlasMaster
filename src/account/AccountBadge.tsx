@@ -78,7 +78,6 @@ const CSS = `
 .sa-badge:hover { transform: translateY(-1px); box-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.5); }
 .sa-badge:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
 .sa-badge__name { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sa-badge__name--compact { display: none; }
 .sa-badge__muted { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.66; }
 .sa-badge__level {
   display: inline-flex; align-items: center; gap: 5px; flex: none; white-space: nowrap;
@@ -168,8 +167,6 @@ const CSS = `
 }
 @media (max-width: 1280px), (max-height: 720px) {
   .sa-badge { max-width: min(calc(100vw - 2 * var(--sa-edge)), 220px); }
-  .sa-badge__name--full { display: none; }
-  .sa-badge__name--compact { display: block; }
 }
 @media (max-width: 480px) {
   .sa-badge { gap: 5px; padding: 5px 8px; max-width: min(60vw, 200px); }
@@ -743,8 +740,7 @@ export function AccountBadge({
                 {username ? (
                     <>
                         <PlayerAvatar size={18} />
-                        <span className="sa-badge__name sa-badge__name--full" aria-hidden>{labels.signedInAs(username)}</span>
-                        <span className="sa-badge__name sa-badge__name--compact" aria-hidden>{username}</span>
+                        <span className="sa-badge__name" aria-hidden>{username}</span>
                         {level && (
                             <span className="sa-badge__level">
                                 {labels.level(level.level)}
