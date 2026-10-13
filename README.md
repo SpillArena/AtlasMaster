@@ -1,228 +1,94 @@
-# AtlasMaster
+<p align="center">
+  <img src="public/logo.svg" width="88" alt="AtlasMaster logo" />
+</p>
 
-The map game about geography, one region at a time. Click, choose or type the
-name of the place that lights up, chase combos and beat your own record.
+<h1 align="center">AtlasMaster</h1>
 
-Built for [Spillarena](https://spillarena.no). Lives at
-**https://spillarena.no/atlasmaster/**.
+<p align="center"><strong>Learn the world, one region at a time.</strong><br />
+A map quiz where you click, choose or type the place that lights up, chase combos and beat your own record.</p>
 
-The game was called NorgesMester and covered only Norway until August 2026.
+<p align="center">
+  <a href="https://spillarena.no/atlasmaster/">Play now</a> ·
+  <a href="https://spillarena.no">SpillArena</a> ·
+  <a href="docs/REFERENCE.md">Developer reference</a> ·
+  <a href="docs/SITE_SHELL.md">Site shell</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/Cloudflare-Pages%20%2B%20D1-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare Pages and D1" />
+  <img src="https://img.shields.io/badge/Languages-NO%20%2F%20EN-785A85" alt="Norwegian and English" />
+</p>
+
+## Pick a region, find the place
+
+AtlasMaster started as a Norway-only county quiz and now covers the whole globe. Choose a region and a category, then answer by clicking the map, picking from choices or typing the name. Fast, accurate rounds build combos and a pace bonus.
+
+- **Ten regions.** Norway, Europe, Asia, Africa, South America, North America, Oceania, Antarctica, the USA and the World.
+- **Many categories.** Countries, counties, states, capitals, cities, rivers, peaks, flags, oceans and seas, and Antarctic research stations.
+- **Three ways to answer.** Click the map, choose from options or type the name. Each mode has its own scoring and leaderboard.
+- **Proper maps.** Each region uses a projection that suits it, such as Albers USA with Alaska and Hawaii in insets or ETRS89-LCC for Europe.
+- **Leaderboards.** Sign in with a SpillArena account to post scores. Rounds are always saved on the device too, so a round is never lost to a network error.
+- **Norwegian and English**, light and dark themes, and shared storage controls.
 
 ## Regions
 
 | Region | Categories | Projection |
 | --- | --- | --- |
-| Norway | Counties (15), cities, rivers, peaks | Conic conformal, 60/70°, rotated −15° |
-| Europe | Countries (39), capitals, rivers, peaks | Conic conformal, 35/65°, rotated −10° (ETRS89-LCC) |
-| Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area, centred 87°E/22°N |
-| Africa | Countries (54), capitals, rivers, peaks, flags | Azimuthal equal area, centred 20°E/2°N |
-| South America | Countries (12), capitals, rivers, peaks, flags | Azimuthal equal area, centred 60°W/15°S |
-| North America | Countries (23), capitals (23), rivers (8), peaks (8), flags | Azimuthal equal area, centred 100°W/40°N |
-| Oceania | Countries (14), capitals (14), rivers (5), peaks (8), flags | Azimuthal equal area, centred 165°E/18°S |
-| Antarctica | Research stations (8), peaks (6) | Azimuthal equal area, centred on the South Pole |
-| USA | States (50), cities, rivers, peaks | Albers USA (Alaska and Hawaii in inset boxes) |
+| Norway | Counties (15), cities, rivers, peaks | Conic conformal, 60/70° |
+| Europe | Countries (39), capitals, rivers, peaks | ETRS89-LCC |
+| Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area |
+| Africa | Countries (54), capitals, rivers, peaks, flags | Azimuthal equal area |
+| South America | Countries (12), capitals, rivers, peaks, flags | Azimuthal equal area |
+| North America | Countries (23), capitals, rivers, peaks, flags | Azimuthal equal area |
+| Oceania | Countries (14), capitals, rivers, peaks, flags | Azimuthal equal area |
+| Antarctica | Research stations (8), peaks (6) | Azimuthal equal area |
+| USA | States (50), cities, rivers, peaks | Albers USA |
 | World | Countries (195), flags, oceans and seas (17) | Natural Earth 1 |
 
-North America includes Central America and the Caribbean; USA state practice
-remains a separate region. Greenland and other territories are background
-features, not country answers. Oceania keeps island geometry on both sides of
-the date line and rotates the map around the Pacific. Antarctica has no country
-or flag category; practise its research stations and peaks instead.
+Projection details, dataset pipelines and how to add a region are in the [developer reference](docs/REFERENCE.md).
 
-Choose **World → Oceans** to practise the five oceans and 12 well-known seas:
-North, Black, Mediterranean, South China, East China, Baltic, Red, Caribbean,
-Norwegian, Arabian, Bering and Coral. The exercise uses the existing click,
-multiple-choice and typing modes at any pace, with Norwegian and English
-names. Land sits above the water polygons; smaller seas sit above the broader
-ocean basins. The Southern Ocean starts at 60°S and the Arctic cap at 66.56°N.
-Ocean practice uses a rectangular world map centred on Europe at 15°E.
-Blue water areas have clear borders and muted land. Use the map's zoom and
-pan controls to enlarge a sea.
-Small water areas have tap aids, and highlighted seas in choice/typing mode
-automatically zoom in with the surrounding coastlines.
+## Run locally
 
-The World region ships two files from the same build. `countries.json` is the
-playable map at Natural Earth 50m; `outline.json` is the same features with a
-quarter of the points, and it is what the landing page and the background draw.
-The whole globe is 900 px wide there, so the detail would not survive the
-rasteriser. Splitting them also keeps 290 kB off the first paint. They share
-ids, and `check:geo` fails if they drift apart.
-
-Not every feature on the world map is an answer. Sovereign states plus Kosovo
-are (195 of them); overseas territories, crown dependencies and areas without
-an ISO code are drawn so the map has no holes, but carry
-`properties.playable: false`. `toQuizFeatures` in `src/game/types.ts` enforces
-the split. No other dataset sets the flag, so everywhere else every feature is
-an answer.
-
-Russia is in no region. Its geometry runs from 20°E across the date line, and
-`fitExtent` would zoom out to the whole northern hemisphere to include it. See
-the comment at the top of `scripts/build-asia.mjs`.
-
-### Adding a new region
-
-Everything a region needs lives in `src/game/regions.ts`. The steps:
-
-1. Put GeoJSON under `src/data/<region>/`. Every feature needs
-   `properties.id` and `properties.name`, and optionally `properties.nameEn`.
-2. Write a `Region` object in `regions.ts` with the projection, outline and
-   categories.
-3. Add the i18n keys `region.<id>`, `cat.<category>` and `tile.<category>` in
-   `src/i18n/locales/`.
-4. Add the category ids to `REGION_CATEGORIES` in
-   `functions/api/leaderboard/index.js`, or the results get rejected.
-
-No other file should need changing. The canvas, the background map and the
-category previews read the projection from the region, and `naturalAspect()`
-makes a wide continent and a narrow country both fill the screen.
-
-Category ids must be unique across **all** regions, not just within their own:
-the tile text is looked up as `tile.<id>`. That is why the Asia and USA ids are
-prefixed (`asiaCountries`, `usStates`, …) while Europe got the short names
-first. Norway's ids are Norwegian and unchanged (`fylker`, `storbyer`, `elver`,
-`fjell`) because they are stored on every leaderboard row from before regions
-existed.
-
-## Development
+Use Node.js 22.12+ and npm.
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173/atlasmaster/
-npm run build
+npm run dev     # http://localhost:5173/atlasmaster/
+```
+
+The leaderboard and accounts are Cloudflare Pages Functions backed by D1. To test them, run `npx wrangler pages dev` next to the app and put `AUTH_SECRET=<long random string>` in an ignored `.dev.vars`. Without it, the game still plays and keeps results on the device.
+
+## Check a change
+
+```bash
 npm run lint
+npm run check:regions   # loaders, projections, translations, score validation
+npm run check:geo       # extent, ring winding, emblem coverage
+npm run check:engine    # game rules against the reducer
+npm run check:sql       # migrations and queries against SQLite
+npm run build
 ```
 
-The leaderboard is a Cloudflare Pages Function backed by D1. Run it alongside
-the app to test cloud storage locally:
+## Built with
 
-```bash
-npx wrangler pages dev
+React · TypeScript · Vite · Tailwind CSS · Framer Motion · i18next · Cloudflare Pages Functions · D1
+
+```text
+src/          Game engine, map canvas, regions, translations and UI
+functions/    Leaderboard and account API routes
+scripts/      Dataset builders and checks
+docs/         Developer reference and shared site shell notes
 ```
 
-If the board does not respond, the game falls back to the results stored on the
-device. A round is never lost because the cloud was unreachable.
+Geometry comes from [Natural Earth](https://www.naturalearthdata.com/), world-atlas and us-atlas. Norway's county borders are Kartverket data via [robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner) (CC BY 4.0).
 
-### Accounts
+## Contributing
 
-Posting to the global board needs an account: a name and a 4-6 digit PIN,
-`functions/api/auth/`. Before this, a player was a string in a text field.
-Anyone could post under any name, and because the board keeps one row per
-username, a higher fake score *replaced* the real player's row instead of
-sitting beside it.
+Create a branch from `development`, keep changes focused and run the checks above. Dataset changes need the rebuild steps in the [reference](docs/REFERENCE.md#datasets-and-checks).
 
-The attempt limit protects a PIN, more than the hash does: five wrong tries
-lock the name for fifteen minutes. Four digits is ten thousand values, and no
-key derivation function makes that number big. PBKDF2 covers the other case. If
-the database leaks, nobody should be able to read the PINs in one pass.
+---
 
-The signing key is **not** in `wrangler.toml`:
-
-```bash
-npx wrangler pages secret put AUTH_SECRET   # deployed
-echo 'AUTH_SECRET=anything-long-and-random' > .dev.vars   # local, gitignored
-```
-
-Without it, `/api/auth` and score submission both answer 503 rather than falling
-back to something that looks like it works. Rounds still save on the device, and
-playing without an account still works. Those rounds stay local.
-
-Run the migrations, `0005_create_players.sql` included, before deploying this.
-
-### Datasets and checks
-
-```bash
-npm run data:norway    # county borders from Kartverket
-npm run data:europe    # rebuild the Europe outline from Natural Earth
-npm run data:asia      # countries, capitals, rivers and peaks in Asia
-npm run data:africa    # countries, capitals, rivers and peaks in Africa
-npm run data:south-america # countries, capitals, rivers and peaks in South America
-npm run data:usa       # states, cities, rivers and peaks in the USA
-npm run data:north-america # countries, capitals, rivers and peaks in North America
-npm run data:oceania   # countries, capitals, rivers and peaks in Oceania
-npm run data:antarctica # outline, research stations and peaks in Antarctica
-npm run data:oceans    # five oceans and a short selection of well-known seas
-npm run check:geo      # extent, ring winding and emblem coverage
-npm run check:regions  # lazy loaders, projections, translations, modes and score validation
-npm run check:engine   # the game rules, run directly against the reducer
-npm run check:sql      # verifies migrations + queries against SQLite
-npm run bench:map      # what the map layer costs per region
-```
-
-The data scripts need
-`npm i --no-save world-atlas@2 us-atlas@3 topojson-client@3 topojson-server@3 topojson-simplify@3`.
-`data:norway`, `data:asia`, `data:africa`, `data:south-america` and `data:usa` also fetch datasets over the network
-the first time and cache them in `node_modules/.cache/atlasmaster/`. The result
-is checked in, so the scripts only need to run when the place lists or the
-resolution change.
-
-`data:norway` fetches the S-resolution county borders from
-[robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner):
-Kartverket data, licensed CC BY 4.0, generalised and clipped to the coastline.
-It is the only region built from something other than Natural Earth or a
-`*-atlas` topology, and the only builder with an attribution requirement to
-carry: see the header of `scripts/build-norway.mjs`.
-
-**The order is not optional.** The builders write raw data; the two steps after
-make it playable, and both are one-time operations that cannot run twice on the
-same file:
-
-```bash
-node scripts/build-europe-countries.mjs   # or whatever changed
-node scripts/optimise-geo.mjs             # cuts coordinate precision
-node scripts/simplify-geo.mjs src/data/europe/countries.json
-npm run check:geo                         # then check that it held
-```
-
-Name the files you rebuilt. `simplify-geo.mjs` with no arguments runs its whole
-list, and a second pass over a file eats what the first one left. Simplification
-stops when a feature would lose more than 15 % of its area **or** 5 % of its
-coastline. The second guard is the one that matters for a fjord: Sognefjorden is
-170 km long and 4 km wide, so removing it costs almost no area. Area alone is
-blind to the detail the map is for. Features whose largest single ring
-is under a degree are passed through untouched; there is nothing to remove from
-an atoll but the atoll.
-
-The geometry comes from outside; the names do not. Each builder keeps its own
-list of Norwegian and English names and takes only coordinates from the
-sources.
-
-`build-remaining-regions.mjs` follows the same cached-source pipeline and reuses
-the checked-in World country's geometry and three-digit flag ids. Rebuild World
-before these continents when the shared country geometry changes. The new
-builder needs no extra atlas/topology packages. Capitals, rivers, peaks,
-Antarctica and [marine boundaries](https://www.naturalearthdata.com/downloads/50m-physical-vectors/)
-come from Natural Earth. Yaren is used as Nauru's seat of government; Palau's
-capital is Ngerulmud rather than the old capital still labelled by the source.
-
-## Migrations
-
-```bash
-npx wrangler d1 migrations apply atlasmaster-leaderboard --remote
-```
-
-`0002_add_region.sql` adds `region` with `DEFAULT 'norway'`, so every row from
-before regions stays as a Norway round.
-
-`0004_leaderboard_pace_index.sql` indexes what the query actually groups and
-filters on now that pace is part of the exercise, and drops the index
-`0002` already described as superseded.
-
-`0005_create_players.sql` adds the accounts table. `COLLATE NOCASE` on the
-primary key stops `Kari` and `kari` from becoming two accounts. It also fixes
-the same split on the board, where the two showed up as duplicate rows.
-
-`0003_add_scoring_version.sql` adds `scoring_version` with `DEFAULT 1`. The
-modes are not worth the same any more (see `MODE_MULTIPLIER` in
-`src/game/scoring.ts`), so older typing rounds sit systematically lower than new
-ones within the same mode. No row is touched or recomputed; the column is there
-so they can be told apart. The board also filters by mode, so a typing round and
-a clicking round are never ranked against each other.
-
-> The database is called `atlasmaster-leaderboard`. D1 cannot be renamed, so the
-> rename from `norgesmester-leaderboard` was done as a new database plus copying
-> the 19 rows across. `database_id` is what actually binds the app to the data.
-> See the comment in `wrangler.toml`.
-
-## Shared site shell
-
-The site follows the 1760px SpillArena shell, with consistent navigation, a slim footer, shared storage controls and game-specific link previews. See [site shell and branding](docs/SITE_SHELL.md).
+Part of [SpillArena](https://spillarena.no) · Created by [Emil Berglund](https://github.com/EmilB04)
