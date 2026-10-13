@@ -79,16 +79,11 @@ const CSS = `
 .sa-badge:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
 .sa-badge__name { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sa-badge__muted { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.66; }
-.sa-badge__level {
-  display: inline-flex; align-items: center; gap: 5px; flex: none; white-space: nowrap;
-  padding: 2px 7px; border-radius: 999px;
-  background: rgba(139, 92, 246, 0.16); color: #6d28d9; font-weight: 700; font-size: 11px;
+.sa-badge__avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 18px; height: 18px; overflow: hidden; border-radius: 5px;
+  background: rgba(139, 92, 246, 0.16); font-size: 10px; font-weight: 700;
 }
-.sa-badge__bar { display: block; flex: none; width: 32px; height: 4px; border-radius: 999px; background: rgba(109, 40, 217, 0.22); overflow: hidden; }
-.sa-badge__fill { display: block; height: 100%; border-radius: 999px; background: #7c3aed; }
-.sa-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex: none; }
-.sa-badge__dot--out { background: #94a3b8; }
-.sa-badge__chev { flex: none; opacity: 0.5; font-size: 9px; }
 
 .sa-panel {
   position: absolute;
@@ -153,9 +148,6 @@ const CSS = `
     background: rgba(15, 23, 42, 0.78);
     color: #e2e8f0;
   }
-  .sa-badge__level { background: rgba(167, 139, 250, 0.2); color: #c4b5fd; }
-  .sa-badge__bar { background: rgba(196, 181, 253, 0.25); }
-  .sa-badge__fill { background: #a78bfa; }
   .sa-panel { border-color: rgba(255,255,255,0.14); background: rgba(15, 23, 42, 0.97); color: #e2e8f0; }
   .sa-panel__tabs { background: rgba(255,255,255,0.08); }
   .sa-panel__tab[aria-selected="true"] { background: rgba(255,255,255,0.16); box-shadow: none; }
@@ -170,8 +162,6 @@ const CSS = `
 }
 @media (max-width: 480px) {
   .sa-badge { gap: 5px; padding: 5px 8px; max-width: min(60vw, 200px); }
-  .sa-badge__level { gap: 4px; padding: 2px 5px; font-size: 10px; }
-  .sa-badge__bar { width: 28px; }
 }
 @media (prefers-reduced-motion: reduce) { .sa-badge { transition: none; } }
 `
@@ -390,8 +380,8 @@ const NORWEGIAN_LABELS: AccountBadgeLabels = {
 export interface AccountBadgeProps {
     /**
      * Anything carrying an XP total — every game's profile qualifies, including
-     * AtlasMaster's own richer one, which predates the shared engine. Left out,
-     * the badge shows only the name.
+     * AtlasMaster's own richer one, which predates the shared engine. The level
+     * and progress are shown in the panel when the player presses the badge.
      */
     progress?: { xp: number } | null
     corner?: keyof typeof CORNERS
@@ -728,38 +718,21 @@ export function AccountBadge({
                 type="button"
                 className="sa-badge"
                 onClick={() => setOpen((value) => !value)}
-                aria-label={`${title}${username && level ? ` · ${labels.level(level.level)} · ${level.pct}%` : ''}`}
+                aria-label={title}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 title={title}
             >
-                <span
-                    className={username ? 'sa-badge__dot' : 'sa-badge__dot sa-badge__dot--out'}
-                    aria-hidden
-                />
                 {username ? (
                     <>
-                        <PlayerAvatar size={18} />
+                        <span className="sa-badge__avatar" aria-hidden="true">
+                            <PlayerAvatar fallback={Array.from(username)[0]?.toLocaleUpperCase()} />
+                        </span>
                         <span className="sa-badge__name" aria-hidden>{username}</span>
-                        {level && (
-                            <span className="sa-badge__level">
-                                {labels.level(level.level)}
-                                <span
-                                    className="sa-badge__bar"
-                                    role="img"
-                                    aria-label={`${level.pct}% to level ${level.level + 1}`}
-                                >
-                                    <span className="sa-badge__fill" style={{ width: `${level.pct}%` }} />
-                                </span>
-                            </span>
-                        )}
                     </>
                 ) : (
                     <span className="sa-badge__muted">{labels.signedOut}</span>
                 )}
-                <span className="sa-badge__chev" aria-hidden>
-                    {open ? '▼' : '▲'}
-                </span>
             </button>
         </div>
     )
