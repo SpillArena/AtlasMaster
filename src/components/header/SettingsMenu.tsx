@@ -224,7 +224,7 @@ export default function SettingsMenu({ onProfile, profileVersion }: { onProfile:
         <FiSettings
           aria-hidden="true"
           className={`
-            h-4 w-4 shrink-0 transition-transform duration-300 ease-out
+            h-[18px] w-[18px] shrink-0 transition-transform duration-300 ease-out
             ${open ? 'rotate-45 text-[var(--accent)]' : 'text-[var(--text-subtle)] group-hover:text-[var(--text)]'}
           `}
         />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { adsRequested, getAdConsentState, onAdConsentStateChange, openAdSettings, type AdConsentState } from './ads'
 import { getConsent, onConsentChange, onOpenConsentDialog, setConsent } from './consent'
 import { detectLanguage } from './language'
 import { useConsent } from './useConsent'
@@ -17,6 +18,11 @@ import { useConsent } from './useConsent'
  * After a "no", a small strip stays at the bottom saying progress is not being
  * saved, with a way to turn it on. One click hides it until the next page load;
  * remembering that it was hidden would itself be storage.
+ *
+ * On a page with ads, Google's consent message asks first and this dialog does
+ * not open by itself while it does (see ads.ts for why, and how the answers
+ * relate). Opened from a settings menu, it then also offers Google's ad
+ * settings.
  *
  * Styling is inline plus one injected stylesheet, for the same reason as
  * AccountBadge: this file is vendored into repos with different Tailwind
@@ -43,6 +49,8 @@ export interface ConsentDialogProps {
      * storage key — a player cannot read those.
      */
     items?: ConsentItem[]
+    /** Game-specific disclosure for external media services, if used. */
+    privacyNote?: { no: string; en: string }
 }
 
 const TEXT = {
@@ -70,7 +78,9 @@ const TEXT = {
         },
         alwaysStored: 'Lagres alltid',
         server: 'Bare hvis du lager en konto, lagres dette også på serveren vår: brukernavnet ditt, en beskyttet utgave av PIN-koden som ingen kan lese, og fremgangen din i hvert spill.',
-        noTracking: 'Ingen reklame, ingen sporing, og ingenting deles med tredjeparter.',
+        noTracking: 'Ingen sporing og ingen analysekapsler her, og ingenting selges videre.',
+        ads: 'Reklamen på denne siden kommer fra Google. Om den kan tilpasses deg, avgjøres i Googles eget samtykkevalg, ikke her: dette spørsmålet gjelder bare SpillArenas egen lagring.',
+        adSettings: 'Annonseinnstillinger',
         accept: 'Godta og lagre',
         decline: 'Avslå',
         current: (accepted: boolean) => `Valget ditt nå: ${accepted ? 'godtatt' : 'avslått'}`,
@@ -103,7 +113,9 @@ const TEXT = {
         },
         alwaysStored: 'Always stored',
         server: 'Only if you create an account, this is also saved on our server: your username, a protected version of your PIN that nobody can read, and your progress in each game.',
-        noTracking: 'No ads, no tracking, and nothing is shared with third parties.',
+        noTracking: 'No tracking or analytics cookies here, and nothing is sold on.',
+        ads: "Ads on this page come from Google. Whether they may be personalised is decided in Google's own consent choice, not here: this question covers only SpillArena's own storage.",
+        adSettings: 'Ad settings',
         accept: 'Accept and save',
         decline: 'Decline',
         current: (accepted: boolean) => `Your current choice: ${accepted ? 'accepted' : 'declined'}`,
@@ -182,6 +194,11 @@ const CSS = `
   letter-spacing: 0.04em; text-transform: uppercase; background: rgba(0, 0, 0, 0.06); opacity: 0.8;
 }
 .sac-dialog .sac-note { margin: 14px 0 0; font-size: 12.5px; line-height: 1.4; opacity: 0.72; }
+.sac-link {
+  margin: 8px 0 0; padding: 0; border: 0; background: transparent; color: #6d28d9; cursor: pointer;
+  font: 600 12.5px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-decoration: underline; text-underline-offset: 2px;
+}
 .sac-foot { padding: 14px 22px 18px; border-top: 1px solid rgba(0, 0, 0, 0.1); }
 .sac-dialog .sac-current { margin: 0 0 10px; font-size: 12.5px; opacity: 0.72; }
 .sac-buttons { display: flex; flex-direction: column-reverse; gap: 8px; }
@@ -194,7 +211,7 @@ const CSS = `
 .sac-btn--no:hover { background: rgba(0, 0, 0, 0.05); }
 .sac-btn--yes { border: 0; background: #7c3aed; color: #fff; }
 .sac-btn--yes:hover { transform: scale(1.02); }
-.sac-btn:focus-visible, .sac-close:focus-visible, .sac-pill button:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+.sac-btn:focus-visible, .sac-close:focus-visible, .sac-link:focus-visible, .sac-pill button:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
 
 .sac-reminder {
   position: fixed; left: 0; right: 0; bottom: 16px; z-index: 2147482900;
@@ -236,6 +253,7 @@ const CSS = `
   .sac-warn { background: rgba(120, 53, 15, 0.45); color: #fffbeb; }
   .sac-dot { border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
   .sac-dialog .sac-chip { background: rgba(255, 255, 255, 0.08); }
+  .sac-link { color: #c4b5fd; }
   .sac-foot { border-top-color: rgba(255, 255, 255, 0.12); }
   .sac-btn--no { border-color: rgba(255, 255, 255, 0.18); }
   .sac-btn--no:hover { background: rgba(255, 255, 255, 0.06); }
@@ -305,16 +323,77 @@ const CookieIcon = () => (
     </svg>
 )
 
-export function ConsentDialog({ language, game, items = [] }: ConsentDialogProps) {
+/*
+ * The "not saved" reminder shows once per visit: once it has been on screen, no
+ * other page or game opened in this tab shows it again. The flag lives in
+ * sessionStorage, which the browser drops when the tab closes. It records only
+ * that the player has seen the answer they gave, like the answer itself does,
+ * so it is kept even after a "no" to storage.
+ */
+const REMINDER_SEEN_KEY = 'spillarena-consent-reminder-seen'
+
+function reminderSeen(): boolean {
+    try {
+        return window.sessionStorage.getItem(REMINDER_SEEN_KEY) === '1'
+    } catch {
+        return false
+    }
+}
+
+function markReminderSeen(): void {
+    try {
+        window.sessionStorage.setItem(REMINDER_SEEN_KEY, '1')
+    } catch {
+        // without sessionStorage the reminder can only be hidden on this page
+    }
+}
+
+export function ConsentDialog({ language, game, items = [], privacyNote }: ConsentDialogProps) {
     useInjectedStyle()
     const text = TEXT[detectLanguage(language)]
     const consent = useConsent()
-    const [open, setOpen] = useState<boolean>(() => getConsent() === null)
-    const [reminderHidden, setReminderHidden] = useState(false)
+    const [adState, setAdState] = useState<AdConsentState>(getAdConsentState)
+    // unanswered, and no consent message from Google on its way: ask now
+    const [open, setOpen] = useState<boolean>(() => getConsent() === null && getAdConsentState() === 'off')
+    const [reminderHidden, setReminderHidden] = useState(reminderSeen)
     const dialogRef = useRef<HTMLDivElement>(null)
+    // opened by itself rather than from a menu — only then may Google's message replace it
+    const autoOpened = useRef(open)
     const dismissible = consent !== null
+    const showReminder = consent === 'declined' && !open && !reminderHidden
 
-    useEffect(() => onOpenConsentDialog(() => setOpen(true)), [])
+    useEffect(() => {
+        if (showReminder) markReminderSeen()
+    }, [showReminder])
+
+    useEffect(
+        () =>
+            onOpenConsentDialog(() => {
+                autoOpened.current = false
+                setOpen(true)
+            }),
+        [],
+    )
+
+    /*
+     * The tag settles after the first render. No message coming: ask, as on any
+     * page. Google's message turning up after we gave up waiting: it asks, and
+     * an unanswered dialog of ours would only stand in front of it.
+     */
+    useEffect(
+        () =>
+            onAdConsentStateChange((next) => {
+                setAdState(next)
+                if (getConsent() !== null) return
+                if (next === 'off') {
+                    autoOpened.current = true
+                    setOpen(true)
+                } else if (next === 'google' && autoOpened.current) {
+                    setOpen(false)
+                }
+            }),
+        [],
+    )
 
     // answered elsewhere — the front page, or another game in another tab
     useEffect(
@@ -369,6 +448,11 @@ export function ConsentDialog({ language, game, items = [] }: ConsentDialogProps
     const answer = (status: 'accepted' | 'declined') => {
         setConsent(status)
         setOpen(false)
+    }
+
+    const adSettings = () => {
+        setOpen(false)
+        openAdSettings()
     }
 
     const lang = detectLanguage(language)
@@ -446,9 +530,23 @@ export function ConsentDialog({ language, game, items = [] }: ConsentDialogProps
                             </ul>
 
                             <p className="sac-note">☁ {text.server}</p>
-                            <p className="sac-note" style={{ marginTop: 6, fontWeight: 600 }}>
-                                {text.noTracking}
-                            </p>
+                            {adsRequested() ? (
+                                <>
+                                    {privacyNote && <p className="sac-note" style={{ marginTop: 6 }}>{privacyNote[lang]}</p>}
+                                    <p className="sac-note" style={{ marginTop: 6, fontWeight: 600 }}>
+                                        {text.ads}
+                                    </p>
+                                    {adState === 'google' && (
+                                        <button type="button" className="sac-link" onClick={adSettings}>
+                                            {text.adSettings}
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="sac-note" style={{ marginTop: 6, fontWeight: 600 }}>
+                                    {privacyNote?.[lang] ?? text.noTracking}
+                                </p>
+                            )}
                         </div>
 
                         <div className="sac-foot">
@@ -466,7 +564,7 @@ export function ConsentDialog({ language, game, items = [] }: ConsentDialogProps
                 </div>
             )}
 
-            {consent === 'declined' && !open && !reminderHidden && (
+            {showReminder && (
                 <div className="sac-reminder" role="status">
                     <div className="sac-pill">
                         <WarnIcon className="sac-pill__warn" />
