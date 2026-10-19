@@ -48,7 +48,6 @@
   .arena-brand { gap: 8px; }
   .arena-brand-mark { width: 36px; height: 36px; }
   .arena-header-actions { gap: 10px; }
-  .arena-footer-row { padding-bottom: 68px; }
 }
 @media (max-width: 420px) {
   :root { --arena-gutter: 17px; }
@@ -77,6 +76,8 @@
 .arena-main > section > .max-w-\[1760px\] { padding-inline: calc(var(--arena-gutter) - 16px); }
 
 @media (max-width: 600px) { .atlas-round-back button span { display: none; } }
+/* Mid-round on a narrow phone, "give up" is the way out; the lobby link would not fit. */
+@media (max-width: 420px) { .atlas-round-back ~ .arena-lobby-link { display: none; } }
 
 /* Back to the Arena: a button-like pill, so the way home is easy to spot. */
 .arena-lobby-link { align-items: center; line-height: 1; gap: 9px; min-height: 40px; padding: 0 16px 0 13px; border: 1px solid var(--arena-rule); border-radius: 10px; background: color-mix(in srgb, currentColor 7%, transparent); color: var(--arena-ink); font-size: 13px; font-weight: 700; white-space: nowrap; transition: background-color .18s ease, color .18s ease, border-color .18s ease; }
@@ -84,5 +85,5 @@
 .arena-lobby-link:hover { background: var(--arena-ink); border-color: var(--arena-ink); color: var(--arena-paper); }
 .arena-lobby-link:hover .arena-lobby-icon { transform: translateX(-3px); }
 .arena-lobby-link:active { transform: translateY(1px); }
-@media (max-width: 520px) { .arena-lobby-link { width: 40px; padding: 0; justify-content: center; } }
+@media (max-width: 520px) { .arena-lobby-link { width: 40px; padding: 0; justify-content: center; } .arena-lobby-label { display: none; } }
 @media (prefers-reduced-motion: reduce) { .arena-lobby-link, .arena-lobby-icon { transition: none; } }

@@ -163,6 +163,14 @@ function App() {
           onEditName={() => setShowProfile(true)}
           profileVersion={profileVersion}
           trail={trail}
+          account={
+            <AccountBadge
+              corner="header"
+              progress={getProgress()}
+              labels={badgeLabels(t)}
+              language={i18n.language}
+            />
+          }
         />
 
         {/*
@@ -186,7 +194,7 @@ function App() {
           ) : !region ? (
             <section
               aria-label={t('menu.title')}
-              className="flex min-h-full flex-col justify-center gap-6 px-4 py-6 sm:gap-8"
+              className="flex min-h-full flex-col justify-center gap-6 px-4 pt-6 sm:gap-8"
             >
               <div className="flex justify-center">
                 <h1>
@@ -280,14 +288,6 @@ function App() {
             onCancel={() => setEditingName(false)}
           />
         )}
-        {/* One account for the whole domain — say so, in the same corner in
-            every game. Innlogging finnes også i headeren her, fra den gang
-            AtlasMaster hadde kontoene alene; merket er det som er likt på tvers. */}
-        <AccountBadge
-          progress={getProgress()}
-          labels={badgeLabels(t)}
-          language={i18n.language}
-        />
       </div>
     </MotionConfig>
   )

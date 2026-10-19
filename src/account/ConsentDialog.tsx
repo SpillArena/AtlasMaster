@@ -323,6 +323,31 @@ const CookieIcon = () => (
     </svg>
 )
 
+/*
+ * The "not saved" reminder shows once per visit: once it has been on screen, no
+ * other page or game opened in this tab shows it again. The flag lives in
+ * sessionStorage, which the browser drops when the tab closes. It records only
+ * that the player has seen the answer they gave, like the answer itself does,
+ * so it is kept even after a "no" to storage.
+ */
+const REMINDER_SEEN_KEY = 'spillarena-consent-reminder-seen'
+
+function reminderSeen(): boolean {
+    try {
+        return window.sessionStorage.getItem(REMINDER_SEEN_KEY) === '1'
+    } catch {
+        return false
+    }
+}
+
+function markReminderSeen(): void {
+    try {
+        window.sessionStorage.setItem(REMINDER_SEEN_KEY, '1')
+    } catch {
+        // without sessionStorage the reminder can only be hidden on this page
+    }
+}
+
 export function ConsentDialog({ language, game, items = [], privacyNote }: ConsentDialogProps) {
     useInjectedStyle()
     const text = TEXT[detectLanguage(language)]
@@ -330,11 +355,16 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
     const [adState, setAdState] = useState<AdConsentState>(getAdConsentState)
     // unanswered, and no consent message from Google on its way: ask now
     const [open, setOpen] = useState<boolean>(() => getConsent() === null && getAdConsentState() === 'off')
-    const [reminderHidden, setReminderHidden] = useState(false)
+    const [reminderHidden, setReminderHidden] = useState(reminderSeen)
     const dialogRef = useRef<HTMLDivElement>(null)
     // opened by itself rather than from a menu — only then may Google's message replace it
     const autoOpened = useRef(open)
     const dismissible = consent !== null
+    const showReminder = consent === 'declined' && !open && !reminderHidden
+
+    useEffect(() => {
+        if (showReminder) markReminderSeen()
+    }, [showReminder])
 
     useEffect(
         () =>
@@ -534,7 +564,7 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
                 </div>
             )}
 
-            {consent === 'declined' && !open && !reminderHidden && (
+            {showReminder && (
                 <div className="sac-reminder" role="status">
                     <div className="sac-pill">
                         <WarnIcon className="sac-pill__warn" />

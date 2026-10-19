@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { authenticate } from './api'
 import { getSession, onSessionChange, signOut } from './session'
 import { levelProgress } from './progress'
@@ -86,61 +86,107 @@ const CSS = `
 }
 
 .sa-panel {
+  --sa-accent: #7c3aed;
+  --sa-ring: rgba(124, 58, 237, 0.28);
+  --sa-field: #fff;
+  --sa-line: rgba(15, 23, 42, 0.12);
+  --sa-track: rgba(15, 23, 42, 0.06);
+  --sa-thumb: #fff;
   position: absolute;
   text-align: left;
   box-sizing: border-box;
-  width: min(calc(100vw - 2 * var(--sa-edge)), 296px);
+  width: min(calc(100vw - 2 * var(--sa-edge)), 316px);
   max-height: calc(100dvh - 80px);
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.97);
-  color: #1e293b;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--sa-line);
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
   font: 400 13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 60px -20px rgba(15, 23, 42, 0.45), 0 8px 20px -12px rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  transform-origin: top right;
+  animation: sa-panel-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
-.sa-panel__tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border-radius: 999px; background: rgba(15, 23, 42, 0.07); margin-bottom: 11px; }
+@keyframes sa-panel-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } }
+
+/* Segmented control: the thumb slides under whichever tab is chosen. */
+.sa-panel__tabs {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr;
+  padding: 4px; margin-bottom: 16px; border-radius: 12px; background: var(--sa-track);
+}
+.sa-panel__thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
+  border-radius: 9px; background: var(--sa-thumb);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12), 0 4px 12px -4px rgba(15, 23, 42, 0.18);
+  transition: transform 0.34s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+.sa-panel__tabs[data-mode="register"] .sa-panel__thumb { transform: translateX(100%); }
 .sa-panel__tab {
-  border: 0; background: transparent; border-radius: 999px; padding: 6px 4px; cursor: pointer;
-  font: 600 12px/1 inherit; color: inherit; opacity: 0.6;
+  position: relative; z-index: 1; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1; color: inherit; opacity: 0.55;
+  transition: opacity 0.2s ease;
 }
-.sa-panel__tab[aria-selected="true"] { background: #fff; opacity: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.16); }
-.sa-panel__label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+.sa-panel__tab:hover { opacity: 0.8; }
+.sa-panel__tab[aria-selected="true"] { opacity: 1; }
+.sa-panel__tab:focus-visible { outline: 2px solid var(--sa-accent); outline-offset: 2px; }
+
+/* The form slides in from the side the chosen tab sits on. */
+.sa-panel__body[data-dir="next"] { animation: sa-from-right 0.3s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.sa-panel__body[data-dir="prev"] { animation: sa-from-left 0.3s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes sa-from-right { from { opacity: 0; transform: translateX(28px); } }
+@keyframes sa-from-left { from { opacity: 0; transform: translateX(-28px); } }
+
+.sa-panel__label { display: block; font-size: 12px; font-weight: 600; opacity: 0.7; margin: 0 0 6px 2px; }
 .sa-panel__input {
-  width: 100%; box-sizing: border-box; padding: 8px 10px; margin-bottom: 9px;
-  border-radius: 9px; border: 1px solid rgba(0,0,0,0.16); background: #fff; color: inherit;
-  font: 400 13px/1.3 inherit;
+  display: block; width: 100%; height: 44px; box-sizing: border-box; padding: 0 14px; margin-bottom: 12px;
+  border-radius: 12px; border: 1px solid var(--sa-line); background: var(--sa-field); color: inherit;
+  /* 16px keeps iOS from zooming the page when the field takes focus */
+  font-family: inherit; font-size: 16px; line-height: 1.2;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.sa-panel__input:focus { outline: 2px solid #8b5cf6; outline-offset: 1px; border-color: transparent; }
+.sa-panel__input[type="password"] { letter-spacing: 0.3em; }
+.sa-panel__input:focus { outline: none; border-color: var(--sa-accent); box-shadow: 0 0 0 4px var(--sa-ring); }
 .sa-panel__submit {
-  width: 100%; padding: 9px; border: 0; border-radius: 9px; cursor: pointer;
-  background: #7c3aed; color: #fff; font: 700 13px/1 inherit;
+  width: 100%; height: 44px; margin-top: 4px; border: 0; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed); color: #fff;
+  font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 8px 18px -8px rgba(124, 58, 237, 0.7);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
-.sa-panel__submit:disabled { opacity: 0.55; cursor: progress; }
-.sa-panel__error { margin: 0 0 9px; color: #b91c1c; font-size: 12px; font-weight: 600; }
-.sa-panel__hint { margin: 10px 0 0; font-size: 11.5px; opacity: 0.66; }
+.sa-panel__submit:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 12px 24px -8px rgba(124, 58, 237, 0.75); }
+.sa-panel__submit:not(:disabled):active { transform: translateY(0); }
+.sa-panel__submit:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.sa-panel__submit:focus-visible, .sa-panel__signout:focus-visible { outline: 2px solid var(--sa-accent); outline-offset: 2px; }
+.sa-panel__error { margin: 0 0 10px; padding: 9px 12px; border-radius: 10px; background: rgba(220, 38, 38, 0.08); color: #b91c1c; font-size: 12.5px; font-weight: 600; }
+.sa-panel__hint { margin: 12px 0 0; font-size: 12px; line-height: 1.5; opacity: 0.6; }
 .sa-panel__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.sa-panel__who { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sa-panel__link { color: inherit; opacity: 0.7; font-size: 12px; text-underline-offset: 2px; }
-.sa-panel__forgot { display: block; margin-top: 8px; color: inherit; opacity: 0.75; font-size: 12px; text-align: center; text-underline-offset: 2px; }
+.sa-panel__who { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sa-panel__link { color: var(--sa-accent); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+.sa-panel__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sa-panel__forgot { display: block; margin-top: 12px; color: inherit; opacity: 0.65; font-size: 12.5px; text-align: center; text-decoration: none; }
+.sa-panel__forgot:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
 .sa-panel__signout {
-  margin-top: 11px; width: 100%; padding: 8px; cursor: pointer;
-  border-radius: 9px; border: 1px solid rgba(0,0,0,0.16); background: transparent; color: inherit;
-  font: 600 12px/1 inherit;
+  margin-top: 14px; width: 100%; height: 40px; cursor: pointer;
+  border-radius: 12px; border: 1px solid var(--sa-line); background: transparent; color: inherit;
+  font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1;
+  transition: background-color 0.15s ease;
 }
+.sa-panel__signout:hover { background: var(--sa-track); }
 .sa-panel__storage {
-  margin: 0 0 10px; padding: 8px 10px; border-radius: 9px;
-  background: #fef3c7; color: #451a03; font-size: 11.5px; line-height: 1.35;
+  margin: 0 0 12px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid rgba(217, 119, 6, 0.25); background: rgba(254, 243, 199, 0.7);
+  color: #78350f; font-size: 12px; line-height: 1.45;
 }
 .sa-panel__storage button {
-  display: block; margin-top: 4px; padding: 0; border: 0; background: none; cursor: pointer;
-  color: inherit; font: 700 11.5px/1.3 inherit; text-decoration: underline; text-underline-offset: 2px;
+  display: block; margin-top: 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: inherit; font-family: inherit; font-size: 12px; font-weight: 700; line-height: 1.3; text-decoration: underline; text-underline-offset: 3px;
 }
-.sa-panel__meter { margin: 10px 0 2px; height: 6px; border-radius: 999px; background: rgba(109, 40, 217, 0.18); overflow: hidden; }
-.sa-panel__meterfill { height: 100%; border-radius: 999px; background: #7c3aed; }
+.sa-panel__meter { margin: 12px 0 2px; height: 8px; border-radius: 999px; background: var(--sa-track); overflow: hidden; }
+.sa-panel__meterfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #a78bfa, #7c3aed); transition: width 0.4s ease; }
 
 @media (prefers-color-scheme: dark) {
   .sa-badge {
@@ -148,14 +194,25 @@ const CSS = `
     background: rgba(15, 23, 42, 0.78);
     color: #e2e8f0;
   }
-  .sa-panel { border-color: rgba(255,255,255,0.14); background: rgba(15, 23, 42, 0.97); color: #e2e8f0; }
-  .sa-panel__tabs { background: rgba(255,255,255,0.08); }
-  .sa-panel__tab[aria-selected="true"] { background: rgba(255,255,255,0.16); box-shadow: none; }
-  .sa-panel__input { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.16); }
-  .sa-panel__submit { background: #8b5cf6; }
-  .sa-panel__error { color: #fca5a5; }
-  .sa-panel__signout { border-color: rgba(255,255,255,0.18); }
-  .sa-panel__storage { background: rgba(120, 53, 15, 0.45); color: #fffbeb; }
+  .sa-panel {
+    --sa-accent: #a78bfa;
+    --sa-ring: rgba(167, 139, 250, 0.3);
+    --sa-field: rgba(255, 255, 255, 0.05);
+    --sa-line: rgba(255, 255, 255, 0.12);
+    --sa-track: rgba(255, 255, 255, 0.07);
+    --sa-thumb: rgba(255, 255, 255, 0.14);
+    background: rgba(17, 24, 39, 0.94);
+    color: #e5e7eb;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 24px 60px -20px rgba(0, 0, 0, 0.8), 0 8px 20px -12px rgba(0, 0, 0, 0.6);
+  }
+  .sa-panel__thumb { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 4px 12px -4px rgba(0, 0, 0, 0.5); }
+  .sa-panel__submit { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }
+  .sa-panel__error { background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+  .sa-panel__storage { border-color: rgba(251, 191, 36, 0.22); background: rgba(120, 53, 15, 0.35); color: #fde68a; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sa-panel, .sa-panel__body { animation: none !important; }
+  .sa-panel__thumb, .sa-panel__submit, .sa-panel__input { transition: none; }
 }
 @media (max-width: 1280px), (max-height: 720px) {
   .sa-badge { max-width: min(calc(100vw - 2 * var(--sa-edge)), 220px); }
@@ -164,6 +221,31 @@ const CSS = `
   .sa-badge { gap: 5px; padding: 5px 8px; max-width: min(60vw, 200px); }
 }
 @media (prefers-reduced-motion: reduce) { .sa-badge { transition: none; } }
+
+/*
+ * In the header the badge is one of the nav buttons: the same 40px box as the
+ * lobby link and settings, in the game's own colours, so it never floats over
+ * the game. It shrinks to its icon on phones, like the lobby link does.
+ */
+.sa-root--header { position: relative; z-index: auto; flex: none; }
+.sa-root--header .sa-badge {
+  height: 40px; min-height: 40px; min-width: 40px; max-width: 180px;
+  padding: 0 12px 0 10px; gap: 8px; border-radius: 10px;
+  border: 1px solid var(--arena-rule, rgba(0, 0, 0, 0.12));
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  color: var(--arena-ink, inherit);
+  font-family: inherit; font-size: 13px; font-weight: 700; line-height: 1; letter-spacing: 0;
+  box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.sa-root--header .sa-badge:hover { transform: none; box-shadow: none; background: color-mix(in srgb, currentColor 13%, transparent); }
+.sa-root--header .sa-badge__avatar { width: 22px; height: 22px; border-radius: 6px; font-size: 11px; }
+.sa-root--header .sa-badge__icon { display: block; flex: none; width: 18px; height: 18px; }
+.sa-root--header .sa-badge__muted { opacity: 1; }
+.sa-root--header .sa-panel { top: calc(100% + 10px); z-index: 60; }
+@media (max-width: 720px) {
+  .sa-root--header .sa-badge { width: 40px; padding: 0; justify-content: center; }
+  .sa-root--header .sa-badge__name, .sa-root--header .sa-badge__muted { display: none; }
+}
 `
 
 function useInjectedStyle(): void {
@@ -384,7 +466,11 @@ export interface AccountBadgeProps {
      * and progress are shown in the panel when the player presses the badge.
      */
     progress?: { xp: number } | null
-    corner?: keyof typeof CORNERS
+    /**
+     * A screen corner, or 'header' to sit in the game's nav bar beside the
+     * lobby link and settings. Render it inside SiteHeader for that.
+     */
+    corner?: keyof typeof CORNERS | 'header'
     /** Where the full profile lives. The front page, unless a game says otherwise. */
     homeUrl?: string
     /** Overrides for any label. Anything omitted falls back to `language`. */
@@ -433,6 +519,8 @@ export function AccountBadge({
     const consent = useConsent()
     const [open, setOpen] = useState(false)
     const [mode, setMode] = useState<AuthAction>('login')
+    /** Which way the form slides after a tab switch; none on first open. */
+    const [slide, setSlide] = useState<'next' | 'prev' | null>(null)
     const [name, setName] = useState('')
     const [pin, setPin] = useState('')
     const [confirm, setConfirm] = useState('')
@@ -449,6 +537,22 @@ export function AccountBadge({
     const [mismatch, setMismatch] = useState(false)
 
     const rootRef = useRef<HTMLDivElement>(null)
+    const inHeader = corner === 'header'
+    /** How far the header panel moves right, so it lines up with the nav's edge. */
+    const [panelShift, setPanelShift] = useState(0)
+
+    useLayoutEffect(() => {
+        if (!open || !inHeader) return
+        const place = () => {
+            const root = rootRef.current
+            const nav = root?.parentElement
+            if (!root || !nav) return
+            setPanelShift(Math.min(0, root.getBoundingClientRect().right - nav.getBoundingClientRect().right))
+        }
+        place()
+        window.addEventListener('resize', place)
+        return () => window.removeEventListener('resize', place)
+    }, [open, inHeader])
 
     // signing in happens on the front page too, which is very often another tab
     // in the same browser — without this the game would keep saying "not signed
@@ -518,6 +622,7 @@ export function AccountBadge({
     }
 
     const switchMode = (next: AuthAction) => {
+        if (next !== mode) setSlide(next === 'register' ? 'next' : 'prev')
         setMode(next)
         setError(null)
         setRetryAfter(undefined)
@@ -529,11 +634,15 @@ export function AccountBadge({
     const title = username ? labels.signedInAs(username) : labels.signedOut
 
     return (
-        <div className="sa-root" style={CORNERS[corner]} ref={rootRef}>
+        <div
+            className={inHeader ? 'sa-root sa-root--header' : 'sa-root'}
+            style={corner === 'header' ? undefined : CORNERS[corner]}
+            ref={rootRef}
+        >
             {open && (
                 <div
                     className="sa-panel"
-                    style={PANEL_POSITION[corner]}
+                    style={corner === 'header' ? { right: panelShift } : PANEL_POSITION[corner]}
                     role="dialog"
                     aria-label={title}
                 >
@@ -588,7 +697,8 @@ export function AccountBadge({
                         </>
                     ) : (
                         <form onSubmit={submit}>
-                            <div className="sa-panel__tabs" role="tablist">
+                            <div className="sa-panel__tabs" role="tablist" data-mode={mode}>
+                                <span className="sa-panel__thumb" aria-hidden="true" />
                                 <button
                                     type="button"
                                     role="tab"
@@ -609,106 +719,108 @@ export function AccountBadge({
                                 </button>
                             </div>
 
-                            <label className="sa-panel__label" htmlFor="sa-name">
-                                {labels.username}
-                            </label>
-                            <input
-                                id="sa-name"
-                                className="sa-panel__input"
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                autoComplete="username"
-                                maxLength={24}
-                                autoFocus
-                            />
+                            <div key={mode} className="sa-panel__body" data-dir={slide ?? undefined}>
+                                <label className="sa-panel__label" htmlFor="sa-name">
+                                    {labels.username}
+                                </label>
+                                <input
+                                    id="sa-name"
+                                    className="sa-panel__input"
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                    autoComplete="username"
+                                    maxLength={24}
+                                    autoFocus
+                                />
 
-                            <label className="sa-panel__label" htmlFor="sa-pin">
-                                {labels.pin}
-                            </label>
-                            <input
-                                id="sa-pin"
-                                className="sa-panel__input"
-                                value={pin}
-                                onChange={(event) => setPin(event.target.value.replace(/\D/g, ''))}
-                                /*
-                                 * A PIN is digits, so the phone keyboard should be
-                                 * digits. `inputMode` rather than type="number",
-                                 * which brings spinners and drops leading zeros.
-                                 */
-                                inputMode="numeric"
-                                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                                type="password"
-                                maxLength={6}
-                            />
+                                <label className="sa-panel__label" htmlFor="sa-pin">
+                                    {labels.pin}
+                                </label>
+                                <input
+                                    id="sa-pin"
+                                    className="sa-panel__input"
+                                    value={pin}
+                                    onChange={(event) => setPin(event.target.value.replace(/\D/g, ''))}
+                                    /*
+                                     * A PIN is digits, so the phone keyboard should be
+                                     * digits. `inputMode` rather than type="number",
+                                     * which brings spinners and drops leading zeros.
+                                     */
+                                    inputMode="numeric"
+                                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                                    type="password"
+                                    maxLength={6}
+                                />
 
-                            {mode === 'register' && (
-                                <>
-                                    <label className="sa-panel__label" htmlFor="sa-pin2">
-                                        {labels.confirmPin}
-                                    </label>
-                                    <input
-                                        id="sa-pin2"
-                                        className="sa-panel__input"
-                                        value={confirm}
-                                        onChange={(event) => {
-                                            setConfirm(event.target.value.replace(/\D/g, ''))
-                                            setMismatch(false)
-                                        }}
-                                        inputMode="numeric"
-                                        autoComplete="new-password"
-                                        type="password"
-                                        maxLength={6}
-                                    />
-                                </>
-                            )}
+                                {mode === 'register' && (
+                                    <>
+                                        <label className="sa-panel__label" htmlFor="sa-pin2">
+                                            {labels.confirmPin}
+                                        </label>
+                                        <input
+                                            id="sa-pin2"
+                                            className="sa-panel__input"
+                                            value={confirm}
+                                            onChange={(event) => {
+                                                setConfirm(event.target.value.replace(/\D/g, ''))
+                                                setMismatch(false)
+                                            }}
+                                            inputMode="numeric"
+                                            autoComplete="new-password"
+                                            type="password"
+                                            maxLength={6}
+                                        />
+                                    </>
+                                )}
 
-                            {consent !== 'accepted' && (
-                                <div className="sa-panel__storage">
-                                    {labels.notRemembered}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setOpen(false)
-                                            openConsentDialog()
-                                        }}
-                                    >
-                                        {labels.turnOnSaving}
-                                    </button>
-                                </div>
-                            )}
+                                {consent !== 'accepted' && (
+                                    <div className="sa-panel__storage">
+                                        {labels.notRemembered}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setOpen(false)
+                                                openConsentDialog()
+                                            }}
+                                        >
+                                            {labels.turnOnSaving}
+                                        </button>
+                                    </div>
+                                )}
 
-                            {(error || mismatch) && (
-                                <p className="sa-panel__error" role="alert">
-                                    {mismatch
-                                        ? labels.pinMismatch
-                                        : labels.error(error!, mode, retryAfter)}
-                                </p>
-                            )}
+                                {(error || mismatch) && (
+                                    <p className="sa-panel__error" role="alert">
+                                        {mismatch
+                                            ? labels.pinMismatch
+                                            : labels.error(error!, mode, retryAfter)}
+                                    </p>
+                                )}
 
-                            <button
-                                type="submit"
-                                className="sa-panel__submit"
-                                disabled={
-                                    busy ||
-                                    name.trim().length === 0 ||
-                                    pin.length < 4 ||
-                                    (mode === 'register' && confirm.length < 4)
-                                }
-                            >
-                                {busy
-                                    ? labels.working
-                                    : mode === 'login'
-                                      ? labels.submitSignIn
-                                      : labels.submitRegister}
-                            </button>
+                                <button
+                                    type="submit"
+                                    className="sa-panel__submit"
+                                    disabled={
+                                        busy ||
+                                        name.trim().length === 0 ||
+                                        pin.length < 4 ||
+                                        (mode === 'register' && confirm.length < 4)
+                                    }
+                                >
+                                    {busy
+                                        ? labels.working
+                                        : mode === 'login'
+                                          ? labels.submitSignIn
+                                          : labels.submitRegister}
+                                </button>
 
-                            {mode === 'login' && (
-                                <a className="sa-panel__forgot" href={recoverUrl(homeUrl)}>
-                                    {labels.forgotPin}
-                                </a>
-                            )}
+                                {mode === 'login' && (
+                                    <a className="sa-panel__forgot" href={recoverUrl(homeUrl)}>
+                                        {labels.forgotPin}
+                                    </a>
+                                )}
 
-                            <p className="sa-panel__hint">{labels.guestHint}</p>
+                                <p className="sa-panel__hint">{labels.guestHint}</p>
+                            </div>
                         </form>
                     )}
                 </div>
@@ -731,7 +843,15 @@ export function AccountBadge({
                         <span className="sa-badge__name" aria-hidden>{username}</span>
                     </>
                 ) : (
-                    <span className="sa-badge__muted">{labels.signedOut}</span>
+                    <>
+                        {inHeader && (
+                            <svg className="sa-badge__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21a8 8 0 0 1 16 0" />
+                            </svg>
+                        )}
+                        <span className="sa-badge__muted">{labels.signedOut}</span>
+                    </>
                 )}
             </button>
         </div>
