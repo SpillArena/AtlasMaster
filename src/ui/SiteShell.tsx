@@ -27,7 +27,7 @@ export function SiteHeader({ name, logo, mark, language = 'en', onHome, center, 
 export function LobbyLink({ language = 'en', onClick }: { language?: string; onClick?: (event: MouseEvent<HTMLAnchorElement>) => void }) {
   const text = labels(language).lobby
   return <a className="arena-lobby-link" href="https://spillarena.no/" aria-label={text} title={text} onClick={onClick}>
-    <svg className="arena-lobby-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span className="arena-lobby-label">{text}</span>
+    <svg className="arena-lobby-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span className="arena-lobby-label">{text}</span>
   </a>
 }
 
