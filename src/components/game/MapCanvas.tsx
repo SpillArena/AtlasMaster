@@ -364,23 +364,22 @@ export const MapCanvas = memo(function MapCanvas({
         [W, H],
       ])
       /*
-       * Mens fingeren er nede blir kartet rasterisert på nytt for hver
-       * bilderamme. `optimizeSpeed` slår av kantutjevningen så lenge gesten
-       * varer: nettleseren slipper å blande farge langs hver eneste kant i
-       * en kystlinje på tusenvis av punkt. Forskjellen ser du bare om du
-       * fryser bildet — og da står kartet stille, og kanten er myk igjen.
+       * MERK — her satt gesten `shape-rendering="optimizeSpeed"` på hele
+       * kartlaget ved `start` og tilbake til `auto` ved `end`. Tanken var at
+       * kartet rasteriseres på nytt for hver bilderamme mens fingeren er nede;
+       * det blir det ikke, transformen går til kompositoren. Byttet av
+       * attributtet var derimot en endring i hvordan *alt* skal tegnes, og
+       * nettleseren rasteriserte hele kartet på nytt to ganger per gest. d3
+       * sender `start`/`end` også for et vanlig klikk, så hvert svar kostet to
+       * fulle rasteriseringer av fjordkysten. Målt med 2× pikseltetthet:
+       * rasteriseringen ved fire klikk falt til halvparten, og ved dra og zoom
+       * med 70 %.
        */
-      .on('start', () => {
-        layerRef.current?.setAttribute('shape-rendering', 'optimizeSpeed')
-      })
       .on('zoom', (e) => {
         pending = e.transform
         // sourceEvent finnes for bruker-gest; null for programmatisk .transform
         smooth = !e.sourceEvent
         if (!frame) frame = requestAnimationFrame(flush)
-      })
-      .on('end', () => {
-        layerRef.current?.setAttribute('shape-rendering', 'auto')
       })
     zoomRef.current = z
     sel.call(z)
@@ -804,7 +803,14 @@ const ShapeLayer = memo(function ShapeLayer({
   )
 
   return (
-    <g onClick={live ? handleClick : undefined}>
+    /*
+     * Eget komposittlag for svarflatene. Uten det lå de i samme lag som
+     * landmassen, sokkelen og kystlinja — over 20 000 punkt — og hver gang ett
+     * fylke byttet farge under musa, måtte nettleseren rasterisere fliser med
+     * all den geometrien på nytt. Nå er det bare fylkene i flisene som tegnes
+     * om. Laget flytter seg med zoomgruppa det ligger i.
+     */
+    <g onClick={live ? handleClick : undefined} style={{ willChange: 'transform' }}>
       {/*
         Usynlige trykkmål for elvene. En elv er tegnet 6 px bred — for smal
         for en finger. Båndene ligger *under* de synlige strekene med vilje:
@@ -887,9 +893,13 @@ const FeatureShape = memo(function FeatureShape({
       strokeLinecap={isLine ? 'round' : undefined}
       strokeLinejoin={isLine ? 'round' : undefined}
       className={[
-        // 75 ms: raskt nok til å kjennes direkte, men fortsatt en myk
-        // overgang når status skifter til rett/avslørt
-        'outline-none transition-colors duration-75',
+        /*
+         * Ingen fargeovergang. En `transition` på fyllet gjorde hvert
+         * hover-bytte til fire–fem bilderammer der fylket ble rasterisert på
+         * nytt, i stedet for én. Fylker med fjordkyst er tusenvis av punkt
+         * hver; uten overgangen falt rasteriseringen ved hover med 80 %.
+         */
+        'outline-none',
         state === 'target' ? 'animate-breathe' : '',
         clickable
           ? isLine
@@ -938,7 +948,14 @@ const PointLayer = memo(function PointLayer({
   const reach = (HIT_PX * unitsPerPx) / k
 
   return (
-    <g onClick={live ? handleClick : undefined}>
+    /*
+     * Eget komposittlag for svarflatene. Uten det lå de i samme lag som
+     * landmassen, sokkelen og kystlinja — over 20 000 punkt — og hver gang ett
+     * fylke byttet farge under musa, måtte nettleseren rasterisere fliser med
+     * all den geometrien på nytt. Nå er det bare fylkene i flisene som tegnes
+     * om. Laget flytter seg med zoomgruppa det ligger i.
+     */
+    <g onClick={live ? handleClick : undefined} style={{ willChange: 'transform' }}>
       {points.map(({ id, x, y, gap }) => {
         const state = stateOf(id, status, flashId, revealId, highlightId)
         const r = (state === 'target' ? 6 : 5) / k

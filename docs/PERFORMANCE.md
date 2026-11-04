@@ -55,3 +55,28 @@ oceans, answering, skipping, zoom/reset, and leaving rounds.
 Large geography chunks remain intentionally lazy-loaded. Loading the detailed
 world map still costs more than a small regional map; it is no longer part of
 the landing page's app bundle.
+
+# Map interaction pass — 2026-11-05
+
+Hovering counties, answering and dragging the map felt laggy in Chrome and
+Edge on desktop. Measured in headless Chromium at 1754 × 1184 with device
+pixel ratio 2 on the Norway counties click round: 40 hover moves, 4 clicks,
+and a wheel zoom followed by a 30-step drag. Raster time is summed over the
+raster worker threads.
+
+| Interaction | Raster before | Raster after | Change |
+| --- | ---: | ---: | ---: |
+| Hover sweep | 803 ms | 31 ms | −96% |
+| Four clicks | 2,524 ms | 232 ms | −91% |
+| Zoom and drag | 880 ms | 233 ms | −74% |
+
+## Changes
+
+- The zoom gesture no longer sets `shape-rendering` on the map layer at
+  `start` and `end`. d3-zoom fires both for a plain click too, so every
+  answer re-rasterised the whole map twice.
+- Answer shapes have their own composited layer, separate from the land,
+  shelf and coastline (over 20,000 points for Norway). A hover or answer now
+  re-rasterises only the shapes in the affected tiles.
+- Answer shapes have no colour transition, so a hover change rasterises once
+  instead of on every frame of a 75 ms fade.
