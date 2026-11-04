@@ -45,11 +45,10 @@ export function CategoryPicker({ region, onPick, onPickRegion, onBack }: Props) 
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08, type: 'spring', stiffness: 130, damping: 18 }}
-                whileHover={{ y: -3, rotate: -0.4 }}
                 whileTap={{ scale: 0.98, rotate: 0.5 }}
-                className="plate sheen-host group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden p-4 text-center sm:aspect-[4/3]"
+                className="plate relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden p-4 text-center sm:aspect-[4/3]"
               >
-                <div className="absolute inset-3 opacity-40 blur-[2px]">
+                <div className="absolute inset-3 opacity-40">
                   <MapPreview category={c} projection={region.projection} />
                 </div>
 
@@ -110,12 +109,11 @@ export function CategoryPicker({ region, onPick, onPickRegion, onBack }: Props) 
                   stiffness: 130,
                   damping: 18,
                 }}
-                whileHover={{ y: -3, rotate: -0.4 }}
                 whileTap={{ scale: 0.98, rotate: 0.5 }}
-                className="plate sheen-host group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden p-4 text-center sm:aspect-[4/3]"
+                className="plate relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden p-4 text-center sm:aspect-[4/3]"
               >
                 {preview && (
-                  <div className="absolute inset-3 opacity-40 blur-[2px]">
+                  <div className="absolute inset-3 opacity-40">
                     <MapPreview category={preview} projection={child.projection} />
                   </div>
                 )}

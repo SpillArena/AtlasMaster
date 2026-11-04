@@ -13,7 +13,7 @@
  * Uten en peker (berøringsskjerm, musa utenfor vinduet) finner den nord igjen
  * og driver sakte rundt der.
  */
-import { useEffect, useRef, type CSSProperties } from "react";
+import { memo, useEffect, useRef, type CSSProperties } from "react";
 
 type PirateCompassProps = {
     /**
@@ -186,7 +186,7 @@ function useNeedle() {
     return { root, needle, shadow };
 }
 
-export default function PirateCompass({
+const PirateCompass = memo(function PirateCompass({
     size = 240,
     className = "",
     showNeedle = true,
@@ -551,4 +551,6 @@ export default function PirateCompass({
             <span className="pirate-compass__dome" aria-hidden />
         </div>
     );
-}
+});
+
+export default PirateCompass;

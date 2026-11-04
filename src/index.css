@@ -31,7 +31,6 @@
     /* vellum: flaten som ligger over kartet — varm, lite sløring */
     --glass-bg: rgba(245, 238, 221, 0.82);
     --glass-border: rgba(120, 96, 48, 0.22);
-    --glass-blur: 6px;
 
     /* --- typografi --- */
     --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -271,14 +270,12 @@
   }
 
   /*
-   * Vellum-panelet: HUD, menyer, faktabokser. Ligger lett over kartet, varm tone.
+   * Opake papirpaneler: kartbevegelser trenger ikke sløre bakgrunnen på nytt.
    */
   .panel {
-    background: var(--glass-bg);
+    background: var(--color-surface-elevated);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-panel);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
   }
 
   /* Kort: den opake flaten — et ark, billig å tegne. */
@@ -552,47 +549,6 @@
  * Animasjonene. Alt som rører seg oppå kartet ligger her, ikke i JavaScript:
  * en CSS-keyframe blir gitt til kompositoren og koster hovedtråden ingenting.
  */
-
-/* blekket som blir tegnet på: kysten strekker seg opp */
-@keyframes draw-on {
-  from {
-    stroke-dashoffset: var(--draw-len, 4000);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.draw-on {
-  stroke-dasharray: var(--draw-len, 4000);
-  animation: draw-on 2.4s var(--ease-out) forwards;
-}
-
-/* kompassrosen driver sakte rundt */
-@keyframes compass-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.compass-spin {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: compass-spin 120s linear infinite;
-}
-
-/* papiret driver umerkelig */
-@keyframes paper-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(1.5%, -1%, 0) scale(1.03);
-  }
-}
-.paper-drift {
-  animation: paper-drift 26s ease-in-out infinite;
-}
 
 /* stempelet blir presset ned */
 @keyframes stamp-press {
@@ -907,9 +863,6 @@
 .reduce-motion .feedback-shake {
   animation: none;
 }
-.reduce-motion .draw-on {
-  stroke-dasharray: none;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -919,8 +872,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
-  }
-  .draw-on {
-    stroke-dasharray: none;
   }
 }

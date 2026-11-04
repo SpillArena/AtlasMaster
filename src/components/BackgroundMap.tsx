@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { makePath, makeProjection, naturalAspect } from '../game/projection'
+import { memo, useEffect, useState } from 'react'
+import { makeCoarsePath, makeProjection, naturalAspect } from '../game/projection'
 import { getRegion } from '../game/regions'
 import { PaperRifts } from './PaperRifts'
 
@@ -10,23 +10,8 @@ interface Props {
   regionId: string
 }
 
-/**
- * Arenaens bakvegg er et levende kartblad fra feltboka.
- *
- * Nederst: papirkorn og to rolige felt i atlasets toner. Over det et
- * lengde-/breddenett. Så den valgte regionens kyst, tegnet med blekk som
- * strekker seg opp hver gang regionen skifter. I et hjørne ligger en
- * kompassrose som driver umerkelig rundt, med rhumb-linjer ut fra senteret
- * slik portolan-kart hadde dem. Samme projeksjon som spillkartet, men dempet
- * og uten interaksjon — «her er du» ligger under hver skjerm uten å slåss med
- * innholdet.
- *
- * Over alt dette ligger alderen: aldersflekker, brettene arket har vært
- * foldet etter, og riftene som til slutt går langs dem.
- *
- * All bevegelse går via CSS og er slått av under «mindre bevegelse».
- */
-export function BackgroundMap({ regionId }: Props) {
+/** Static, coarse scenery for menus; gameplay renders its own detailed map. */
+export const BackgroundMap = memo(function BackgroundMap({ regionId }: Props) {
   const [map, setMap] = useState<{ d: string; w: number } | null>(null)
 
   useEffect(() => {
@@ -37,7 +22,7 @@ export function BackgroundMap({ regionId }: Props) {
       if (!alive) return
       const w = Math.round(H * naturalAspect(region.projection, data))
       const projection = makeProjection(region.projection, data, w, H, 4)
-      const path = makePath(projection)
+      const path = makeCoarsePath(projection, 1.5)
       setMap({ d: data.features.map((f) => path(f.geometry) ?? '').join(' '), w })
     })
     return () => {
@@ -50,18 +35,17 @@ export function BackgroundMap({ regionId }: Props) {
       {/* papirkorn, aldersflekker og bretter på hele flaten */}
       <div className="grain foxed creased absolute inset-0 opacity-[0.5]" />
 
-      {/* to drivende felt: aksenten og havet, så temaet slår igjennom */}
+      {/* Myke gradienter uten animerte slør over hele skjermen. */}
       <div
-        className="paper-drift absolute -left-1/4 -top-1/3 h-[80vh] w-[80vw] rounded-full blur-3xl"
+        className="absolute -left-1/4 -top-1/3 h-[80vh] w-[80vw] rounded-full"
         style={{
           background:
             'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%)',
         }}
       />
       <div
-        className="paper-drift absolute -bottom-1/3 -right-1/4 h-[70vh] w-[70vw] rounded-full blur-3xl"
+        className="absolute -bottom-1/3 -right-1/4 h-[70vh] w-[70vw] rounded-full"
         style={{
-          animationDelay: '3s',
           background:
             'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--color-water) 66%, transparent), transparent 70%)',
         }}
@@ -92,8 +76,6 @@ export function BackgroundMap({ regionId }: Props) {
         >
           <path
             key={regionId}
-            className="draw-on"
-            style={{ ['--draw-len' as string]: '6000' }}
             d={map.d}
             fill="none"
             stroke="var(--coast)"
@@ -115,7 +97,7 @@ export function BackgroundMap({ regionId }: Props) {
         className="absolute bottom-[3vh] right-[4vw] h-24 w-24 opacity-[0.22] sm:h-40 sm:w-40"
         style={{ color: 'var(--coast)' }}
       >
-        <g className="compass-spin">
+        <g>
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="1" />
           <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="0.6" />
           {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => {
@@ -140,4 +122,4 @@ export function BackgroundMap({ regionId }: Props) {
       </svg>
     </div>
   )
-}
+})

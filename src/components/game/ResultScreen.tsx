@@ -1,6 +1,6 @@
 
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Icon, type IconName } from '../Icon'
 import { RANK_COLOR, hitRate, rankFor } from '../../game/rank'
 import { levelProgress, type RunResult } from '../../game/progress'
@@ -101,6 +101,7 @@ export function ResultScreen({
 }: Props) {
   const { t } = useTranslation()
   const { motion: motionSetting } = useGameSettings()
+  const prefersReducedMotion = useReducedMotion()
   // treff% = andel forsøk som satt, ikke andel steder du kom deg gjennom
   const accuracy = Math.round(hitRate(correctCount, mistakes) * 100)
   const rank = rankFor({ correctCount, total, mistakes, bestStreak })
@@ -113,7 +114,7 @@ export function ResultScreen({
       className="relative h-full w-full overflow-hidden text-center"
     >
       {celebrate &&
-        motionSetting === 'full' &&
+        motionSetting === 'full' && !prefersReducedMotion &&
         CONFETTI.map((c) => (
           <motion.div
             key={c.id}
@@ -125,8 +126,8 @@ export function ResultScreen({
               backgroundColor: c.color,
             }}
             initial={{ y: '-10vh', rotate: 0, opacity: 0 }}
-            animate={{ y: '85vh', rotate: 360, opacity: [0, 1, 1, 0.7] }}
-            transition={{ duration: c.duration, delay: c.delay, repeat: Infinity, ease: 'linear' }}
+            animate={{ y: '85vh', rotate: 360, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: c.duration, delay: c.delay, ease: 'linear' }}
           />
         ))}
 

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useInView } from 'framer-motion'
 import type { FeatureCollection, Point } from 'geojson'
-import { makePath, makeProjection, mapFitData } from '../../game/projection'
+import { makeCoarsePath, makeProjection, mapFitData } from '../../game/projection'
 import type { Category, ProjectionSpec } from '../../game/types'
 
 const W = 700
@@ -18,13 +19,33 @@ interface Rendered {
   points: { x: number; y: number }[]
 }
 
+const previewCache = new WeakMap<Category, Map<string, Rendered>>()
+
 /** Statisk, ikke-interaktivt regionkart med kategoriens plasseringer uthevet. */
 export function MapPreview({ category, projection: spec }: Props) {
+  const ref = useRef<SVGSVGElement>(null)
+  const visible = useInView(ref, { once: true, margin: '150px' })
   const [r, setR] = useState<Rendered | null>(null)
 
   useEffect(() => {
+    if (!visible) return
     let alive = true
-    Promise.all([
+    const key = JSON.stringify(category.projection ?? spec)
+    let cached = previewCache.get(category)
+    if (!cached) {
+      cached = new Map()
+      previewCache.set(category, cached)
+    }
+    const saved = cached.get(key)
+    if (saved) {
+      // Reuse projected paths when navigating back to this menu.
+      Promise.resolve().then(() => { if (alive) setR(saved) })
+    }
+    const commit = (rendered: Rendered) => {
+      cached.set(key, rendered)
+      setR(rendered)
+    }
+    if (!saved) Promise.all([
       category.load(),
       category.base?.() ?? Promise.resolve<FeatureCollection | undefined>(undefined),
     ]).then(([data, base]) => {
@@ -32,7 +53,7 @@ export function MapPreview({ category, projection: spec }: Props) {
       // tilpass projeksjon til omrisset når det finnes, ellers til dataene selv
       const fit = mapFitData(data, base, category.surface)
       const projection = makeProjection(category.projection ?? spec, fit, W, H)
-      const path = makePath(projection)
+      const path = makeCoarsePath(projection, 1)
       const basePaths = base
         ? base.features.map((f) => path(f.geometry) ?? '')
         : []
@@ -42,21 +63,22 @@ export function MapPreview({ category, projection: spec }: Props) {
           const xy = projection([c[0], c[1]])
           return { x: xy?.[0] ?? -99, y: xy?.[1] ?? -99 }
         })
-        setR({ basePaths, featurePaths: [], points })
+        commit({ basePaths, featurePaths: [], points })
       } else {
         const featurePaths = data.features.map((f) => path(f.geometry) ?? '')
-        setR({ basePaths, featurePaths, points: [] })
+        commit({ basePaths, featurePaths, points: [] })
       }
     })
     return () => {
       alive = false
     }
-  }, [category, spec])
+  }, [category, spec, visible])
 
-  if (!r) return null
+  if (!r) return <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="h-full w-full" aria-hidden />
 
   return (
     <svg
+      ref={ref}
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="xMidYMid slice"
       className="h-full w-full"

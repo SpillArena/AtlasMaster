@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { makePath, makeProjection } from '../../game/projection'
+import { makeCoarsePath, makeProjection } from '../../game/projection'
 import type { Region } from '../../game/types'
 
 const W = 800
@@ -18,7 +18,7 @@ export function RegionPreview({ region }: Props) {
     region.outline().then((data) => {
       if (!alive) return
       const projection = makeProjection(region.projection, data, W, H, 18)
-      const path = makePath(projection)
+      const path = makeCoarsePath(projection, 1)
       setPaths(data.features.map((f) => path(f.geometry) ?? ''))
     })
     return () => {

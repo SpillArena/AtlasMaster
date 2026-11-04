@@ -66,8 +66,10 @@ export function makeProjection(
     : projection
 }
 
+// Retain tenths of a map unit instead of large three-decimal path strings.
+// Bounds and hit-target placement still use the original geometry.
 export function makePath(projection: GeoProjection): GeoPath {
-  return geoPath(projection)
+  return geoPath(projection).digits(1)
 }
 
 /**
@@ -131,7 +133,7 @@ function coarsen(projection: GeoProjection, tolerance: number): GeoStreamWrapper
 
 /** Baneteiknar for den grove kopien — sjå `coarsen`. */
 export function makeCoarsePath(projection: GeoProjection, tolerance: number): GeoPath {
-  return geoPath(coarsen(projection, tolerance))
+  return geoPath(coarsen(projection, tolerance)).digits(1)
 }
 
 /**
