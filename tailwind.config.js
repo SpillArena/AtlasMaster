@@ -23,7 +23,7 @@ export default {
         hud: ['"Spline Sans Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
-        accent: 'var(--accent)',
+        primary: 'var(--color-primary)',
         success: 'var(--success)',
         danger: 'var(--danger)',
         info: 'var(--info)',

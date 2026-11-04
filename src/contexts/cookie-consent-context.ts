@@ -6,8 +6,6 @@ export interface CookieConsentContextValue {
   accept: () => void
   decline: () => void
   showBanner: () => void
-  /** sletter alt som er lagret på enheten (navn, ledertavle, nivå, valg) */
-  clearStoredData: () => void
 }
 
 export const CookieConsentContext = createContext<CookieConsentContextValue | null>(null)

@@ -43,7 +43,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
 
   const variantStyle: React.CSSProperties =
     variant === 'primary'
-      ? { background: 'var(--accent)' }
+      ? { background: 'var(--color-primary)' }
       : variant === 'danger'
         ? { background: 'var(--danger)' }
         : variant === 'secondary'

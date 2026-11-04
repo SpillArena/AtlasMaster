@@ -22,7 +22,7 @@
     --color-primary: #a9772f; /* messing */
     --color-success: #4f7a4a; /* feltgrønt */
     --color-error: #ae3b2c; /* signalraudt */
-    --color-accent-warm: #c06b2e; /* lakksegl */
+    --color-seal: #c06b2e; /* lakksegl */
 
     --color-text-primary: #211f17;
     --color-text-secondary: #5a5443;
@@ -51,15 +51,13 @@
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* --- alias: appens eldre tokennamn --- */
-    --accent-base: var(--color-primary);
-    --accent: var(--accent-base);
     --bg: var(--color-surface);
     --bg-deep: #e3d7be;
     --text: var(--color-text-primary);
     --text-muted: var(--color-text-secondary);
     --text-subtle: #7c7358;
     --border: var(--color-border);
-    --border-hover: color-mix(in srgb, var(--accent) 55%, transparent);
+    --border-hover: color-mix(in srgb, var(--color-primary) 55%, transparent);
     --surface: rgba(245, 238, 221, 0.72);
     --surface-card: var(--color-surface-elevated);
     --nav-bg: rgba(237, 228, 209, 0.9);
@@ -70,10 +68,10 @@
     --success: var(--color-success);
     --danger: var(--color-error);
     --info: #365c7a; /* kompassblå */
-    --gold: var(--color-accent-warm);
+    --gold: var(--color-seal);
 
     --map-idle: rgba(33, 31, 23, 0.09);
-    --map-idle-hover: color-mix(in srgb, var(--accent) 26%, transparent);
+    --map-idle-hover: color-mix(in srgb, var(--color-primary) 26%, transparent);
 
     /* kartfargene — havet er `--color-water`, sokkelen tre lysere band inn mot
        kysten, landet `--color-land`, rutenettet `--color-grid` */
@@ -131,7 +129,7 @@
     --color-primary: #ce9e52;
     --color-success: #6fa968;
     --color-error: #cf5b4c;
-    --color-accent-warm: #d98e4b;
+    --color-seal: #d98e4b;
 
     --color-text-primary: #ebe2cd;
     --color-text-secondary: #9a9077;
@@ -200,13 +198,13 @@
 
   /* synlig fokusring for tastatur-/switch-navigasjon på alle enheter */
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
     border-radius: 3px;
   }
 
   ::selection {
-    background: var(--accent);
+    background: var(--color-primary);
     color: var(--color-surface);
   }
 

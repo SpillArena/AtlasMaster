@@ -297,7 +297,7 @@ export function ResultScreen({
             >
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, var(--accent), var(--gold))' }}
+                style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--gold))' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${level.pct}%` }}
                 transition={{ duration: 0.8, delay: 0.75, ease: 'easeOut' }}

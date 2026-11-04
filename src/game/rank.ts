@@ -35,6 +35,6 @@ export const RANK_COLOR: Record<Rank, string> = {
   S: 'var(--gold)',
   A: 'var(--success)',
   B: 'var(--info)',
-  C: 'var(--accent)',
+  C: 'var(--color-primary)',
   D: 'var(--text-subtle)',
 }

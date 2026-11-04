@@ -55,7 +55,7 @@ export function BackgroundMap({ regionId }: Props) {
         className="paper-drift absolute -left-1/4 -top-1/3 h-[80vh] w-[80vw] rounded-full blur-3xl"
         style={{
           background:
-            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)',
+            'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%)',
         }}
       />
       <div
@@ -135,7 +135,7 @@ export function BackgroundMap({ regionId }: Props) {
               />
             )
           })}
-          <path d="M50 6 L56 50 L50 46 L44 50 Z" fill="var(--accent)" stroke="none" />
+          <path d="M50 6 L56 50 L50 46 L44 50 Z" fill="var(--color-primary)" stroke="none" />
         </g>
       </svg>
     </div>

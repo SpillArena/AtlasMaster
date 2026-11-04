@@ -13,8 +13,6 @@
   "settingsMenu": {
     "settings": "Innstillinger",
     "appearance": "Utseende",
-    "accentColor": "Aksentfarge",
-    "chooseAccent": "Velg aksentfarge",
     "gameplay": "Spill",
     "sound": "Lydeffekter",
     "reduceMotion": "Mindre bevegelse",
@@ -44,13 +42,10 @@
     "statusAccepted": "Spillet husker deg på denne enheten, og resultatene dine havner på den globale ledertavla.",
     "statusDeclined": "Ingenting lagres på denne enheten. Er du innlogget, lagres fremgang og resultater på kontoen din til du lukker fanen – neste gang må du logge inn igjen.",
     "statusUndecided": "Du har ikke valgt ennå. Spillet lagrer og sender ingenting før du gjør det.",
-    "clear": "Slett alt som er lagret",
-    "clearConfirm": "Dette sletter navn, ledertavle, nivå og innstillinger. Kan ikke angres.",
-    "clearYes": "Slett alt",
     "stored": {
       "settings": {
         "title": "Innstillinger",
-        "desc": "Tema, aksentfarge, språk, lyd og tempo."
+        "desc": "Tema, språk, lyd og tempo."
       },
       "player": {
         "title": "Spiller",

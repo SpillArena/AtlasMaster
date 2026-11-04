@@ -139,7 +139,7 @@ function App() {
         active instanceof HTMLSelectElement ||
         (active instanceof HTMLElement && active.isContentEditable)
       ) return
-      // innstillingspanelet står i DOM-en hele tiden, lukket som `inert`
+      // ikke naviger bak et åpent dialogvindu
       if (document.querySelector('[role="dialog"]:not([inert]):not([aria-hidden="true"])')) return
       goBack()
     }
@@ -160,8 +160,6 @@ function App() {
           inGame={inGame}
           onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
-          onEditName={() => setShowProfile(true)}
-          profileVersion={profileVersion}
           trail={trail}
           account={
             <AccountBadge

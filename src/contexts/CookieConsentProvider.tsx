@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CookieConsentContext } from './cookie-consent-context'
-import { clearPreferences, getConsent, setConsent as persistConsent, type ConsentStatus } from '../lib/cookieConsent'
+import { getConsent, setConsent as persistConsent, type ConsentStatus } from '../lib/cookieConsent'
 import { onConsentChange, openConsentDialog } from '../account'
 
 /*
@@ -28,12 +28,8 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
     openConsentDialog()
   }
 
-  function clearStoredData() {
-    clearPreferences()
-  }
-
   return (
-    <CookieConsentContext.Provider value={{ consent, accept, decline, showBanner, clearStoredData }}>
+    <CookieConsentContext.Provider value={{ consent, accept, decline, showBanner }}>
       {children}
     </CookieConsentContext.Provider>
   )

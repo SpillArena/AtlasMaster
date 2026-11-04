@@ -1,0 +1,112 @@
+/* Compact header menu shared with ScribbleBot and SipZone. */
+.settings-trigger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  color: var(--text-subtle);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.settings-trigger:hover { color: var(--text); }
+.settings-trigger[aria-expanded="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--color-surface-elevated);
+}
+.settings-trigger svg { transition: transform 300ms ease; }
+.settings-trigger[aria-expanded="true"] svg { transform: rotate(45deg); }
+.settings-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 288px;
+  max-width: calc(100vw - 2rem);
+  max-height: 75vh;
+  max-height: 75dvh;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text);
+  box-shadow: var(--shadow-panel);
+  text-align: left;
+  transform-origin: top right;
+  animation: settings-in 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.settings-label {
+  margin: 0 0 8px;
+  font-family: var(--font-family-hud);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.settings-language {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text-subtle);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.settings-language:hover,
+.settings-language[aria-selected="true"] {
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  color: var(--text);
+}
+.settings-language[aria-selected="true"] { font-weight: 600; }
+.settings-language svg { color: var(--color-primary); }
+.settings-themes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--map-idle);
+}
+.settings-themes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.settings-themes button:hover { color: var(--text); }
+.settings-themes button[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  background: var(--surface-card);
+  color: var(--text);
+}
+.settings-panel .arena-storage { margin-top: 0; padding-top: 16px; }
+@keyframes settings-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel { animation: none; }
+  .settings-trigger, .settings-trigger svg { transition: none; }
+}
+.reduce-motion .settings-panel { animation: none; }
+.reduce-motion .settings-trigger,
+.reduce-motion .settings-trigger svg { transition: none; }

@@ -22,12 +22,11 @@ export type { ConsentStatus }
 export { CONSENT_KEY } from '../account'
 
 /**
- * Alt spillet lagrer på enheten. Listen er kilden til sannhet både for
- * opprydding når samtykke avslås og for «slett dataene mine» i innstillingene.
+ * Alt spillet lagrer på enheten. Listen brukes til opprydding
+ * når samtykke avslås.
  */
 export const PREFERENCE_KEYS = [
   'theme',
-  'accent',
   'lang',
   'sound',
   'motion',
@@ -58,9 +57,4 @@ export function readPreference(key: string): string | null {
 
 export function writePreference(key: string, value: string): void {
   consentStorage.set(key, value)
-}
-
-/** Fjerner alt spillet har lagret, men beholder selve samtykkevalget. */
-export function clearPreferences(): void {
-  for (const key of PREFERENCE_KEYS) consentStorage.remove(key)
 }

@@ -13,8 +13,6 @@
   "settingsMenu": {
     "settings": "Settings",
     "appearance": "Appearance",
-    "accentColor": "Accent color",
-    "chooseAccent": "Choose accent color",
     "gameplay": "Gameplay",
     "sound": "Sound effects",
     "reduceMotion": "Reduce motion",
@@ -44,13 +42,10 @@
     "statusAccepted": "The game remembers you on this device, and your results reach the global leaderboard.",
     "statusDeclined": "Nothing is stored on this device. While you're signed in, progress and results are saved to your account until you close the tab – next time you'll need to sign in again.",
     "statusUndecided": "You haven't chosen yet. The game stores and sends nothing until you do.",
-    "clear": "Delete everything stored",
-    "clearConfirm": "This deletes your name, leaderboard, level and settings. It can't be undone.",
-    "clearYes": "Delete everything",
     "stored": {
       "settings": {
         "title": "Settings",
-        "desc": "Theme, accent color, language, sound and pace."
+        "desc": "Theme, language, sound and pace."
       },
       "player": {
         "title": "Player",

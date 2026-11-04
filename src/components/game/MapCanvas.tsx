@@ -119,7 +119,7 @@ const STATE_COLOR: Record<ShapeState, string> = {
 
 const POINT_COLOR: Record<ShapeState, string> = {
   ...STATE_COLOR,
-  idle: 'var(--accent)',
+  idle: 'var(--color-primary)',
 }
 
 /*
@@ -883,7 +883,7 @@ const FeatureShape = memo(function FeatureShape({
         state === 'target' ? 'animate-breathe' : '',
         clickable
           ? isLine
-            ? 'cursor-pointer hover:stroke-[var(--accent)]'
+            ? 'cursor-pointer hover:stroke-[var(--color-primary)]'
             : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
           // A solved sea still blocks the larger ocean underneath. It has
           // no data-id, so clicking it cannot submit another ocean answer.

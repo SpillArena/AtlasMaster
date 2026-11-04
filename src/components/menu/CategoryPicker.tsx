@@ -132,7 +132,7 @@ export function CategoryPicker({ region, onPick, onPickRegion, onBack }: Props) 
                 <div className="relative flex flex-col items-center gap-2">
                   <span
                     className="stamp h-14 w-14 sm:h-16 sm:w-16"
-                    style={{ color: preview?.color ?? 'var(--accent)' }}
+                    style={{ color: preview?.color ?? 'var(--color-primary)' }}
                   >
                     <Icon name="compass" className="h-7 w-7 sm:h-8 sm:w-8" />
                   </span>

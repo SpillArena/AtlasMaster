@@ -74,7 +74,7 @@ export function Leaderboard({ regionId, onBack }: Props) {
             className="rounded-full px-4 py-1.5 text-sm font-bold transition-colors"
             style={
               scope === value
-                ? { background: 'var(--accent)', color: 'var(--color-surface)' }
+                ? { background: 'var(--color-primary)', color: 'var(--color-surface)' }
                 : { color: 'var(--text-subtle)' }
             }
           >
@@ -236,7 +236,7 @@ function Chip({
       }`}
       style={
         active
-          ? { background: 'var(--accent)', color: 'var(--color-surface)' }
+          ? { background: 'var(--color-primary)', color: 'var(--color-surface)' }
           : { borderColor: 'var(--border)', color: 'var(--text-subtle)' }
       }
     >

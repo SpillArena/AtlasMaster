@@ -75,7 +75,7 @@ export function PacePicker({ regionId, category, mode, initialPace, onStart, onB
                   </span>
                   <span
                     className="numeric text-sm font-bold"
-                    style={{ color: selected ? 'var(--accent)' : 'var(--text-subtle)' }}
+                    style={{ color: selected ? 'var(--color-primary)' : 'var(--text-subtle)' }}
                   >
                     ×{meta.multiplier}
                   </span>
