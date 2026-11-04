@@ -3,183 +3,164 @@
 
 @layer base {
   /*
-   * «Field Logbook» — designtokens.
+   * «Map Picker» — designtokens.
    *
-   * Hele appen er en oppslått feltbok: eldet papir, blekk og messing. Palettene
-   * under er sannheten; komponenter peker hit og skriver ingen hex. Navnene med
-   * `--color-`-prefiks er handoff-kontrakten, de eldre (`--bg`, `--surface`, …)
-   * ligger igjen som alias så eksisterende komponenter arver den nye paletten.
+   * Et nattkart: dyp marineblå grunn, avrundede flater, én limegrønn aksent og
+   * HUD-tall i mono. Palettene under er sannheten; komponenter peker hit og
+   * skriver ingen hex. Navnene med `--color-`-prefiks er handoff-kontrakten, de
+   * eldre (`--bg`, `--surface`, …) ligger igjen som alias så eksisterende
+   * komponenter arver paletten.
+   *
+   * Lys modus er det samme kartet på dagtid. Limen er for lys til tekst og
+   * hvit skrift på hvitt papir, så aksenten blir en mørkere olivengrønn der;
+   * i mørk modus er den selve limen, med mørk tekst oppå.
    */
   :root {
-    /* --- handoff-tokens, lys modus: «eldet papir» --- */
-    --color-surface: #ede4d1;
-    --color-surface-elevated: #f5eedd;
+    /* --- handoff-tokens, lys modus: «dagkart» --- */
+    --color-surface: #eef2f8;
+    --color-surface-elevated: #ffffff;
 
-    --color-land: #dfd3b6;
-    --color-water: #9fb4ae;
-    --color-grid: #c3b48f;
+    --color-land: #e3e9f2;
+    --color-water: #c4d3e7;
+    --color-grid: #b6c5db;
 
-    --color-primary: #a9772f; /* messing */
-    --color-success: #4f7a4a; /* feltgrønt */
-    --color-error: #ae3b2c; /* signalraudt */
-    --color-seal: #c06b2e; /* lakksegl */
+    --color-primary: #45700d;
+    --color-success: #2f7d32;
+    --color-error: #c62f3a;
+    --color-seal: #b4530a;
 
-    --color-text-primary: #211f17;
-    --color-text-secondary: #5a5443;
-    --color-border: #cbbe9c;
+    --color-text-primary: #0b1424;
+    --color-text-secondary: #3d4a63;
+    --color-border: #d3dbe8;
 
-    /* vellum: flaten som ligger over kartet — varm, lite sløring */
-    --glass-bg: rgba(245, 238, 221, 0.82);
-    --glass-border: rgba(120, 96, 48, 0.22);
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(11, 20, 36, 0.12);
 
     /* --- typografi --- */
-    --font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --font-family-hud: 'Spline Sans Mono', ui-monospace, SFMono-Regular, monospace;
+    --font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-family-hud: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
     --text-caption-size: 12px;
     --text-caption-line: 16px;
 
     /* --- form og rytme --- */
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
     --radius-pill: 999px;
-    --shadow-card: 0 1px 2px rgba(50, 38, 16, 0.12);
-    --shadow-panel: 0 10px 30px rgba(46, 34, 12, 0.16);
+    --shadow-card: 0 1px 2px rgba(11, 20, 36, 0.08);
+    --shadow-panel: 0 18px 48px rgba(11, 20, 36, 0.16);
     --duration-in: 200ms;
     --duration-out: 140ms;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* --- alias: appens eldre tokennamn --- */
     --bg: var(--color-surface);
-    --bg-deep: #e3d7be;
+    --bg-deep: #e2e8f2;
     --text: var(--color-text-primary);
     --text-muted: var(--color-text-secondary);
-    --text-subtle: #7c7358;
+    --text-subtle: #56627a;
     --border: var(--color-border);
     --border-hover: color-mix(in srgb, var(--color-primary) 55%, transparent);
-    --surface: rgba(245, 238, 221, 0.72);
+    --surface: rgba(255, 255, 255, 0.8);
     --surface-card: var(--color-surface-elevated);
-    --nav-bg: rgba(237, 228, 209, 0.9);
+    --surface-raised: #e6ecf5;
+    --nav-bg: rgba(238, 242, 248, 0.92);
     --panel: var(--glass-bg);
     --panel-edge: var(--glass-border);
+
+    /* tekst og ikoner oppå en aksentfylt flate */
+    --on-accent: #ffffff;
 
     /* spillsemantikk */
     --success: var(--color-success);
     --danger: var(--color-error);
-    --info: #365c7a; /* kompassblå */
+    --info: #1d5fd1;
     --gold: var(--color-seal);
 
-    --map-idle: rgba(33, 31, 23, 0.09);
+    --map-idle: rgba(11, 20, 36, 0.08);
     --map-idle-hover: color-mix(in srgb, var(--color-primary) 26%, transparent);
 
-    /* kartfargene — havet er `--color-water`, sokkelen tre lysere band inn mot
-       kysten, landet `--color-land`, rutenettet `--color-grid` */
     --ocean: var(--color-water);
-    --ocean-deep: #8ba39c;
-    --shelf-1: #b9c6bd;
-    --shelf-2: #aab9b0;
-    --shelf-3: #9caea3;
-    --coast: #6b5e3f;
-    --graticule: color-mix(in srgb, var(--color-grid) 60%, transparent);
+    --ocean-deep: #b4c6de;
+    --shelf-1: #d6e0ed;
+    --shelf-2: #ccd8e8;
+    --shelf-3: #c2d0e3;
+    --coast: #5b6b88;
+    --graticule: color-mix(in srgb, var(--color-grid) 55%, transparent);
 
     --map-land: var(--color-land);
-    --map-border: #7a6b47;
+    --map-border: #5b6b88;
 
-    --water-area-1: #8bbdcc;
-    --water-area-2: #a5d2da;
-    --water-area-3: #72aeba;
-    --water-border: #f5faf8;
-    --water-land: #e8dfcb;
-    --water-coast: #7c887d;
-    --water-hover: #bde5ec;
+    --water-area-1: #8fb3dd;
+    --water-area-2: #a9c6e8;
+    --water-area-3: #7aa2d1;
+    --water-border: #f5f9ff;
+    --water-land: #eef2f8;
+    --water-coast: #6b7d99;
+    --water-hover: #bcd6f3;
 
-    /* --- slitasje: det som gjør papiret gammelt ---
-       Fire lag, og de gjør hver sin jobb. Fibrene er trykket selve arket har.
-       Flekkene er årene i en kjeller. Bretten er der kartet har vært foldet
-       fire ganger og lagt i en lomme. Riften er der det har røket. */
-    --paper-fibre: rgba(84, 62, 26, 0.055);
-    --paper-blotch: rgba(120, 92, 40, 0.05);
-    --foxing: rgba(146, 100, 40, 0.13);
-    --crease: rgba(88, 68, 30, 0.14);
-    --crease-lit: rgba(255, 250, 235, 0.5);
-    --tear-edge: #cdbf9c;
-    --tear-shadow: rgba(60, 44, 16, 0.3);
-    --tear-gap: rgba(74, 58, 28, 0.14);
-
-    /* blekk til de håndtegnede lagene */
-    --ink: #211f17;
+    --ink: #0b1424;
     --ink-soft: color-mix(in srgb, var(--ink) 55%, transparent);
     --brass: var(--color-primary);
-    --paper-grain: rgba(70, 52, 20, 0.05);
-    --stitch: color-mix(in srgb, var(--color-primary) 40%, transparent);
 
     --glow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
-  /* Mørk modus — «lampelyst kartbord». Samme tokens, snudd. */
+  /* Mørk modus — «nattkart». Samme tokens, snudd. */
   .dark {
-    --color-surface: #15140f;
-    --color-surface-elevated: #1e1c15;
+    --color-surface: #0b1424;
+    --color-surface-elevated: #0f1a2e;
 
-    --color-land: #2a271d;
-    --color-water: #232a28;
-    --color-grid: #3a3426;
+    --color-land: #1c2944;
+    --color-water: #0a1322;
+    --color-grid: #1f2c47;
 
-    --color-primary: #ce9e52;
-    --color-success: #6fa968;
-    --color-error: #cf5b4c;
-    --color-seal: #d98e4b;
+    --color-primary: #c8ff3c;
+    --color-success: #74d874;
+    --color-error: #ff6b78;
+    --color-seal: #ffa24a;
 
-    --color-text-primary: #ebe2cd;
-    --color-text-secondary: #9a9077;
-    --color-border: #38321f;
+    --color-text-primary: #e8eef7;
+    --color-text-secondary: #b3c0d6;
+    --color-border: #1f2c47;
 
-    --glass-bg: rgba(30, 28, 21, 0.72);
-    --glass-border: rgba(206, 158, 82, 0.2);
+    --glass-bg: rgba(15, 26, 46, 0.94);
+    --glass-border: rgba(179, 192, 214, 0.16);
 
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45);
-    --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.5);
 
-    --bg-deep: #0f0e0a;
-    --text-subtle: #8a8068;
-    --surface: rgba(30, 28, 21, 0.7);
-    --nav-bg: rgba(21, 20, 15, 0.9);
+    --bg-deep: #070e1a;
+    --text-subtle: #8a9bb8;
+    --surface: rgba(22, 33, 58, 0.8);
+    --surface-raised: #16213a;
+    --nav-bg: rgba(11, 20, 36, 0.92);
 
-    --info: #7fa8c4;
+    --on-accent: #0b1424;
 
-    --ocean-deep: #1b211f;
-    --shelf-1: #2b322f;
-    --shelf-2: #262c2a;
-    --shelf-3: #212725;
-    --coast: #b79a63;
-    --map-border: #b79a63;
+    --info: #7aa5ff;
 
-    --map-idle: rgba(235, 226, 205, 0.1);
+    --ocean-deep: #08101d;
+    --shelf-1: #12203a;
+    --shelf-2: #101c33;
+    --shelf-3: #0e192d;
+    --coast: #5a6d92;
+    --map-border: #5a6d92;
 
-    --water-area-1: #245567;
-    --water-area-2: #326c7e;
-    --water-area-3: #1b4356;
-    --water-border: #8bbbc7;
-    --water-land: #272b27;
-    --water-coast: #687f78;
-    --water-hover: #438fa3;
+    --map-idle: rgba(232, 238, 247, 0.1);
 
-    /* Mørk modus snur lyset: bretten fanger lampen i stedet for å skygge, og
-       riften viser bordet under i stedet for lyset gjennom. */
-    --paper-fibre: rgba(0, 0, 0, 0.2);
-    --paper-blotch: rgba(0, 0, 0, 0.16);
-    --foxing: rgba(206, 158, 82, 0.07);
-    --crease: rgba(0, 0, 0, 0.34);
-    --crease-lit: rgba(206, 158, 82, 0.13);
-    --tear-edge: #4a422e;
-    --tear-shadow: rgba(0, 0, 0, 0.6);
-    --tear-gap: rgba(0, 0, 0, 0.4);
+    --water-area-1: #1e4f7a;
+    --water-area-2: #2a6290;
+    --water-area-3: #173f63;
+    --water-border: #8fb7e0;
+    --water-land: #1b2740;
+    --water-coast: #5a6d92;
+    --water-hover: #3a7fb8;
 
-    --ink: #ebe2cd;
-    --paper-grain: rgba(0, 0, 0, 0.22);
-    --stitch: color-mix(in srgb, var(--color-primary) 45%, transparent);
+    --ink: #e8eef7;
 
-    --glow: 0 0 32px rgba(206, 158, 82, 0.22);
+    --glow: 0 0 26px rgba(200, 255, 60, 0.35);
   }
 
   html {
@@ -199,62 +180,35 @@
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: 6px;
   }
 
   ::selection {
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--on-accent);
   }
 
   /*
-   * Pekeren: en pennesplitt.
-   *
-   * Hele appen er en feltbok, og markøren var det siste stedet operativsystemet
-   * fortsatt tegnet 2010-tallet inn i den. Splitten er den samme formen i begge
-   * tilstander — bare fyllet skifter, fra papir til messing — så hotspotten
-   * ligger i samme spiss uansett, og man aldri må lete etter hvor pekeren
-   * faktisk peker.
-   *
-   * Lyst fyll med mørk kontur leses på både papir og lampelys, så det trengs
-   * ikke to sett for de to temaene.
-   *
-   * Tre forbehold er bakt inn. Nøkkelordet etter URL-en er ikke pynt: klarer
-   * ikke nettleseren å laste bildet, står det fortsatt en fungerende peker der.
-   * `pointer: fine` holder hele greia unna berøringsskjermer, der det ikke
-   * finnes noen markør å bytte ut. Og skrivefelt beholder operativsystemets
-   * egen tekstmarkør — den er en presisjonsindikator folk leser posisjon ut av,
-   * ikke dekor.
+   * Pekeren på alt som kan trykkes. Tailwind v4 lar knapper stå med
+   * standardpekeren, og feltbok-temaet hadde sin egen pennesplitt her — uten
+   * den ble regionetikettene på forsidekartet, flisene og kortene stående
+   * med pil, som om de ikke gjorde noe.
    */
-  @media (pointer: fine) {
-    :root {
-      --cursor-nib: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23f5eedd' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23a9772f' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
-      --cursor-nib-brass: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M3.5 2.5 L3.5 21 L8.2 16.6 L11.6 24 L15.2 22.2 L11.8 15.1 L18.4 14.8 Z' fill='%23c9a15a' stroke='%23211f17' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5.6 6.4 L5.6 15.8' stroke='%23fff3d4' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='20.5' cy='20.5' r='2.6' fill='%23fff3d4' stroke='%23211f17' stroke-width='1.2'/%3E%3C/svg%3E");
-    }
+  button:not(:disabled),
+  [role='button'],
+  [role='switch'],
+  [role='option'],
+  [role='radio'],
+  summary,
+  label[for],
+  select,
+  a[href] {
+    cursor: pointer;
+  }
 
-    body {
-      cursor: var(--cursor-nib) 3 2, default;
-    }
-
-    a,
-    button,
-    summary,
-    label[for],
-    [role='button'],
-    .cursor-pointer,
-    select {
-      cursor: var(--cursor-nib-brass) 3 2, pointer;
-    }
-
-    :disabled,
-    [aria-disabled='true'] {
-      cursor: var(--cursor-nib) 3 2, not-allowed;
-    }
-
-    input,
-    textarea {
-      cursor: text;
-    }
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
   }
 }
 
@@ -269,16 +223,14 @@
     --graticule: color-mix(in srgb, var(--water-border) 18%, transparent);
   }
 
-  /*
-   * Opake papirpaneler: kartbevegelser trenger ikke sløre bakgrunnen på nytt.
-   */
+  /* Opake paneler: kartbevegelser trenger ikke sløre bakgrunnen på nytt. */
   .panel {
     background: var(--color-surface-elevated);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-panel);
   }
 
-  /* Kort: den opake flaten — et ark, billig å tegne. */
+  /* Kort: den opake flaten, billig å tegne. */
   .card {
     background: var(--color-surface-elevated);
     border: 1px solid var(--color-border);
@@ -287,68 +239,42 @@
   }
 
   /*
-   * Platen: et kartblad i feltboka. Papir, urolig kant, en tynn hjørnelinje
-   * inne i rammen som på en gravert plate. Brukes av region- og kategorivalgene.
+   * Platen: en avrundet flis. Navnet er arvet fra feltbok-temaet og brukt av
+   * mange skjermer; utseendet er nå nattkartets kort.
    */
   .plate {
     position: relative;
-    background:
-      radial-gradient(120% 140% at 15% 0%, color-mix(in srgb, var(--color-surface-elevated) 92%, #fff), transparent 60%),
-      var(--color-surface-elevated);
+    background: var(--color-surface-elevated);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card), inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 60%, transparent);
-  }
-  .plate::after {
-    content: '';
-    position: absolute;
-    inset: 6px;
-    border: 1px solid color-mix(in srgb, var(--brass) 30%, transparent);
-    border-radius: calc(var(--radius-md) - 4px);
-    pointer-events: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
   }
 
-  /*
-   * Kartusjen: rammen rundt banner og dialoger. En stiplet «sømlinje» inne i
-   * kanten, som et sydd lerret.
-   */
+  /* Rammen rundt dialoger. */
   .cartouche {
     position: relative;
     background: var(--color-surface-elevated);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-panel);
   }
-  .cartouche::before {
-    content: '';
-    position: absolute;
-    inset: 5px;
-    border: 1px dashed var(--stitch);
-    border-radius: calc(var(--radius-lg) - 3px);
-    pointer-events: none;
-  }
 
-  /*
-   * Stempelet: en blekk-/lakkring. Rangbokstaven og rekordene sitter inni.
-   */
+  /* Merket: en ring rundt rangbokstaven og rekordene. */
   .stamp {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    border: 3px solid currentColor;
-    box-shadow:
-      inset 0 0 0 2px color-mix(in srgb, currentColor 25%, transparent),
-      0 1px 0 color-mix(in srgb, var(--ink) 20%, transparent);
-    background: color-mix(in srgb, currentColor 12%, transparent);
+    border: 2px solid currentColor;
+    background: color-mix(in srgb, currentColor 14%, transparent);
   }
 
-  /* Ledger-rad: en linjert linje som i en skipslogg. */
+  /* Linjert rad i lister. */
   .ledger {
     border-bottom: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
   }
 
-  /* Bagasjelapp: pillen som bærer navigasjon. */
+  /* Pillen som bærer navigasjon. */
   .tag {
     position: relative;
     display: inline-flex;
@@ -356,174 +282,92 @@
     gap: 0.5rem;
     border-radius: var(--radius-pill);
     border: 1px solid var(--color-border);
-    background: var(--surface);
+    background: var(--surface-raised);
     color: var(--text);
     padding: 0 0.9rem;
   }
 
-  /*
-   * Papirkorn — legg på store flater som skal kjennes trykt.
-   *
-   * Tre lag i stedet for ett. Prikkrasteret er trykket, og var alt som var her
-   * før; de to skrå strekene er fibrene i arket, og de brede feltene er
-   * ujevnheten i massen. Alle tre er gradienter, så det er null forespørsler,
-   * null piksler å laste, og laget koster ingenting etter første maling.
-   */
-  .grain {
-    background-image:
-      radial-gradient(var(--paper-grain) 1px, transparent 1.2px),
-      repeating-linear-gradient(
-        58deg,
-        var(--paper-fibre) 0 1px,
-        transparent 1px 4px
-      ),
-      repeating-linear-gradient(
-        -34deg,
-        var(--paper-fibre) 0 1px,
-        transparent 1px 7px
-      ),
-      radial-gradient(120% 90% at 12% 8%, var(--paper-blotch), transparent 55%),
-      radial-gradient(90% 120% at 88% 82%, var(--paper-blotch), transparent 60%);
-    background-size:
-      4px 4px,
-      auto,
-      auto,
-      auto,
-      auto;
+  /* HUD-etikett: liten, sperret mono — hjørnene på kartpanelet, «trinn 2 av 4». */
+  .hud-label {
+    font-family: var(--font-family-hud);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
   }
 
-  /*
-   * Aldersflekker. Papir som har ligget lenge får rustbrune prikker der
-   * soppen har stått — «foxing» er ordet. Uregelmessig plassert med vilje:
-   * et jevnt mønster leses som en tekstur, en ujevn samling som alder.
-   */
-  .foxed {
-    position: relative;
-  }
-  .foxed::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background-image:
-      radial-gradient(6px 5px at 18% 24%, var(--foxing), transparent 70%),
-      radial-gradient(4px 6px at 74% 16%, var(--foxing), transparent 70%),
-      radial-gradient(9px 7px at 62% 71%, var(--foxing), transparent 72%),
-      radial-gradient(3px 3px at 33% 82%, var(--foxing), transparent 70%),
-      radial-gradient(5px 4px at 89% 54%, var(--foxing), transparent 70%),
-      radial-gradient(7px 9px at 8% 63%, var(--foxing), transparent 74%);
+  /* Tastetrykk-merket ved siden av en handling: Esc, 1, 2, 3. */
+  .kbd {
+    font-family: var(--font-family-hud);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.2rem 0.4rem;
+    color: var(--text-subtle);
   }
 
-  /*
-   * Brettene. Et kart som har vært i en lomme er foldet fire ganger, og
-   * folden holder seg: en tynn skygge på den ene siden av linja og et
-   * lysstrøk på den andre, som papir som ikke helt vil legge seg flatt igjen.
-   */
-  .creased {
-    position: relative;
-  }
-  .creased::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background-image:
-      linear-gradient(90deg, transparent calc(33.33% - 1px), var(--crease) 33.33%, var(--crease-lit) calc(33.33% + 1px), transparent calc(33.33% + 2px)),
-      linear-gradient(90deg, transparent calc(66.66% - 1px), var(--crease) 66.66%, var(--crease-lit) calc(66.66% + 1px), transparent calc(66.66% + 2px)),
-      linear-gradient(0deg, transparent calc(50% - 1px), var(--crease) 50%, var(--crease-lit) calc(50% + 1px), transparent calc(50% + 2px));
-  }
-
-  /*
-   * Revet kant.
-   *
-   * Masken er ett statisk SVG med feTurbulence bakt inn: nettleseren
-   * rasteriserer det én gang og bruker det som maske etterpå, så det koster
-   * ingenting per bilde — til forskjell fra en `filter:` på selve elementet,
-   * som må regnes om hver gang noe under flytter seg.
-   */
-  .torn {
-    --torn: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='240' preserveAspectRatio='none'%3E%3Cfilter id='t' x='-12%25' y='-12%25' width='124%25' height='124%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028 0.07' numOctaves='4' seed='11'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='13' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='9' y='9' width='302' height='222' rx='6' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
-    -webkit-mask-image: var(--torn);
-    mask-image: var(--torn);
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-  }
-
-  /*
-   * Tekststiler fra handoff-en.
-   *
-   * `.text-h1` og `.text-h2` var faste størrelser — 34/40px og 25/32px — og
-   * stod ubrukte i hele spillet: hver skjermtittel skrev i stedet ut
-   * `font-display text-2xl font-semibold tracking-[-0.005em] sm:text-3xl` for
-   * hånd, likt på fire skjermer. En fast størrelse kunne ikke ha erstattet den
-   * strengen — den mangler responssteget til `sm`, og hadde gjort
-   * mobiltitlene større enn de skal være. Klassene bærer derfor steget selv
-   * nå, og er nøyaktig den samme Tailwind-oppskriften igjen, bare samlet på ett
-   * sted: `.text-h2` er 24px som stiger til 30px ved `sm`, det skjermtitlene
-   * allerede gjorde; `.text-h1` er steget over, til bruk der en tittel skal veie
-   * tyngre enn en skjermtittel.
-   */
   .text-h1 {
-     font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', serif;
-     font-size: 1.875rem;
-     line-height: 2.25rem;
-     font-weight: 600;
-     letter-spacing: -0.01em;
-   }
-   @media (min-width: 640px) {
-     .text-h1 {
-       font-size: 2.25rem;
-       line-height: 2.5rem;
-     }
-   }
-   .text-h2 {
-     font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', serif;
-     font-size: 1.5rem;
-     line-height: 2rem;
-     font-weight: 600;
-     letter-spacing: -0.005em;
-   }
-   @media (min-width: 640px) {
-     .text-h2 {
-       font-size: 1.875rem;
-       line-height: 2.25rem;
-     }
-   }
+    font-family: var(--font-family);
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+  @media (min-width: 640px) {
+    .text-h1 {
+      font-size: 3.5rem;
+    }
+  }
+  .text-h2 {
+    font-family: var(--font-family);
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  @media (min-width: 640px) {
+    .text-h2 {
+      font-size: 2rem;
+      line-height: 2.25rem;
+    }
+  }
   .text-caption {
     font-size: var(--text-caption-size);
     line-height: var(--text-caption-line);
     font-weight: 400;
   }
 
-  /* Store tall: poeng, combo, klokke — ledger-mono, alltid tabulære. */
+  /* Store tall: poeng, combo, klokke — mono, alltid tabulære. */
   .numeric {
     font-family: var(--font-family-hud);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
 
-  /* Feltnotat-kicker over en skjermtittel — Fraunces i kursiv, ikke sperret caps. */
+  /* Kicker over en skjermtittel. */
   .eyebrow {
-    font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
-    font-size: 0.9375rem;
-    font-weight: 400;
+    font-family: var(--font-family-hud);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--text-subtle);
   }
 
   /* Etikett over et tall — liten, sperret, dempet. */
   .stat-label {
+    font-family: var(--font-family-hud);
     font-size: 0.625rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.14em;
     color: var(--text-subtle);
   }
 }
+
 
 @layer utilities {
   /* Lysstripe som sveiper over et kort ved hover. */
@@ -536,7 +380,7 @@
     position: absolute;
     inset: 0 auto 0 0;
     width: 45%;
-    background: linear-gradient(90deg, transparent, rgba(255, 248, 230, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
     transform: translateX(-120%) skewX(-18deg);
     pointer-events: none;
   }
@@ -638,161 +482,6 @@
 }
 .panel-in {
   animation: panel-in var(--duration-in) var(--ease-out) both;
-}
-
-/*
- * Kompasset på landingssiden.
- *
- * Stilene lå i en `<style>`-blokk inne i komponenten, som ble skrevet inn i
- * DOM-en på nytt ved hver montering — og med hardkodede farger, så
- * instrumentet var det ene stedet i appen som ikke visste at det finnes et
- * mørkt tema. Her ligger de én gang, og fargene er tokens.
- */
-/*
- * `relative` er kuppelens holdepunkt — se notatet i PirateCompass.tsx.
- *
- * Størrelsen kommer inn som `--compass-size` fra komponenten, ikke som
- * `width`/`height`-attributter. Da kan kalleren sende en CSS-lengde i stedet
- * for et tall — landingssida sender `clamp(96px, 16vmin, 168px)` — og
- * `container-type: inline-size` lar stilarket spørre om den samme bredden
- * etterpå. Det er det som gjør det mulig å forstørre himmelretningene når
- * instrumentet blir lite; se beholderspørringen under.
- */
-.pirate-compass {
-  position: relative;
-  display: inline-grid;
-  width: var(--compass-size, 240px);
-  height: var(--compass-size, 240px);
-  container-type: inline-size;
-  border-radius: 50%;
-  user-select: none;
-  isolation: isolate;
-  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.35));
-}
-
-.pirate-compass__svg {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.pirate-compass__label {
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  fill: #163f45;
-  letter-spacing: 0;
-  paint-order: stroke;
-  stroke: rgba(245, 225, 178, 0.35);
-  stroke-width: 1.4px;
-}
-
-/*
- * 30, ikke 25: på det største instrumentet landingssida viser, 168 px, er
- * viewBox-en 400 og alt her krymper til 42 % av tallet som står. 25 ble 10,5
- * px på skjermen — lesbart bare hvis man visste hva det stod. 30 gir 12,6.
- */
-.pirate-compass__label--cardinal {
-  font-size: 30px;
-  font-weight: 700;
-}
-
-/*
- * Bokstavene vokser når instrumentet krymper.
- *
- * Kompasset er ikke lenger 168 px uansett skjerm — det skalerer med `vmin`,
- * og i den nedre enden er det 96 px. 30 px i en 400-viewBox er da 7,2 px på
- * skjermen, og «Ø» og «S» blir prikker. 42 px gir 10 px, som er der de lå da
- * instrumentet var stort. Spørringen går på kompasset selv, ikke på vinduet:
- * det er størrelsen på instrumentet som avgjør om bokstaven er lesbar, og en
- * kaller som ber om et lite kompass på en stor skjerm skal få det samme
- * svaret.
- */
-@container (max-width: 130px) {
-  .pirate-compass__label--cardinal {
-    font-size: 42px;
-  }
-}
-
-/*
- * Nålelagene og glasset ligger oppå urskiva, i samme rute.
- *
- * Nåla dreies av `useNeedle` i PirateCompass.tsx, som skriver
- * `style.transform` rett inn — ingen overgang her, fjæra er overgangen. En
- * `transition` i tillegg ville lagt en ny forsinkelse oppå hvert bilde og
- * spist oversvinget. `will-change` gir hvert lag sin egen flate, så dreiingen
- * er kompositorarbeid og urskiva under aldri males på nytt.
- */
-.pirate-compass__needle,
-.pirate-compass__glass {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.pirate-compass__needle {
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-/*
- * `translate` står for seg selv, ikke i `transform`: den legges utenpå
- * dreiningen, så skyggen faller mot samme hjørne uansett hvor nåla peker.
- * Prosent av laget, så forskyvningen følger instrumentets størrelse.
- */
-.pirate-compass__needle--shadow {
-  translate: 0.8% 1.6%;
-  opacity: 0.38;
-}
-
-.pirate-compass__fleur {
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
-}
-
-/* messingkuppelen: ett lysstrøk over glasset, ikke en tegning av glasset */
-.pirate-compass__dome {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  background:
-    radial-gradient(52% 42% at 32% 24%, rgba(255, 252, 240, 0.34), transparent 70%),
-    radial-gradient(120% 120% at 70% 88%, rgba(30, 18, 4, 0.22), transparent 62%);
-}
-
-/*
- * Nålen som driver.
- *
- * En magnetnål står aldri helt stille — den vandrer et par grader rundt nord.
- * Fire grader er nok til at instrumentet leses som levende og lite nok til at
- * ingen tar det for en peiling. Ren `transform`, altså kompositoren, og den
- * står av seg selv under «mindre bevegelse».
- *
- * Starter og slutter i null, der fjæra la fra seg nåla — ellers hopper den to
- * grader i det driften tar over, og to grader til når musa kommer tilbake.
- */
-@keyframes compass-adrift {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(2deg);
-  }
-  75% {
-    transform: rotate(-2deg);
-  }
-}
-.pirate-compass[data-adrift] .pirate-compass__needle {
-  animation: compass-adrift 9s ease-in-out infinite;
-}
-
-/* i mørk modus er messingen lampelyst, ikke dagslys */
-.dark .pirate-compass {
-  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.6));
-}
-.dark .pirate-compass__dome {
-  background:
-    radial-gradient(52% 42% at 32% 24%, rgba(255, 240, 200, 0.16), transparent 70%),
-    radial-gradient(120% 120% at 70% 88%, rgba(0, 0, 0, 0.4), transparent 62%);
 }
 
 /*

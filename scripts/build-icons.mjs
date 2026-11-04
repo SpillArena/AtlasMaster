@@ -25,7 +25,7 @@ const root = resolve(here, '..')
 const SRC = resolve(root, 'public/favicon.svg')
 
 /** Bakgrunnen bak merket. Samme tone som `--bg-deep` i det mørke temaet. */
-const BG = [0x05, 0x07, 0x0f]
+const BG = [0x07, 0x0e, 0x1a]
 
 /**
  * Hvor mye av ruta merket får fylle.

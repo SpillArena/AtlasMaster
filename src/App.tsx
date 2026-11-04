@@ -1,11 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MotionConfig, motion as fm } from 'framer-motion'
-import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
+import { Header, NamePrompt, ConfirmDialog } from './components/header'
 import { WorldMapPicker } from './components/menu/WorldMapPicker'
 import { LeaderboardPanel } from './components/leaderboard/LeaderboardPanel'
 import { FooterSection } from './components/footer'
-import { BackgroundMap } from './components/BackgroundMap'
+import { LandingHero, ModeStrip } from './components/menu/Landing'
 import { useGameSettings } from './contexts/useGameSettings'
 import { DEFAULT_REGION_ID, getCategory, getRegion } from './game/regions'
 import { getName } from './game/leaderboard'
@@ -161,8 +161,6 @@ function App() {
         className="flex h-dvh flex-col overflow-hidden transition-colors duration-300"
         style={{ background: 'var(--bg)', color: 'var(--text)' }}
       >
-        {/* Bare tegn bakgrunnskartet der det er synlig, utenfor selve spillkartet. */}
-        {regionId && !inGame && <BackgroundMap regionId={regionId} />}
         <Header
           inGame={inGame}
           onHome={reset}
@@ -200,14 +198,11 @@ function App() {
             ) : !region ? (
               <section
                 aria-label={t('menu.title')}
-                className="flex min-h-full flex-col justify-center gap-6 px-4 pt-6 sm:gap-8"
+                className="flex min-h-full flex-col gap-4 pt-4 sm:pt-6"
               >
-                <div className="flex justify-center">
-                  <h1>
-                    <Logo onClick={reset} size="large" />
-                  </h1>
-                </div>
+                <LandingHero />
                 <WorldMapPicker onPick={setRegionId} />
+                <ModeStrip />
                 {/*
                   Dashbordet viser tavla på tvers av alle regioner.
                   Den stod låst til standardregionen, altså Norge, på en skjerm
@@ -215,11 +210,13 @@ function App() {
                   Asia så aldri et eneste resultat av sitt eget der. API-et har
                   alltid støttet den regionsløse tavla — ingen skjerm ba om den.
                 */}
-                <LeaderboardPanel
-                  key={profileVersion}
-                  regionId="all"
-                  onSeeAll={() => setShowLeaderboard(true)}
-                />
+                <div className="mx-auto w-full max-w-[1360px] px-4 pb-6">
+                  <LeaderboardPanel
+                    key={profileVersion}
+                    regionId="all"
+                    onSeeAll={() => setShowLeaderboard(true)}
+                  />
+                </div>
                 <FooterSection />
               </section>
             ) : !category ? (

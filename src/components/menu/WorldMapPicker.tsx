@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { FeatureCollection, Feature } from "geojson";
 import { makePath, makeProjection, naturalAspect } from "../../game/projection";
-import { getRegion } from "../../game/regions";
+import { childRegions, getRegion, regions } from "../../game/regions";
 import { bestForRegion } from "../../game/progress";
 import { playSfx } from "../../game/sfx";
 import type { ProjectionSpec } from "../../game/types";
-import PirateCompass from "./PirateCompass";
-import { PaperRifts } from "../PaperRifts";
+import { Icon } from "../Icon";
+import { REGION_COLOR } from "./skins";
 
 interface Props {
   onPick: (regionId: string) => void;
@@ -16,14 +16,10 @@ interface Props {
 
 const W = 960;
 /**
- * Blank papirmarg over og under selve kartet, i samme skala som `W`.
- *
- * Et rammet kart har luft mot kanten av arket — uten den flyter Alaska og
- * Ildlandet helt ut til `.torn`-kanten. Legges til på begge sider av
- * `built.height`, aldri inn i det: ingen land klippes bort, de får bare
- * mindre plass å dele på i samme plate.
+ * Hvor popoveren for «Verden» står. Verden har ingen flekk og derfor ingen
+ * etikett å henge den på; midt i Stillehavet er det plass.
  */
-const MARGIN = 28;
+const WORLD_ANCHOR: [number, number] = [-150, -8];
 
 /** Verdenskartet tegnes alltid i Natural Earth, uansett hvilken region du ender i. */
 const WORLD_PROJECTION: ProjectionSpec = { kind: "naturalEarth" };
@@ -96,8 +92,8 @@ interface RegionSkin {
  * USA har ingen egen flekk: landet er en del av Nord-Amerika, og delstatene
  * er et valg inne i Nord-Amerika-menyen (se `Region.parent`). Norge sjekkes
  * først; Asia kommer før Europa — se kommentaren over
- * id-listene. Fargene er dempede kartograftoner, ikke rene primærfarger, så
- * kloden fortsatt leser som et blad fra feltboka.
+ * id-listene. Fargene er mettede nok til å skille seg fra hverandre på det
+ * mørke nattkartet, og mørke nok til at hvite etiketter leses oppå dem.
  */
 const REGION_SKINS: RegionSkin[] = [
   // Norge-etiketten står i Norskehavet, vest for landet: fastlandet er smalt,
@@ -105,14 +101,14 @@ const REGION_SKINS: RegionSkin[] = [
   {
     id: "norway",
     labelKey: "region.norway",
-    color: "#5f8a7d",
+    color: REGION_COLOR.norway,
     match: (c) => c === 578,
     anchor: [2, 66],
   },
   {
     id: "northAmerica",
     labelKey: "region.northAmerica",
-    color: "#488d89",
+    color: REGION_COLOR.northAmerica,
     match: (c) => NORTH_AMERICA_IDS.has(c),
     // sørlige Canada: med USA inne er dette midt i landmassen, ikke helt nord
     anchor: [-100, 52],
@@ -120,21 +116,21 @@ const REGION_SKINS: RegionSkin[] = [
   {
     id: "oceania",
     labelKey: "region.oceania",
-    color: "#5597b5",
+    color: REGION_COLOR.oceania,
     match: (c) => OCEANIA_IDS.has(c),
     anchor: [147, -25],
   },
   {
     id: "antarctica",
     labelKey: "region.antarctica",
-    color: "#829aab",
+    color: REGION_COLOR.antarctica,
     match: (c) => c === 10,
     anchor: [20, -78],
   },
   {
     id: "asia",
     labelKey: "region.asia",
-    color: "#c39a3f",
+    color: REGION_COLOR.asia,
     match: (c) => ASIA_IDS.has(c),
     anchor: [92, 44],
   },
@@ -146,7 +142,7 @@ const REGION_SKINS: RegionSkin[] = [
     labelKey: "region.africa",
     // olivengrønn, ikke enda en brun ved siden av Asias okergule — to
     // jordfarger var ikke til å skille fra hverandre i prikkene under kartet.
-    color: "#7f8f55",
+    color: REGION_COLOR.africa,
     match: (c) => AFRICA_IDS.has(c),
     // Sentral-Afrika, nord for Kongobassenget: kontinentet er bredest her, og
     // navnet får luft på begge sider uten å legge seg over Guineabukta.
@@ -157,7 +153,7 @@ const REGION_SKINS: RegionSkin[] = [
     labelKey: "region.southAmerica",
     // stålblå, ikke enda en jordfarge: Norge er den eneste andre kalde
     // tonen på kartet, og ligger på motsatt kant — ingen forveksling der.
-    color: "#4d6f9e",
+    color: REGION_COLOR.southAmerica,
     match: (c) => SOUTH_AMERICA_IDS.has(c),
     // Brasils innland, sør for Amazonas — kontinentet er bredest her.
     anchor: [-58, -12],
@@ -166,7 +162,7 @@ const REGION_SKINS: RegionSkin[] = [
   {
     id: "europe",
     labelKey: "region.europe",
-    color: "#8a6f9c",
+    color: REGION_COLOR.europe,
     match: (c) => EUROPE_IDS.has(c),
     anchor: [16, 47],
   },
@@ -223,16 +219,33 @@ interface Built {
   path: ReturnType<typeof makePath>;
 }
 
+
+/** «49.0° N · 18.0° E» — HUD-avlesningen nederst i kartpanelet. */
+function formatCoord([lon, lat]: [number, number]): string {
+  const ns = lat >= 0 ? "N" : "S";
+  const ew = lon >= 0 ? "E" : "W";
+  return `LAT ${Math.abs(lat).toFixed(1)}° ${ns} · LON ${Math.abs(lon).toFixed(1)}° ${ew}`;
+}
+
+const anchorOf = (id: string): [number, number] =>
+  REGION_SKINS.find((s) => s.id === id)?.anchor ?? WORLD_ANCHOR;
+
 /**
- * Landingssiden: hele kloden som ett kart. De regionene spillet støtter er
- * fargelagt og klikkbare — trykk på Frankrike og du er i Europa-menyen, på
- * Japan og du er i Asia. Alt annet land, og havet, sender deg til «Verden».
+ * Landingssiden: hele kloden som ett kart, og kartet er selve menyen.
+ *
+ * Første trykk på en region velger den og åpner et kort med hva regionen
+ * har; «Spill» i kortet, eller et nytt trykk på samme region, går inn. To
+ * steg i stedet for ett er med vilje: på en telefon er Norge et par
+ * millimeter bredt, og et bomtrykk skal vise feil region, ikke sende deg inn
+ * i den. Lista under kartet går rett inn — der er det ingenting å bomme på.
  */
 export function WorldMapPicker({ onPick }: Props) {
   const { t } = useTranslation();
   const [data, setData] = useState<FeatureCollection | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [inner, setInner] = useState<FeatureCollection | null>(null);
+  const playRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -254,6 +267,32 @@ export function WorldMapPicker({ onPick }: Props) {
       alive = false;
     };
   }, []);
+
+  /*
+   * Escape lukker kortet. App-ens egen Escape-lytter («tilbake») står over
+   * enhver `role="dialog"` i DOM-en, så den gjør ingenting mens kortet er
+   * åpent — på forsiden er det uansett ingenting å gå tilbake til.
+   */
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected]);
+
+  /*
+   * Fokus til «Spill» når kortet åpner, så Enter fullfører valget. På en
+   * telefon ligger kortet under kartet og kan havne under kanten av skjermen —
+   * da rulles det fram, så trykket på kartet faktisk viser noe.
+   */
+  useEffect(() => {
+    if (!selected) return;
+    const play = playRef.current;
+    play?.focus({ preventScroll: true });
+    play?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
 
   const built = useMemo<Built | null>(() => {
     if (!data) return null;
@@ -286,14 +325,11 @@ export function WorldMapPicker({ onPick }: Props) {
       const xy = projection(skin.anchor);
       if (xy) labels[skin.id] = [xy[0], xy[1]];
     }
+    const worldXy = projection(WORLD_ANCHOR);
+    if (worldXy) labels.world = [worldXy[0], worldXy[1]];
 
     return { shapes, labels, height, path };
   }, [data]);
-
-  const pick = (regionId: string) => {
-    playSfx("ui");
-    onPick(regionId);
-  };
 
   /*
    * Delstats- og provinsgrensene i USA, Canada og Mexico, én sti per region.
@@ -321,251 +357,330 @@ export function WorldMapPicker({ onPick }: Props) {
     return groups;
   }, [built]);
 
+  const go = (regionId: string) => {
+    playSfx("ui");
+    onPick(regionId);
+  };
+
+  /** Første trykk velger, andre trykk på samme region går inn. */
+  const choose = (regionId: string) => {
+    if (selected === regionId) {
+      go(regionId);
+      return;
+    }
+    playSfx("ui");
+    setSelected(regionId);
+  };
+
+  const focus = hover ?? selected;
+  const pct = (id: string) => {
+    const p = built?.labels[id];
+    return p && built ? { x: (p[0] / W) * 100, y: (p[1] / built.height) * 100 } : null;
+  };
+  const selectedAt = selected ? pct(selected) : null;
+  const selectedRegion = selected ? getRegion(selected) : undefined;
+  const selectedChildren = selected ? childRegions(selected) : [];
+  const selectedSkin = REGION_SKINS.find((s) => s.id === selected);
+  const selectedBest = selected ? bestForRegion(selected) : 0;
+
   return (
-    /*
-      Kartet bryter ut av `max-w-[1760px]`-spalta resten av appen står i. Det er
-      ikke et innslag på landingssida — det *er* landingssida, og det eneste
-      man kan gjøre der er å trykke på det. I spalta ble Norge rundt tolv
-      piksler bredt; her er hele klodens plass målt opp etter det minste man
-      skal kunne treffe, ikke etter tekstbredden under.
-    */
-    <div className="mx-auto w-full max-w-[1760px] px-4">
-      {/*
-        Kompasset ligger utenfor selve platen, ikke inni den. Platen bærer den
-        revne kanten, og en maske klipper alt den inneholder — instrumentet
-        ville fått et jafs tatt ut av seg i det ene hjørnet. Messinget er ikke
-        det som er gammelt her; papiret er.
-      */}
-      <div className="relative">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="plate torn relative w-full overflow-hidden"
-          style={{
-            aspectRatio: built ? `${W} / ${built.height + 2 * MARGIN}` : `960 / ${480 + 2 * MARGIN}`,
-          }}
+    <div className="mx-auto w-full max-w-[1360px] px-4">
+      <motion.section
+        aria-label={t("region.title")}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative rounded-[32px] border border-[var(--border)] bg-[var(--color-surface-elevated)] px-3 pb-6 pt-12 sm:px-7 md:pb-14"
+      >
+        {/* HUD-hjørnene */}
+        <span className="hud-label absolute left-5 top-5 sm:left-6">{t("region.select")}</span>
+        <span className="hud-label absolute right-5 top-5 flex items-center gap-2 sm:right-6">
+          <span
+            aria-hidden
+            className="h-2 w-2 rounded-full bg-[var(--color-primary)] shadow-[var(--glow)]"
+          />
+          {t("region.online", { count: regions.length })}
+        </span>
+        <span aria-hidden className="hud-label absolute bottom-5 left-5 hidden normal-case tracking-normal sm:left-6 md:block">
+          {focus ? formatCoord(anchorOf(focus)) : " "}
+        </span>
+        <button
+          type="button"
+          onClick={() => go("world")}
+          className="absolute bottom-3 right-3 hidden min-h-11 items-center gap-2 rounded-full bg-[var(--text)] px-4 text-sm font-bold text-[var(--bg)] transition-transform hover:-translate-y-px sm:right-5 md:inline-flex"
         >
-          <div className="grain foxed pointer-events-none absolute inset-0 opacity-[0.5]" />
-          {built && (
-            <svg
-              viewBox={`0 0 ${W} ${built.height}`}
-              preserveAspectRatio="xMidYMid meet"
-              className="absolute inset-x-0 w-full"
-              style={{
-                top: `${(MARGIN / (built.height + 2 * MARGIN)) * 100}%`,
-                height: `${(built.height / (built.height + 2 * MARGIN)) * 100}%`,
-              }}
-              role="group"
-              aria-label={t("region.title")}
-            >
-              <defs>
-                <pattern
-                  id="wmp-graticule"
-                  width={W / 12}
-                  height={W / 12}
-                  patternUnits="userSpaceOnUse"
-                >
-                  <path
-                    d={`M${W / 12} 0V${W / 12}M0 ${W / 12}H${W / 12}`}
-                    fill="none"
-                    stroke="var(--graticule)"
-                    strokeWidth={0.6}
-                  />
-                </pattern>
-              </defs>
-
-              {/* havet — klikk hvor som helst utenfor en region = Verden */}
-              <rect
-                x={0}
-                y={0}
-                width={W}
-                height={built.height}
-                fill="var(--color-water)"
-                fillOpacity={0.22}
-                style={{ cursor: "pointer" }}
-                onClick={() => pick("world")}
-              />
-              <rect
-                x={0}
-                y={0}
-                width={W}
-                height={built.height}
-                fill="url(#wmp-graticule)"
-                opacity={0.5}
-                pointerEvents="none"
-              />
-
-              {/* alt land som ikke tilhører en egen region — også Verden */}
-              <g
-                style={{ cursor: "pointer" }}
-                onClick={() => pick("world")}
-                onMouseEnter={() => setHover("world")}
-                onMouseLeave={() => setHover((h) => (h === "world" ? null : h))}
-              >
-                {byRegion.world.map((d, i) => (
-                  <path
-                    key={i}
-                    d={d}
-                    fill="var(--coast)"
-                    fillOpacity={hover === "world" ? 0.3 : 0.14}
-                    stroke="var(--coast)"
-                    strokeOpacity={0.35}
-                    strokeWidth={0.4}
-                  />
-                ))}
-              </g>
-
-              {/* de fargelagte regionene, minste øverst så små land tar imot klikk */}
-              {REGION_SKINS.map((skin) => {
-                const active = hover === skin.id;
-                return (
-                  <g
-                    key={skin.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={t(skin.labelKey)}
-                    style={{ cursor: "pointer", outline: "none" }}
-                    onClick={() => pick(skin.id)}
-                    onMouseEnter={() => setHover(skin.id)}
-                    onMouseLeave={() =>
-                      setHover((h) => (h === skin.id ? null : h))
-                    }
-                    onFocus={() => setHover(skin.id)}
-                    onBlur={() => setHover((h) => (h === skin.id ? null : h))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        pick(skin.id);
-                      }
-                    }}
-                  >
-                    {byRegion[skin.id].map((d, i) => (
-                      <path
-                        key={i}
-                        d={d}
-                        fill={skin.color}
-                        fillOpacity={active ? 0.92 : 0.68}
-                        stroke="var(--coast)"
-                        strokeOpacity={active ? 0.95 : 0.55}
-                        strokeWidth={active ? 1 : 0.5}
-                      />
-                    ))}
-                    {/*
-                      Tynnere og blekere enn landegrensene: en delstat er
-                      ikke et land, og kartet skal fortsatt lese regionen som
-                      én flate man trykker på.
-                    */}
-                    {innerByRegion[skin.id] && (
-                      <path
-                        d={innerByRegion[skin.id]}
-                        fill="none"
-                        stroke="var(--coast)"
-                        strokeOpacity={active ? 0.7 : 0.4}
-                        strokeWidth={active ? 0.6 : 0.35}
-                        strokeLinejoin="round"
-                        pointerEvents="none"
-                      />
-                    )}
-                  </g>
-                );
-              })}
-
-              {/* regionetiketter, ikke klikkbare */}
-              {REGION_SKINS.map((skin) => {
-                const p = built.labels[skin.id];
-                if (!p) return null;
-                return (
-                  <text
-                    key={skin.id}
-                    x={p[0]}
-                    y={p[1]}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="font-display"
-                    style={{
-                      pointerEvents: "none",
-                      fontSize: hover === skin.id ? 22 : 18,
-                      fontWeight: 700,
-                      fill: "var(--ink)",
-                      paintOrder: "stroke",
-                      stroke: "var(--bg)",
-                      strokeWidth: 4,
-                      strokeLinejoin: "round",
-                    }}
-                  >
-                    {t(skin.labelKey)}
-                  </text>
-                );
-              })}
-            </svg>
-          )}
-          {/*
-          Riftene ligger over kartet, men under kompasset og etikettene: arket
-          er gammelt, navnene skal fortsatt kunne leses.
-        */}
-          <PaperRifts className="z-[5] opacity-40 dark:opacity-50" />
-        </motion.div>
+          <Icon name="globe" className="h-4 w-4" />
+          {t("region.wholeWorld")}
+        </button>
 
         {/*
-          Kompasset er målt etter skjermen, ikke etter seg selv.
-          `vmin` er den minste av de to sidene i vinduet, så et lavt og bredt
-          vindu krymper instrumentet like mye som et smalt gjør. Det var
-          nettopp den ene retningen som manglet: platen under følger høyden,
-          og på en bærbar med lite vindushøyde la et fast 168 px kompass seg
-          oppå Vest-Afrika.
-
-          16 %, ikke 13: på en vanlig bærbar er den minste siden rundt 950 px,
-          og 13 % av den ga 123 px — tretti piksler mindre enn instrumentet
-          trenger for å lese som et instrument, på en skjerm som hadde god
-          plass. 16 % holder det nær taket der det er rom, og drar det ned mot
-          gulvet først når vinduet faktisk er trangt.
-
-          Med et gulv på 96 px får telefonen det også. Det stod `hidden
-          sm:block` her før, fordi instrumentet i full størrelse dekket halve
-          kartet på en liten skjerm — men et kompass man aldri ser er ikke et
-          kompass, og ved 96 px er det et hjørnemerke og ikke et lokk.
+          Kartet og kortet deler én ramme. Fra `md` ligger kortet oppå kartet,
+          ved siden av regionen; på en telefon er kartet for lite til det, og
+          kortet legger seg under i stedet.
         */}
-        <div className="pointer-events-none absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-8">
-          <PirateCompass
-            size="clamp(96px, 16vmin, 168px)"
-            label={t("region.title")}
-            className="drop-shadow-lg"
-          />
-        </div>
-      </div>
+        <div className="relative">
+          <div
+            className="relative w-full"
+            style={{ aspectRatio: built ? `${W} / ${built.height}` : "960 / 500" }}
+          >
+            {built && (
+              <svg
+                viewBox={`0 0 ${W} ${built.height}`}
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0 h-full w-full"
+                role="group"
+                aria-label={t("region.title")}
+              >
+                {/* havet — trykk utenfor en region lukker kortet */}
+                <rect
+                  x={0}
+                  y={0}
+                  width={W}
+                  height={built.height}
+                  fill="var(--color-water)"
+                  fillOpacity={0.35}
+                  onClick={() => setSelected(null)}
+                />
 
-      {/* tekst-snarveier: tilgjengelig fallback og tydelig på mobil */}
-      <ul className="mt-4 flex flex-wrap justify-center gap-2">
+                {/* alt land som ikke tilhører en egen region — Verden */}
+                <g
+                  className="cursor-pointer"
+                  onClick={() => choose("world")}
+                  onMouseEnter={() => setHover("world")}
+                  onMouseLeave={() => setHover((h) => (h === "world" ? null : h))}
+                >
+                  {byRegion.world.map((d, i) => (
+                    <path
+                      key={i}
+                      d={d}
+                      fill="var(--color-land)"
+                      fillOpacity={focus === "world" ? 1 : 0.85}
+                      stroke="var(--color-surface-elevated)"
+                      strokeWidth={0.6}
+                    />
+                  ))}
+                </g>
+
+                {/* de fargelagte regionene, minste øverst så små land tar imot klikk */}
+                {REGION_SKINS.map((skin) => {
+                  const active = focus === skin.id;
+                  const dim = Boolean(selected) && selected !== skin.id;
+                  return (
+                    <g
+                      key={skin.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={t(skin.labelKey)}
+                      aria-pressed={selected === skin.id}
+                      className="cursor-pointer outline-none"
+                      onClick={() => choose(skin.id)}
+                      onMouseEnter={() => setHover(skin.id)}
+                      onMouseLeave={() => setHover((h) => (h === skin.id ? null : h))}
+                      onFocus={() => setHover(skin.id)}
+                      onBlur={() => setHover((h) => (h === skin.id ? null : h))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          choose(skin.id);
+                        }
+                      }}
+                    >
+                      {byRegion[skin.id].map((d, i) => (
+                        <path
+                          key={i}
+                          d={d}
+                          fill={skin.color}
+                          fillOpacity={active ? 1 : dim ? 0.45 : 0.82}
+                          stroke="var(--color-surface-elevated)"
+                          strokeWidth={active ? 0.9 : 0.6}
+                          className="transition-[fill-opacity] duration-200"
+                        />
+                      ))}
+                      {/*
+                        Tynnere enn landegrensene: en delstat er ikke et land, og
+                        kartet skal fortsatt lese regionen som én flate.
+                      */}
+                      {innerByRegion[skin.id] && (
+                        <path
+                          d={innerByRegion[skin.id]}
+                          fill="none"
+                          stroke="var(--color-surface-elevated)"
+                          strokeOpacity={0.5}
+                          strokeWidth={0.35}
+                          strokeLinejoin="round"
+                          pointerEvents="none"
+                        />
+                      )}
+                    </g>
+                  );
+                })}
+
+                {/* ringen rundt valgt region */}
+                {selected && selected !== "world" && built.labels[selected] && (
+                  <motion.circle
+                    key={selected}
+                    cx={built.labels[selected][0]}
+                    cy={built.labels[selected][1]}
+                    r={30}
+                    fill="none"
+                    stroke="var(--color-primary)"
+                    strokeWidth={2}
+                    pointerEvents="none"
+                    initial={{ opacity: 0, scale: 1.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                  />
+                )}
+              </svg>
+            )}
+
+            {/*
+              Etikettene er HTML, ikke SVG-tekst: de er knapper man kan tabbe
+              til, de holder lesbar størrelse uansett hvor stort kartet er, og
+              de skjules under `md`, der de ville dekket halve kloden. Lista
+              under kartet tar over der.
+            */}
+            {built &&
+              REGION_SKINS.map((skin) => {
+                const at = pct(skin.id);
+                if (!at) return null;
+                const on = selected === skin.id;
+                return (
+                  <motion.button
+                    key={skin.id}
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => choose(skin.id)}
+                    onMouseEnter={() => setHover(skin.id)}
+                    onMouseLeave={() => setHover((h) => (h === skin.id ? null : h))}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: focus === skin.id ? 1.06 : 1 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 22 }}
+                    className={`absolute z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 pl-1.5 pr-3 text-sm font-bold shadow-[0_6px_18px_rgba(0,0,0,0.35)] md:inline-flex ${
+                      on ? "bg-[var(--color-primary)] text-[var(--on-accent)]" : "bg-white text-[#0b1424]"
+                    }`}
+                    style={{ left: `${at.x}%`, top: `${at.y}%` }}
+                  >
+                    <span
+                      className="numeric rounded-full px-1.5 py-0.5 text-[0.6875rem] text-white"
+                      style={{ background: skin.color }}
+                    >
+                      {getRegion(skin.id)?.code}
+                    </span>
+                    {t(skin.labelKey)}
+                  </motion.button>
+                );
+              })}
+
+          </div>
+
+            {/* kortet for valgt region */}
+            <AnimatePresence>
+              {selected && selectedRegion && selectedAt && (
+                <motion.div
+                  key={selected}
+                  role="dialog"
+                  aria-label={t(selectedRegion.labelKey)}
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="relative z-20 mt-3 flex w-full flex-col gap-3.5 rounded-[26px] bg-white p-5 text-[#0b1424] shadow-[0_24px_60px_rgba(0,0,0,0.5)] md:absolute md:mt-0 md:w-[300px] md:[bottom:var(--pop-bottom)] md:[left:var(--pop-left)] md:[right:var(--pop-right)] md:[top:var(--pop-top)]"
+                  style={
+                    {
+                      "--pop-left": selectedAt.x > 62 ? "auto" : `${Math.min(selectedAt.x + 4, 98)}%`,
+                      "--pop-right": selectedAt.x > 62 ? `${Math.max(1, 100 - selectedAt.x + 4)}%` : "auto",
+                      "--pop-top": selectedAt.y > 55 ? "auto" : `${selectedAt.y + 6}%`,
+                      "--pop-bottom": selectedAt.y > 55 ? `${Math.max(1, 100 - selectedAt.y + 6)}%` : "auto",
+                    } as CSSProperties
+                  }
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="numeric text-[0.6875rem] font-bold text-[#4a5672]">
+                        {selectedRegion.code}
+                      </span>
+                      <span className="text-[1.625rem] font-bold leading-none tracking-[-0.02em]">
+                        {t(selectedRegion.labelKey)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelected(null)}
+                      aria-label={t("region.close")}
+                      className="-mr-2 -mt-2 grid h-11 w-11 place-items-center rounded-full text-[#4a5672] hover:bg-[#eef2f8]"
+                    >
+                      <Icon name="x" className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <ul className="flex flex-wrap gap-1.5">
+                    {selectedRegion.categories.map((c) => (
+                      <li
+                        key={c.id}
+                        className="rounded-full px-2.5 py-1 text-[0.8125rem] font-semibold"
+                        style={{
+                          background: `color-mix(in srgb, ${selectedSkin?.color ?? "#5a6d92"} 14%, white)`,
+                          color: "#1d2740",
+                        }}
+                      >
+                        {t(c.labelKey)}
+                      </li>
+                    ))}
+                    {selectedChildren.map((child) => (
+                      <li
+                        key={child.id}
+                        className="rounded-full bg-[#eef2f8] px-2.5 py-1 text-[0.8125rem] font-semibold text-[#1d2740]"
+                      >
+                        {t(child.labelKey)} →
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="numeric flex justify-between text-xs text-[#4a5672]">
+                    <span>{t("region.best").toUpperCase()}</span>
+                    <span className="font-bold text-[#0b1424]">
+                      {selectedBest > 0 ? selectedBest : t("region.none")}
+                    </span>
+                  </div>
+                  <button
+                    ref={playRef}
+                    type="button"
+                    onClick={() => go(selected)}
+                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0b1424] px-5 font-bold text-[#c8ff3c] transition-transform active:scale-[0.98]"
+                  >
+                    {t("region.play", { name: t(selectedRegion.labelKey) })}
+                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+        </div>
+      </motion.section>
+
+      {/* lista: tilgjengelig inngang, og den eneste på en telefon */}
+      <nav aria-label={t("region.list")} className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="hud-label mr-1">{t("region.list")}</span>
         {[
+          { id: "world", labelKey: "region.world", color: REGION_COLOR.world },
           ...REGION_SKINS,
-          { id: "world", labelKey: "region.world", color: "var(--coast)" },
         ].map((skin) => {
           const best = bestForRegion(skin.id);
           return (
-            <li key={skin.id}>
-              <button
-                onClick={() => pick(skin.id)}
-                onMouseEnter={() => setHover(skin.id)}
-                onMouseLeave={() => setHover((h) => (h === skin.id ? null : h))}
-                className="tag flex items-center gap-2 px-3 py-1.5 text-sm font-semibold"
-              >
-                <span
-                  aria-hidden
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ background: skin.color }}
-                />
-                {t(skin.labelKey)}
-                {best > 0 && (
-                  <span className="numeric" style={{ color: "var(--gold)" }}>
-                    {best}
-                  </span>
-                )}
-              </button>
-            </li>
+            <button
+              key={skin.id}
+              type="button"
+              onClick={() => go(skin.id)}
+              onMouseEnter={() => setHover(skin.id)}
+              onMouseLeave={() => setHover((h) => (h === skin.id ? null : h))}
+              className="tag min-h-11 gap-2 py-1.5 pl-2.5 pr-4 text-[0.9375rem] font-semibold transition-colors hover:border-[var(--border-hover)]"
+            >
+              <span aria-hidden className="h-3 w-3 rounded-full" style={{ background: skin.color }} />
+              {t(skin.labelKey)}
+              {best > 0 && <span className="numeric text-[var(--gold)]">{best}</span>}
+            </button>
           );
         })}
-      </ul>
+      </nav>
     </div>
   );
 }
