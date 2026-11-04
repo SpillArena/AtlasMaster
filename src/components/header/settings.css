@@ -72,6 +72,7 @@
 .settings-language[aria-selected="true"] { font-weight: 600; }
 .settings-language svg { color: var(--color-primary); }
 .settings-themes {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
@@ -79,7 +80,18 @@
   border-radius: 10px;
   background: var(--map-idle);
 }
+.settings-theme-indicator {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
+  background: var(--surface-card);
+  pointer-events: none;
+}
+.settings-themes button > svg,
+.settings-theme-label { position: relative; }
 .settings-themes button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,8 +107,6 @@
 }
 .settings-themes button:hover { color: var(--text); }
 .settings-themes button[aria-pressed="true"] {
-  border-color: var(--color-primary);
-  background: var(--surface-card);
   color: var(--text);
 }
 .settings-panel .arena-storage { margin-top: 0; padding-top: 16px; }

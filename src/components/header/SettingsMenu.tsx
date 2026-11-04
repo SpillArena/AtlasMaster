@@ -1,6 +1,7 @@
 import { StorageSettings } from '../../ui/SiteShell'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { LayoutGroup, motion as fm, useReducedMotion } from 'framer-motion'
 import { FiCheck, FiMonitor, FiMoon, FiSettings, FiSun } from 'react-icons/fi'
 import './settings.css'
 import { SUPPORTED_LANGUAGES } from '../../lib/i18n'
@@ -73,6 +74,7 @@ export default function SettingsMenu() {
   const { i18n, t } = useTranslation()
   const { theme, setTheme } = useTheme()
   const { sound, motion, setSound, setMotion } = useGameSettings()
+  const prefersReducedMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
@@ -162,19 +164,31 @@ export default function SettingsMenu() {
           </Section>
 
           <Section title={t('settingsMenu.appearance')}>
-            <div className="settings-themes">
-              {THEME_OPTIONS.map(({ value, labelKey, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={theme === value}
-                  onClick={() => setTheme(value)}
-                >
-                  <Icon size={14} aria-hidden="true" />
-                  {t(labelKey)}
-                </button>
-              ))}
-            </div>
+            <LayoutGroup>
+              <div className="settings-themes">
+                {THEME_OPTIONS.map(({ value, labelKey, Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={theme === value}
+                    onClick={() => setTheme(value)}
+                  >
+                    {theme === value && (
+                      <fm.span
+                        aria-hidden="true"
+                        className="settings-theme-indicator"
+                        layoutId="settings-theme-indicator"
+                        transition={motion === 'reduced' || prefersReducedMotion
+                          ? { duration: 0 }
+                          : { type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
+                    <Icon size={14} aria-hidden="true" />
+                    <span className="settings-theme-label">{t(labelKey)}</span>
+                  </button>
+                ))}
+              </div>
+            </LayoutGroup>
           </Section>
 
           <Section title={t('settingsMenu.gameplay')}>
