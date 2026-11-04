@@ -24,6 +24,8 @@ import { feature } from 'topojson-client'
 import rewind from '@mapbox/geojson-rewind'
 import { clipGeometryToBox } from './lib/sources.mjs'
 
+import { writeCapitals, writeGeographyAdditions, writeCountryAliases } from './lib/geography-reference.mjs'
+
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '../src/data/europe/countries.json')
 
@@ -195,3 +197,8 @@ if (missing.size > 0) {
   const names = [...missing].map((c) => `${EUROPE.get(c)[0]} (${c})`).join(', ')
   console.warn(`Fantes ikke i datasettet: ${names}`)
 }
+
+writeCapitals('europe')
+writeGeographyAdditions()
+
+writeCountryAliases('europe')

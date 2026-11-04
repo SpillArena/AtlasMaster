@@ -17,6 +17,8 @@ import {
   lineStrings, naturalEarth, normaliseName, roundGeometry, thinLine, writeCollection,
 } from './lib/sources.mjs'
 
+import { writeCapitals, writeCountryAliases } from './lib/geography-reference.mjs'
+
 const northAmerica = {
   dir: 'north-america',
   countries: [28, 44, 52, 84, 124, 188, 192, 212, 214, 222, 308, 320, 332,
@@ -27,15 +29,6 @@ const northAmerica = {
     { minLon: -180, maxLon: -12, minLat: 7, maxLat: 85 },
     { minLon: 170, maxLon: 180, minLat: 50, maxLat: 55 },
   ],
-  capitals: {
-    ATG: "Saint John's", BHS: 'Nassau', BRB: 'Bridgetown', BLZ: 'Belmopan',
-    CAN: 'Ottawa', CRI: 'San José', CUB: ['Havanna', 'Havana'], DMA: 'Roseau',
-    DOM: 'Santo Domingo', SLV: 'San Salvador', GRD: "Saint George's",
-    GTM: ['Guatemala by', 'Guatemala City'], HTI: 'Port-au-Prince', HND: 'Tegucigalpa',
-    JAM: 'Kingston', MEX: ['Mexico by', 'Mexico City'], NIC: 'Managua',
-    PAN: ['Panama by', 'Panama City'], KNA: 'Basseterre', LCA: 'Castries',
-    VCT: 'Kingstown', TTO: 'Port of Spain', USA: 'Washington, D.C.',
-  },
   rivers: ['Mississippi', 'Missouri', 'Mackenzie', 'Yukon', 'St. Lawrence',
     'Colorado', 'Rio Grande', 'Columbia'],
   peaks: ['Denali', 'Mount Logan', 'Pico de Orizaba', 'Volcán Popocatépetl',
@@ -46,15 +39,6 @@ const oceania = {
   dir: 'oceania',
   countries: [36, 242, 296, 520, 554, 583, 584, 585, 598, 882, 90, 776, 798, 548],
   scenery: [16, 184, 316, 540, 570, 580, 574, 258, 612, 772, 876],
-  capitals: {
-    AUS: 'Canberra', FJI: 'Suva', KIR: ['Sør-Tarawa', 'South Tarawa'],
-    NRU: 'Yaren', NZL: 'Wellington', FSM: 'Palikir', MHL: 'Majuro',
-    PLW: 'Ngerulmud', PNG: 'Port Moresby', WSM: 'Apia', SLB: 'Honiara',
-    TON: "Nukuʻalofa", TUV: 'Funafuti', VUT: 'Port Vila',
-  },
-  // Nauru has no official capital; Yaren is the seat of government. Natural
-  // Earth still labels Palau's old capital, so use the actual Ngerulmud site.
-  capitalOverrides: { NRU: [166.921, -0.547], PLW: [134.624, 7.501] },
   boxes: [
     { minLon: 110, maxLon: 180, minLat: -50, maxLat: 22 },
     { minLon: -180, maxLon: -125, minLat: -50, maxLat: 10 },
@@ -65,7 +49,6 @@ const oceania = {
 }
 
 const keyFor = (name) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]/g, '')
-const namesFor = (name) => Array.isArray(name) ? { name: name[0], nameEn: name[1] } : { name, nameEn: name }
 const sort = (features) => features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
 
 function write(dir, file, features) {
@@ -93,15 +76,9 @@ async function buildContinent(config) {
   const outline = [...countries, ...config.scenery.filter((code) => byCode.has(code)).map((code) => select(code, false))]
   write(config.dir, 'countries', countries)
   write(config.dir, 'outline', outline)
+  writeCountryAliases(config.dir)
 
-  const places = await naturalEarth('ne_50m_populated_places')
-  const capitals = Object.entries(config.capitals).map(([code, name]) => {
-    const source = places.features.find((f) => f.properties.ADM0CAP === 1 && f.properties.ADM0_A3 === code)
-    const coordinates = config.capitalOverrides?.[code] ?? requireFeature(source, `capital ${code}`).geometry.coordinates
-    return { type: 'Feature', properties: { id: code, ...namesFor(name) },
-      geometry: roundGeometry({ type: 'Point', coordinates }) }
-  })
-  write(config.dir, 'capitals', capitals)
+  writeCapitals(config.dir)
 
   const coarse = await naturalEarth('ne_50m_rivers_lake_centerlines')
   let fine

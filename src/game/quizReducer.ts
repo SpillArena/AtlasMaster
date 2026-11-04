@@ -88,7 +88,9 @@ function genChoices(targetId: string, features: QuizFeature[]): string[] {
 }
 
 function normalize(s: string): string {
-  return s.toLowerCase().trim().replace(/\s+/g, ' ')
+  return s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+    .replace(/ø/g, 'o').replace(/æ/g, 'ae')
+    .replace(/[’‘ʻ`]/g, "'").trim().replace(/\s+/g, ' ')
 }
 
 /** Levenshtein-avstand for slingringsmonn på skriving. */
@@ -113,7 +115,7 @@ function matchesName(text: string, aliases: string[]): boolean {
   return aliases.some((alias) => {
     const b = normalize(alias)
     // tillat 1 feil for navn ≥ 5 tegn
-    return a === b || (b.length >= 5 && lev(a, b) <= 1)
+    return a === b || (b.length >= 5 && Math.abs(a.length - b.length) <= 1 && lev(a, b) <= 1)
   })
 }
 
@@ -127,7 +129,7 @@ export function init({ features, mode, pace }: InitArg): EngineState {
   const queue = shuffle(features.map((f) => f.id))
   const now = Date.now()
   return {
-    phase: 'playing',
+    phase: queue.length ? 'playing' : 'finished',
     mode,
     pace,
     queue,
@@ -145,7 +147,7 @@ export function init({ features, mode, pace }: InitArg): EngineState {
     questionStartedAt: now,
     award: null,
     startedAt: now,
-    finishedAt: null,
+    finishedAt: queue.length ? null : now,
   }
 }
 
@@ -314,11 +316,22 @@ export function reducer(
        * uansett. Regelen om at et svart sted aldri kan koste poeng hører
        * hjemme her, i motoren, ikke i et stilark.
        */
-      if (state.status[action.id]) return state
+      if (!features.some((f) => f.id === action.id)) return state
+      // Solved map shapes cannot be clicked again. In choice/flag modes,
+      // however, a solved place may still appear as a wrong alternative.
+      if (state.mode === 'click' && state.status[action.id]) return state
       return action.id === target ? scoreHit(state, features) : scoreMiss(state, action.id)
 
     case 'TYPE': {
       const aliases = features.find((f) => f.id === target)?.aliases ?? []
+      const answer = normalize(action.text)
+      const exactTarget = aliases.some((alias) => normalize(alias) === answer)
+      // Typo tolerance must not turn a different real answer (Mali → Malta,
+      // Togo → Tonga) into a correct one.
+      if (!exactTarget && features.some((f) => f.id !== target &&
+        f.aliases.some((alias) => normalize(alias) === answer))) {
+        return scoreMiss(state, target)
+      }
       return matchesName(action.text, aliases) ? scoreHit(state, features) : scoreMiss(state, target)
     }
 

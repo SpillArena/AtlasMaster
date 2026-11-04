@@ -8,6 +8,8 @@
     "build": "node node_modules/typescript7/bin/tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "data:geography": "node scripts/build-geography.mjs",
+    "check:facts": "node --experimental-strip-types --import ./scripts/lib/ts-register.mjs scripts/check-facts.mjs",
     "data:norway": "node scripts/build-norway.mjs",
     "data:europe": "node scripts/build-europe-countries.mjs",
     "data:asia": "node scripts/build-asia.mjs",
