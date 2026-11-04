@@ -105,37 +105,22 @@ It is the only region built from something other than Natural Earth or a
 `*-atlas` topology, and the only builder with an attribution requirement to
 carry: see the header of `scripts/build-norway.mjs`.
 
-**The order is not optional.** The builders write raw data; the two steps after
-make it playable, and both are one-time operations that cannot run twice on the
-same file:
+Capital and major-city rosters are reviewed snapshots in `scripts/data/`, with
+country identities and capital roles recorded separately from map geometry.
+Regenerate them deterministically with `npm run data:geography`. Regional
+builders call the same writer, so missing or former capitals do not return on
+regeneration. Reviewed European river/mountain additions are merged by stable id.
 
-```bash
-node scripts/build-europe-countries.mjs   # or whatever changed
-node scripts/optimise-geo.mjs             # cuts coordinate precision
-node scripts/simplify-geo.mjs src/data/europe/countries.json
-npm run check:geo                         # then check that it held
-```
+After rebuilding country geometry, run `npm run check:facts`,
+`npm run check:geo` and `npm run check:regions`. Preserve spherical polygons
+crossing the date line: dropping their rings deletes Russia's mainland and
+Fiji's Taveuni. The world builder already performs its own rounding and outline
+simplification; do not run obsolete, repeated simplification passes afterward.
 
-Name the files you rebuilt. `simplify-geo.mjs` with no arguments runs its whole
-list, and a second pass over a file eats what the first one left. Simplification
-stops when a feature would lose more than 15 % of its area **or** 5 % of its
-coastline. The second guard is the one that matters for a fjord: Sognefjorden is
-170 km long and 4 km wide, so removing it costs almost no area. Area alone is
-blind to the detail the map is for. Features whose largest single ring
-is under a degree are passed through untouched; there is nothing to remove from
-an atoll but the atoll.
-
-The geometry comes from outside; the names do not. Each builder keeps its own
-list of Norwegian and English names and takes only coordinates from the
-sources.
-
-`build-remaining-regions.mjs` follows the same cached-source pipeline and reuses
-the checked-in World country's geometry and three-digit flag ids. Rebuild World
-before these continents when the shared country geometry changes. The new
-builder needs no extra atlas/topology packages. Capitals, rivers, peaks,
-Antarctica and [marine boundaries](https://www.naturalearthdata.com/downloads/50m-physical-vectors/)
-come from Natural Earth. Yaren is used as Nauru's seat of government; Palau's
-capital is Ngerulmud rather than the old capital still labelled by the source.
+`build-remaining-regions.mjs` reuses the checked-in World geometry and padded
+flag ids. Rebuild World before those continents when shared country geometry
+changes. The [geography audit](GEOGRAPHY_AUDIT.md) documents country inclusion,
+capital exceptions, sources and validation limits.
 
 ## Migrations
 

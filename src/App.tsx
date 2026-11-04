@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MotionConfig, motion as fm } from 'framer-motion'
-import { Header, NamePrompt, ConfirmDialog, Logo } from './components/header'
-import { CategoryPicker, ModePicker, PacePicker, WorldMapPicker } from './components/menu'
-import { GameScreen } from './components/game'
-import { Leaderboard, LeaderboardPanel } from './components/leaderboard'
-import { ProfilePanel } from './components/profile'
+import { Header, NamePrompt, ConfirmDialog } from './components/header'
+import { WorldMapPicker } from './components/menu/WorldMapPicker'
+import { LeaderboardPanel } from './components/leaderboard/LeaderboardPanel'
 import { FooterSection } from './components/footer'
-import { BackgroundMap } from './components/BackgroundMap'
+import { LandingHero, ModeStrip } from './components/menu/Landing'
 import { useGameSettings } from './contexts/useGameSettings'
 import { DEFAULT_REGION_ID, getCategory, getRegion } from './game/regions'
 import { getName } from './game/leaderboard'
@@ -16,6 +14,15 @@ import type { Mode, Pace } from './game/types'
 import { AccountBadge, resolveIdentity } from './account'
 import { badgeLabels } from './game/badgeLabels'
 import { getProgress } from './game/progress'
+
+// Screens are loaded when visited; the landing page does not need the quiz,
+// world flag images, or every menu's rendering code.
+const GameScreen = lazy(() => import('./components/game/GameScreen').then((m) => ({ default: m.GameScreen })))
+const CategoryPicker = lazy(() => import('./components/menu/CategoryPicker').then((m) => ({ default: m.CategoryPicker })))
+const ModePicker = lazy(() => import('./components/menu/ModePicker').then((m) => ({ default: m.ModePicker })))
+const PacePicker = lazy(() => import('./components/menu/PacePicker').then((m) => ({ default: m.PacePicker })))
+const Leaderboard = lazy(() => import('./components/leaderboard/Leaderboard').then((m) => ({ default: m.Leaderboard })))
+const ProfilePanel = lazy(() => import('./components/profile/ProfilePanel').then((m) => ({ default: m.ProfilePanel })))
 
 function App() {
   const { t, i18n } = useTranslation()
@@ -139,7 +146,7 @@ function App() {
         active instanceof HTMLSelectElement ||
         (active instanceof HTMLElement && active.isContentEditable)
       ) return
-      // innstillingspanelet står i DOM-en hele tiden, lukket som `inert`
+      // ikke naviger bak et åpent dialogvindu
       if (document.querySelector('[role="dialog"]:not([inert]):not([aria-hidden="true"])')) return
       goBack()
     }
@@ -154,14 +161,10 @@ function App() {
         className="flex h-dvh flex-col overflow-hidden transition-colors duration-300"
         style={{ background: 'var(--bg)', color: 'var(--text)' }}
       >
-        {/* bakveggen viser regionen du står i — standardregionen før du har valgt */}
-        <BackgroundMap regionId={regionId ?? DEFAULT_REGION_ID} />
         <Header
           inGame={inGame}
           onHome={reset}
           onGiveUp={() => setConfirmGiveUp(true)}
-          onEditName={() => setShowProfile(true)}
-          profileVersion={profileVersion}
           trail={trail}
           account={
             <AccountBadge
@@ -189,58 +192,59 @@ function App() {
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain arena-main"
         >
-          {showLeaderboard ? (
-            <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} onBack={goBack} />
-          ) : !region ? (
-            <section
-              aria-label={t('menu.title')}
-              className="flex min-h-full flex-col justify-center gap-6 px-4 pt-6 sm:gap-8"
-            >
-              <div className="flex justify-center">
-                <h1>
-                  <Logo onClick={reset} size="large" />
-                </h1>
-              </div>
-              <WorldMapPicker onPick={setRegionId} />
-              {/*
-                Dashbordet viser tavla på tvers av alle regioner.
-                Den stod låst til standardregionen, altså Norge, på en skjerm
-                der ingen region er valgt enda: en spiller som bare spiller
-                Asia så aldri et eneste resultat av sitt eget der. API-et har
-                alltid støttet den regionsløse tavla — ingen skjerm ba om den.
-              */}
-              <LeaderboardPanel
-                key={profileVersion}
-                regionId="all"
-                onSeeAll={() => setShowLeaderboard(true)}
+          <Suspense fallback={<p role="status" className="p-6 text-center">{t('game.loading')}</p>}>
+            {showLeaderboard ? (
+              <Leaderboard regionId={regionId ?? DEFAULT_REGION_ID} onBack={goBack} />
+            ) : !region ? (
+              <section
+                aria-label={t('menu.title')}
+                className="flex min-h-full flex-col gap-4 pt-4 sm:pt-6"
+              >
+                <LandingHero />
+                <WorldMapPicker onPick={setRegionId} />
+                <ModeStrip />
+                {/*
+                  Dashbordet viser tavla på tvers av alle regioner.
+                  Den stod låst til standardregionen, altså Norge, på en skjerm
+                  der ingen region er valgt enda: en spiller som bare spiller
+                  Asia så aldri et eneste resultat av sitt eget der. API-et har
+                  alltid støttet den regionsløse tavla — ingen skjerm ba om den.
+                */}
+                <div className="mx-auto w-full max-w-[1360px] px-4 pb-6">
+                  <LeaderboardPanel
+                    key={profileVersion}
+                    regionId="all"
+                    onSeeAll={() => setShowLeaderboard(true)}
+                  />
+                </div>
+                <FooterSection />
+              </section>
+            ) : !category ? (
+              <CategoryPicker region={region} onPick={setCategoryId} onPickRegion={setRegionId} onBack={goBack} />
+            ) : !mode ? (
+              <ModePicker regionId={region.id} category={category} onPick={setMode} onBack={goBack} />
+            ) : !pace ? (
+              <PacePicker
+                regionId={region.id}
+                category={category}
+                mode={mode}
+                initialPace={lastPace}
+                onStart={startRound}
+                onBack={goBack}
               />
-              <FooterSection />
-            </section>
-          ) : !category ? (
-            <CategoryPicker region={region} onPick={setCategoryId} onPickRegion={setRegionId} onBack={goBack} />
-          ) : !mode ? (
-            <ModePicker regionId={region.id} category={category} onPick={setMode} onBack={goBack} />
-          ) : !pace ? (
-            <PacePicker
-              regionId={region.id}
-              category={category}
-              mode={mode}
-              initialPace={lastPace}
-              onStart={startRound}
-              onBack={goBack}
-            />
-          ) : (
-            <GameScreen
-              key={`${region.id}-${category.id}-${mode}-${pace}`}
-              regionId={region.id}
-              categoryId={category.id}
-              mode={mode}
-              pace={pace}
-              onMenu={reset}
-              onLeaderboard={() => setShowLeaderboard(true)}
-              onRunRecorded={() => setProfileVersion((v) => v + 1)}
-            />
-          )}
+            ) : (
+              <GameScreen
+                key={`${region.id}-${category.id}-${mode}-${pace}`}
+                regionId={region.id}
+                categoryId={category.id}
+                mode={mode}
+                pace={pace}
+                onMenu={reset}
+                onLeaderboard={() => setShowLeaderboard(true)}
+                onRunRecorded={() => setProfileVersion((v) => v + 1)}
+              />
+            )}
+          </Suspense>
         </fm.main>
 
         {pendingPace && (
@@ -269,13 +273,15 @@ function App() {
         )}
 
         {showProfile && (
-          <ProfilePanel
-            onAccount={() => {
-              setShowProfile(false)
-              setEditingName(true)
-            }}
-            onClose={() => setShowProfile(false)}
-          />
+          <Suspense fallback={null}>
+            <ProfilePanel
+              onAccount={() => {
+                setShowProfile(false)
+                setEditingName(true)
+              }}
+              onClose={() => setShowProfile(false)}
+            />
+          </Suspense>
         )}
 
         {editingName && (

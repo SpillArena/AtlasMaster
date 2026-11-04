@@ -26,7 +26,7 @@ import {
 import { setName } from './leaderboard'
 
 export type { AuthAction, AuthResult, Session } from '../account'
-export { forgetSession, getSession, isSignedIn, onSessionChange, signOut } from '../account'
+export { getSession, isSignedIn, onSessionChange, signOut } from '../account'
 
 /** Nøkkelen økten lå under før kontoene ble felles. */
 const LEGACY_STORAGE_KEY = 'auth'

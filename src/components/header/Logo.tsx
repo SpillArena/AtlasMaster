@@ -50,7 +50,7 @@ export function Logo({ onClick, size = 'small' }: Props) {
           className="absolute -inset-8 rounded-full blur-2xl animate-breathe"
           style={{
             background:
-              'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%)',
+              'radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--color-primary) 55%, transparent), transparent 70%)',
           }}
         />
         <div

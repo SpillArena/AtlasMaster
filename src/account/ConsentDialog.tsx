@@ -257,7 +257,7 @@ const CSS = `
   .sac-foot { border-top-color: rgba(255, 255, 255, 0.12); }
   .sac-btn--no { border-color: rgba(255, 255, 255, 0.18); }
   .sac-btn--no:hover { background: rgba(255, 255, 255, 0.06); }
-  /* the dark-mode accent is a light shade; white on it is hard to read */
+  /* the dark-mode button background is a light shade; white on it is hard to read */
   .sac-btn--yes, .sac-pill__on { background: #a78bfa; color: #14140f; }
   .sac-pill { background: rgba(29, 30, 23, 0.94); color: #edefe4; border-color: rgba(255, 255, 255, 0.14); }
   .sac-pill__warn { color: #fbbf24; }

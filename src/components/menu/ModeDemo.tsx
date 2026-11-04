@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import './mode-demo.css'
 import type { Mode } from '../../game/types'
 
 /**
@@ -8,7 +8,7 @@ import type { Mode } from '../../game/types'
 
 function ClickDemo() {
   return (
-    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 80" className="mode-demo h-full w-full" aria-hidden>
       {/* landflate — antydning av et kart, ikke et ekte omriss */}
       <path
         d="M28 62 L22 44 L30 30 L44 20 L58 24 L66 14 L78 20 L84 36 L76 52 L60 64 L42 68 Z"
@@ -18,38 +18,34 @@ function ClickDemo() {
       />
       <path
         d="M58 24 L66 14 L78 20 L84 36 L76 52 L64 46 Z"
-        fill="color-mix(in srgb, var(--accent) 45%, transparent)"
+        fill="color-mix(in srgb, var(--color-primary) 45%, transparent)"
       />
       {/* markøren sikter seg inn */}
-      <motion.g
-        animate={{ x: [0, 6, 0], y: [0, -4, 0] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <motion.circle
+      <g className="mode-demo-aim">
+        <circle
           cx="72"
           cy="34"
           fill="none"
-          stroke="var(--accent)"
+          stroke="var(--color-primary)"
           strokeWidth="2"
-          initial={{ r: 8 }}
-          animate={{ r: [8, 14, 8], opacity: [0.9, 0, 0.9] }}
-          transition={{ duration: 1.8, repeat: Infinity }}
+          r={8}
+          className="mode-demo-ring"
         />
-        <circle cx="72" cy="34" r="3.5" fill="var(--accent)" />
+        <circle cx="72" cy="34" r="3.5" fill="var(--color-primary)" />
         <path
           d="M72 22 v6 M72 40 v6 M60 34 h6 M78 34 h6"
-          stroke="var(--accent)"
+          stroke="var(--color-primary)"
           strokeWidth="1.6"
           strokeLinecap="round"
         />
-      </motion.g>
+      </g>
     </svg>
   )
 }
 
 function ChoiceDemo() {
   return (
-    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 80" className="mode-demo h-full w-full" aria-hidden>
       {[0, 1, 2, 3].map((i) => {
         const y = 8 + i * 18
         const isAnswer = i === 2
@@ -61,8 +57,8 @@ function ChoiceDemo() {
               width="100"
               height="13"
               rx="6.5"
-              fill={isAnswer ? 'color-mix(in srgb, var(--accent) 22%, transparent)' : 'var(--map-idle)'}
-              stroke={isAnswer ? 'var(--accent)' : 'var(--border)'}
+              fill={isAnswer ? 'color-mix(in srgb, var(--color-primary) 22%, transparent)' : 'var(--map-idle)'}
+              stroke={isAnswer ? 'var(--color-primary)' : 'var(--border)'}
               strokeWidth="1.4"
             />
             <rect
@@ -71,21 +67,20 @@ function ChoiceDemo() {
               width={isAnswer ? 52 : 34 + i * 8}
               height="4"
               rx="2"
-              fill={isAnswer ? 'var(--accent)' : 'var(--text-subtle)'}
+              fill={isAnswer ? 'var(--color-primary)' : 'var(--text-subtle)'}
               opacity={isAnswer ? 0.9 : 0.4}
             />
             {isAnswer && (
-              <motion.rect
+              <rect
                 x="10"
                 y={y}
                 width="100"
                 height="13"
                 rx="6.5"
                 fill="none"
-                stroke="var(--accent)"
+                stroke="var(--color-primary)"
                 strokeWidth="2"
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                className="mode-demo-pulse"
               />
             )}
           </g>
@@ -98,7 +93,7 @@ function ChoiceDemo() {
 function TypeDemo() {
   const letters = 'TROMSØ'.split('')
   return (
-    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 80" className="mode-demo h-full w-full" aria-hidden>
       <rect
         x="10"
         y="26"
@@ -110,7 +105,7 @@ function TypeDemo() {
         strokeWidth="1.4"
       />
       {letters.map((letter, i) => (
-        <motion.text
+        <text
           key={letter + i}
           x={21 + i * 12}
           y="45"
@@ -118,28 +113,18 @@ function TypeDemo() {
           fontSize="12"
           fontWeight="700"
           fill="var(--text)"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0, 1, 1, 0] }}
-          transition={{
-            duration: 3.6,
-            repeat: Infinity,
-            times: [0, 0.08 + i * 0.07, 0.16 + i * 0.07, 0.86, 0.95],
-          }}
         >
           {letter}
-        </motion.text>
+        </text>
       ))}
       {/* skrivemarkør */}
-      <motion.rect
+      <rect
         y="34"
         width="2"
         height="13"
-        fill="var(--accent)"
-        animate={{
-          x: [21, 21 + letters.length * 12, 21],
-          opacity: [1, 1, 0.2, 1],
-        }}
-        transition={{ duration: 3.6, repeat: Infinity, times: [0, 0.5, 0.9, 1] }}
+        fill="var(--color-primary)"
+        x="93"
+        className="mode-demo-cursor"
       />
     </svg>
   )
@@ -148,22 +133,22 @@ function TypeDemo() {
 /** Se flagget, velg landet: et flagg over, fire navnestriper under. */
 function FlagDemo() {
   return (
-    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 80" className="mode-demo h-full w-full" aria-hidden>
       <g>
         <rect x="34" y="8" width="52" height="24" rx="2" fill="var(--map-idle)" stroke="var(--border)" strokeWidth="1.4" />
-        <rect x="34" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--accent) 55%, transparent)" />
-        <rect x="68.7" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--accent) 25%, transparent)" />
+        <rect x="34" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--color-primary) 55%, transparent)" />
+        <rect x="68.7" y="8" width="17.3" height="24" fill="color-mix(in srgb, var(--color-primary) 25%, transparent)" />
       </g>
       {[0, 1].map((i) => (
         <rect key={i} x={10 + i * 52} y="44" width="48" height="12" rx="6" fill="var(--map-idle)" stroke="var(--border)" strokeWidth="1.3" />
       ))}
       {[0, 1].map((i) => (
         <rect key={`b${i}`} x={10 + i * 52} y="62" width="48" height="12" rx="6"
-          fill={i === 0 ? 'color-mix(in srgb, var(--accent) 22%, transparent)' : 'var(--map-idle)'}
-          stroke={i === 0 ? 'var(--accent)' : 'var(--border)'} strokeWidth="1.3" />
+          fill={i === 0 ? 'color-mix(in srgb, var(--color-primary) 22%, transparent)' : 'var(--map-idle)'}
+          stroke={i === 0 ? 'var(--color-primary)' : 'var(--border)'} strokeWidth="1.3" />
       ))}
-      <motion.rect x="8" y="60" width="52" height="16" rx="7" fill="none" stroke="var(--accent)" strokeWidth="2"
-        animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }} />
+      <rect x="8" y="60" width="52" height="16" rx="7" fill="none" stroke="var(--color-primary)" strokeWidth="2"
+        className="mode-demo-pulse" />
     </svg>
   )
 }
@@ -171,18 +156,18 @@ function FlagDemo() {
 /** Se landet, velg flagget: fire flagg-ruter, én rammet inn. */
 function PickDemo() {
   return (
-    <svg viewBox="0 0 120 80" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 80" className="mode-demo h-full w-full" aria-hidden>
       {[0, 1, 2, 3].map((i) => {
         const x = 12 + (i % 2) * 52
         const y = 8 + Math.floor(i / 2) * 34
         const answer = i === 2
         return (
           <g key={i}>
-            <rect x={x} y={y} width="44" height="26" rx="2" fill="var(--map-idle)" stroke={answer ? 'var(--accent)' : 'var(--border)'} strokeWidth={answer ? 2 : 1.3} />
-            <rect x={x} y={y} width="44" height={13} fill="color-mix(in srgb, var(--accent) 30%, transparent)" />
+            <rect x={x} y={y} width="44" height="26" rx="2" fill="var(--map-idle)" stroke={answer ? 'var(--color-primary)' : 'var(--border)'} strokeWidth={answer ? 2 : 1.3} />
+            <rect x={x} y={y} width="44" height={13} fill="color-mix(in srgb, var(--color-primary) 30%, transparent)" />
             {answer && (
-              <motion.rect x={x - 2} y={y - 2} width="48" height="30" rx="3" fill="none" stroke="var(--accent)" strokeWidth="2"
-                animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }} />
+              <rect x={x - 2} y={y - 2} width="48" height="30" rx="3" fill="none" stroke="var(--color-primary)" strokeWidth="2"
+                className="mode-demo-pulse" />
             )}
           </g>
         )

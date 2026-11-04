@@ -12,8 +12,8 @@ const ITEMS: ConsentItem[] = [
     en: { title: 'Your name and your results', body: 'The name you play under, and your results on this device.' },
   },
   {
-    no: { title: 'Innstillingene dine', body: 'Tema, farge, språk, lyd, animasjoner og tempo.' },
-    en: { title: 'Your settings', body: 'Theme, color, language, sound, animations and pace.' },
+    no: { title: 'Innstillingene dine', body: 'Tema, språk, lyd, animasjoner og tempo.' },
+    en: { title: 'Your settings', body: 'Theme, language, sound, animations and pace.' },
   },
 ]
 

@@ -119,7 +119,7 @@ const STATE_COLOR: Record<ShapeState, string> = {
 
 const POINT_COLOR: Record<ShapeState, string> = {
   ...STATE_COLOR,
-  idle: 'var(--accent)',
+  idle: 'var(--color-primary)',
 }
 
 /*
@@ -162,9 +162,8 @@ interface Props {
 }
 
 /**
- * Kartet re-renderer bare når spillet faktisk endrer seg. `GameScreen` tegner
- * seg selv på nytt hver 100 ms for klokka; uten denne grensa ville hele
- * kartet — flere hundre baner — bli avstemt ti ganger i sekundet.
+ * Kartet tegnes bare på nytt når spillet faktisk endrer seg. Klokka har
+ * egen tilstand, og zoom skriver til kompositorlaget uten å avstemme banene.
  */
 export const MapCanvas = memo(function MapCanvas({
   projectionSpec,
@@ -197,8 +196,17 @@ export const MapCanvas = memo(function MapCanvas({
     const W = Math.round(H * naturalAspect(projectionSpec, fitData))
     const projection = makeProjection(projectionSpec, fitData, W, H)
     const path = makePath(projection)
+    const pathCache = new Map<GeoJSON.Geometry, string>()
+    const pathFor = (geometry: GeoJSON.Geometry) => {
+      let d = pathCache.get(geometry)
+      if (d === undefined) {
+        d = path(geometry) ?? ''
+        pathCache.set(geometry, d)
+      }
+      return d
+    }
     const basePaths = baseData
-      ? baseData.features.map((f, i) => ({ id: `base-${i}`, d: path(f.geometry) ?? '' }))
+      ? baseData.features.map((f, i) => ({ id: `base-${i}`, d: pathFor(f.geometry) }))
       : []
 
     /*
@@ -209,7 +217,7 @@ export const MapCanvas = memo(function MapCanvas({
       type: 'GeometryCollection',
       geometries: (baseData ?? fitData).features.map((f) => f.geometry),
     }
-    const land = path(landGeometry) ?? ''
+    const land = (baseData ?? fitData).features.map((f) => pathFor(f.geometry)).join('')
     // sokkelstripa kjører på en grovere kopi — se SHELF_TOLERANCE
     const shelf = makeCoarsePath(projection, SHELF_TOLERANCE)(landGeometry) ?? ''
 
@@ -273,7 +281,7 @@ export const MapCanvas = memo(function MapCanvas({
       const inView = c[0] >= 0 && c[0] <= W && c[1] >= 0 && c[1] <= H
       const size = Number.isFinite(x0) && (surface !== 'water' || inView)
         ? (surface === 'water' ? Math.min : Math.max)(x1 - x0, y1 - y0) : Infinity
-      return { id: f.id, d: path(f.geometry) ?? '', cx: c[0], cy: c[1], size, bounds }
+      return { id: f.id, d: pathFor(f.geometry), cx: c[0], cy: c[1], size, bounds }
     })
     return { paths: measured, points: [], basePaths, land, shelf, graticule, centers, W }
   }, [projectionSpec, fitData, baseData, features, geom, surface])
@@ -335,7 +343,9 @@ export const MapCanvas = memo(function MapCanvas({
       const layer = layerRef.current
       if (!t || !layer) return
       layer.style.transition = smooth ? 'transform 0.4s ease' : 'none'
-      layer.setAttribute('transform', t.toString())
+      // A CSS transform lets the compositor move the map during a drag,
+      // instead of invalidating SVG geometry for every pointer event.
+      layer.style.transform = `translate(${t.x}px, ${t.y}px) scale(${t.k})`
       const stepped = Math.max(1, Math.round(t.k / K_STEP) * K_STEP)
       if (stepped !== lastK) {
         lastK = stepped
@@ -440,11 +450,11 @@ export const MapCanvas = memo(function MapCanvas({
 
         {/*
           Transformen på denne gruppa blir satt imperativt av zoom-effekten
-          over. Derfor står det ingen `transform`-prop her: hadde React eid
-          attributtet, ville hver rendring dratt kartet tilbake til den siste
+          over. Derfor står det ingen transform-verdi i React-stilen her:
+          ellers ville hver rendring dratt kartet tilbake til den siste
           verdien React kjenner, midt i en gest.
         */}
-        <g ref={layerRef}>
+        <g ref={layerRef} style={{ willChange: 'transform', transformOrigin: '0 0' }}>
           {surface !== 'water' && (
             <BaseMap land={land} shelf={shelf} graticule={graticule} basePaths={basePaths} />
           )}
@@ -883,7 +893,7 @@ const FeatureShape = memo(function FeatureShape({
         state === 'target' ? 'animate-breathe' : '',
         clickable
           ? isLine
-            ? 'cursor-pointer hover:stroke-[var(--accent)]'
+            ? 'cursor-pointer hover:stroke-[var(--color-primary)]'
             : 'cursor-pointer hover:fill-[var(--map-idle-hover)]'
           // A solved sea still blocks the larger ocean underneath. It has
           // no data-id, so clicking it cannot submit another ocean answer.

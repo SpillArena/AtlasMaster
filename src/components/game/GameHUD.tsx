@@ -278,7 +278,7 @@ function ChoiceButtons({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
-            className="flex w-full items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)] sm:text-base"
+            className="flex w-full items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm font-bold transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--color-primary)] hover:bg-[var(--surface-card)] sm:text-base"
             style={{
               borderColor: revealId === c.id ? 'var(--info)' : 'var(--border)',
               background: 'var(--surface)',
@@ -341,7 +341,7 @@ function FlagChoiceButtons({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
-            className="flex w-full flex-col items-center gap-1 rounded-xl border-2 px-2 py-2 transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--accent)] hover:bg-[var(--surface-card)]"
+            className="flex w-full flex-col items-center gap-1 rounded-xl border-2 px-2 py-2 transition-[transform,border-color,background-color] duration-100 hover:-translate-y-[1px] hover:border-[var(--color-primary)] hover:bg-[var(--surface-card)]"
             style={{
               borderColor: revealId === c.id ? 'var(--info)' : 'var(--border)',
               background: 'var(--surface)',
@@ -386,7 +386,7 @@ function TypeInput({ onType }: { onType: (text: string) => void }) {
         autoComplete="off"
         autoCorrect="off"
         placeholder={t('hud.typePlaceholder')}
-        className="flex-1 rounded-xl border-2 px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)]"
+        className="flex-1 rounded-xl border-2 px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--color-primary)]"
         style={{
           borderColor: 'var(--border)',
           background: 'var(--surface)',

@@ -254,11 +254,6 @@ function newlyEarned(before: Progress, after: Progress): string[] {
   return earnedBadgeIds(after).filter((id) => !had.has(id))
 }
 
-/** Glemmer profilen i minnet — kalles når lagrede data slettes. */
-export function forgetProgress(): void {
-  session = null
-}
-
 const OWNER_KEY = 'progressOwner'
 
 /**

@@ -26,6 +26,8 @@ import {
   writeCollection,
 } from './lib/sources.mjs'
 
+import { writeCapitals, writeCountryAliases } from './lib/geography-reference.mjs'
+
 const OUT = resolve(ROOT, 'src/data/africa')
 
 /**
@@ -81,74 +83,6 @@ const COUNTRIES = new Map([
   [768, ['Togo', 'Togo']], [788, ['Tunisia', 'Tunisia']],
   [800, ['Uganda', 'Uganda']], [894, ['Zambia', 'Zambia']],
   [716, ['Zimbabwe', 'Zimbabwe']],
-])
-
-/**
- * ISO-3 landkode → [norsk navn, engelsk navn] for hovedstaden.
- *
- * De fleste rader plukkes rett fra `ne_50m_populated_places` sin
- * `ADM0CAP === 1`-flagg. Fire land trenger hjelp:
- *
- * - Sør-Afrika har tre ADM0CAP-rader (Pretoria, Kapstaden, Bloemfontein) —
- *   `CAPITAL_NAME_OVERRIDE` sikrer at det er nettopp Pretoria-raden som
- *   plukkes, ikke bare den som står først i kildefila.
- * - Elfenbenskysten har to (Yamoussoukro, Abidjan) — samme fiks, for
- *   Yamoussoukro, den grunnlovfestede hovedstaden.
- * - Benin og Tanzania har bare én ADM0CAP-rad hver i dette datasettet
- *   (Cotonou og Dar es Salaam — de facto regjeringssentre), mens
- *   Porto-Novo og Dodoma, de grunnlovfestede hovedstedene, ligger i samme
- *   fil med `ADM0CAP: 0`. `CAPITAL_AT_OVERRIDE` henter koordinatene deres
- *   direkte derfra.
- * - Sør-Sudan mangler helt fra ADM0CAP-utvalget — datasettet ser ut til å
- *   stamme fra før 2011. Juba finnes likevel i fila under sitt eget navn,
- *   bare uflagget, så koordinatene er hentet derfra på samme måte.
- */
-const CAPITALS = new Map([
-  ['DZA', ['Alger', 'Algiers']], ['AGO', ['Luanda', 'Luanda']],
-  ['BEN', ['Porto-Novo', 'Porto-Novo']], ['BWA', ['Gaborone', 'Gaborone']],
-  ['BFA', ['Ouagadougou', 'Ouagadougou']], ['BDI', ['Bujumbura', 'Bujumbura']],
-  ['CPV', ['Praia', 'Praia']], ['CMR', ['Yaoundé', 'Yaoundé']],
-  ['CAF', ['Bangui', 'Bangui']], ['TCD', ["N'Djamena", "N'Djamena"]],
-  ['COM', ['Moroni', 'Moroni']], ['COD', ['Kinshasa', 'Kinshasa']],
-  ['COG', ['Brazzaville', 'Brazzaville']], ['CIV', ['Yamoussoukro', 'Yamoussoukro']],
-  ['DJI', ['Djibouti', 'Djibouti']], ['EGY', ['Kairo', 'Cairo']],
-  ['GNQ', ['Malabo', 'Malabo']], ['ERI', ['Asmara', 'Asmara']],
-  ['SWZ', ['Mbabane', 'Mbabane']], ['ETH', ['Addis Abeba', 'Addis Ababa']],
-  ['GAB', ['Libreville', 'Libreville']], ['GMB', ['Banjul', 'Banjul']],
-  ['GHA', ['Accra', 'Accra']], ['GIN', ['Conakry', 'Conakry']],
-  ['GNB', ['Bissau', 'Bissau']], ['KEN', ['Nairobi', 'Nairobi']],
-  ['LSO', ['Maseru', 'Maseru']], ['LBR', ['Monrovia', 'Monrovia']],
-  ['LBY', ['Tripoli', 'Tripoli']], ['MDG', ['Antananarivo', 'Antananarivo']],
-  ['MWI', ['Lilongwe', 'Lilongwe']], ['MLI', ['Bamako', 'Bamako']],
-  ['MRT', ['Nouakchott', 'Nouakchott']], ['MUS', ['Port Louis', 'Port Louis']],
-  ['MAR', ['Rabat', 'Rabat']], ['MOZ', ['Maputo', 'Maputo']],
-  ['NAM', ['Windhoek', 'Windhoek']], ['NER', ['Niamey', 'Niamey']],
-  ['NGA', ['Abuja', 'Abuja']], ['RWA', ['Kigali', 'Kigali']],
-  ['STP', ['São Tomé', 'São Tomé']], ['SEN', ['Dakar', 'Dakar']],
-  ['SYC', ['Victoria', 'Victoria']], ['SLE', ['Freetown', 'Freetown']],
-  ['SOM', ['Mogadishu', 'Mogadishu']], ['ZAF', ['Pretoria', 'Pretoria']],
-  ['SSD', ['Juba', 'Juba']], ['SDN', ['Khartoum', 'Khartoum']],
-  ['TZA', ['Dodoma', 'Dodoma']], ['TGO', ['Lomé', 'Lomé']],
-  ['TUN', ['Tunis', 'Tunis']], ['UGA', ['Kampala', 'Kampala']],
-  ['ZMB', ['Lusaka', 'Lusaka']], ['ZWE', ['Harare', 'Harare']],
-])
-
-/** Land med mer enn én ADM0CAP-rad — bare denne NE-`NAME`-verdien godtas. */
-const CAPITAL_NAME_OVERRIDE = new Map([
-  ['ZAF', 'Pretoria'],
-  ['CIV', 'Yamoussoukro'],
-])
-
-/**
- * Land der den grunnlovfestede hovedstaden ikke er ADM0CAP-flagget i
- * kildedataene. Koordinatene er hentet manuelt fra det samme
- * `ne_50m_populated_places`-datasettet (raden finnes, bare uflagget), unntatt
- * Sør-Sudan, som mangler helt og har fått Jubas offentlig kjente koordinater.
- */
-const CAPITAL_AT_OVERRIDE = new Map([
-  ['BEN', [2.617, 6.483]],
-  ['TZA', [35.75, -6.183]],
-  ['SSD', [31.58, 4.83]],
 ])
 
 /**
@@ -266,44 +200,7 @@ async function buildCountries() {
 }
 
 async function buildCapitals() {
-  const places = await naturalEarth('ne_50m_populated_places')
-  const features = []
-  const missing = new Set(CAPITALS.keys())
-
-  for (const f of places.features) {
-    const p = f.properties
-    if (p.ADM0CAP !== 1 || !missing.has(p.ADM0_A3)) continue
-    // Benin og Tanzania har en ADM0CAP-rad hver, men det er regjeringssetet
-    // (Cotonou, Dar es Salaam), ikke den grunnlovfestede hovedstaden — de
-    // skal forbi denne løkka og hentes fra `CAPITAL_AT_OVERRIDE` under.
-    if (CAPITAL_AT_OVERRIDE.has(p.ADM0_A3)) continue
-    const expectedName = CAPITAL_NAME_OVERRIDE.get(p.ADM0_A3)
-    if (expectedName && p.NAME !== expectedName) continue
-    missing.delete(p.ADM0_A3)
-    const [name, nameEn] = CAPITALS.get(p.ADM0_A3)
-    features.push({
-      type: 'Feature',
-      properties: { id: name.replace(/[^A-Za-z]/g, ''), name, nameEn },
-      geometry: roundGeometry(f.geometry),
-    })
-  }
-
-  // Landene der ADM0CAP-flagget peker feil vei eller mangler helt — se
-  // kommentaren over CAPITAL_AT_OVERRIDE.
-  for (const [iso3, at] of CAPITAL_AT_OVERRIDE) {
-    if (!missing.has(iso3)) continue
-    missing.delete(iso3)
-    const [name, nameEn] = CAPITALS.get(iso3)
-    features.push({
-      type: 'Feature',
-      properties: { id: name.replace(/[^A-Za-z]/g, ''), name, nameEn },
-      geometry: { type: 'Point', coordinates: at },
-    })
-  }
-
-  features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
-  writeCollection(resolve(OUT, 'capitals.json'), features)
-  if (missing.size > 0) console.warn(`  ! uten treff: ${[...missing].join(', ')}`)
+  writeCapitals('africa')
 }
 
 async function buildRivers() {
@@ -395,3 +292,5 @@ await buildCountries()
 await buildCapitals()
 await buildRivers()
 await buildPeaks()
+
+writeCountryAliases('africa')

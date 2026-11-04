@@ -126,7 +126,7 @@ export const GameTopBar = memo(function GameTopBar({
                 style={{
                   width: `${pct}%`,
                   background:
-                    "linear-gradient(90deg, var(--accent), var(--gold))",
+                    "linear-gradient(90deg, var(--color-primary), var(--gold))",
                 }}
               />
             </div>

@@ -36,7 +36,7 @@ export function LeaderboardRow({ entry, place, variant = 'full', isMe = false }:
   const tone = RANK_TONE[place]
   const compact = variant === 'compact'
 
-  const edge = isMe ? 'var(--accent)' : tone
+  const edge = isMe ? 'var(--color-primary)' : tone
   return (
     <div
       className={`flex items-center gap-3 ${compact ? 'px-1 py-2' : 'plate p-3'}`}
@@ -44,7 +44,7 @@ export function LeaderboardRow({ entry, place, variant = 'full', isMe = false }:
         ...(!compact && edge
           ? { borderColor: `color-mix(in srgb, ${edge} ${isMe ? 70 : 45}%, transparent)` }
           : undefined),
-        ...(isMe ? { background: 'color-mix(in srgb, var(--accent) 10%, transparent)' } : undefined),
+        ...(isMe ? { background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' } : undefined),
       }}
     >
       <span
@@ -75,7 +75,7 @@ export function LeaderboardRow({ entry, place, variant = 'full', isMe = false }:
               {entry.bestStreak != null && entry.bestStreak > 1 && (
                 <>
                   <span aria-hidden>·</span>
-                  <span className="numeric" style={{ color: 'var(--accent)' }}>
+                  <span className="numeric" style={{ color: 'var(--color-primary)' }}>
                     {t('hud.streak', { count: entry.bestStreak })}
                   </span>
                 </>

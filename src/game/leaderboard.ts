@@ -69,9 +69,3 @@ export function addEntry(entry: Omit<Entry, 'id' | 'date'>): Entry {
   writePreference(SCORES_KEY, JSON.stringify(entries))
   return full
 }
-
-/** Glemmer navn og resultater i minnet — kalles når lagrede data slettes. */
-export function forgetLeaderboard(): void {
-  sessionName = null
-  sessionEntries = null
-}

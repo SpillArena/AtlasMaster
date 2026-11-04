@@ -135,5 +135,33 @@ const other = (state) => features.find((f) => f.id !== state.queue[0]).id
   check('rekka er hel', s.bestStreak, features.length)
 }
 
+// --- solved distractors still count as wrong choices ---------------------
+for (const mode of ['choice', 'flag', 'pick']) {
+  let s = start(mode)
+  const solved = s.queue[0]
+  s = send(s, { t: 'GUESS', id: solved })
+  s = send(s, { t: 'GUESS', id: solved })
+  check(`${mode}: solved distractor is a wrong answer`, s.phase, 'reveal')
+  check(`${mode}: solved distractor adds one mistake`, s.mistakes, 1)
+}
+
+// --- real alternatives cannot be accepted as typos ----------------------
+const names = ['Mali', 'Malta', 'Togo', 'Tonga', 'São Tomé and Príncipe', 'Tromsø']
+const named = names.map((name) => ({ id: name, name, aliases: [name], geometry: { type: 'Point', coordinates: [0, 0] } }))
+const namedState = (target) => ({ ...init({ features: named, mode: 'type', pace: 'normal' }), queue: [target, ...names.filter((n) => n !== target)] })
+for (const [target, text, correct] of [
+  ['Malta', 'Mali', false], ['Tonga', 'Togo', false],
+  ['Malta', 'Maltta', true], ['São Tomé and Príncipe', 'Sao Tome and Principe', true],
+  ['Tromsø', 'Tromso', true],
+]) {
+  const s = reducer(namedState(target), { t: 'TYPE', text }, named)
+  check(`${text} answering ${target}`, s.status[target] === 'correct', correct)
+}
+{
+  const s = start()
+  check('unknown ids are ignored', send(s, { t: 'GUESS', id: 'not-a-place' }), s)
+  check('empty datasets finish immediately', init({ features: [], mode: 'click', pace: 'normal' }).phase, 'finished')
+}
+
 console.log(failures === 0 ? '\nAlle sjekker gikk gjennom.' : `\n${failures} sjekk(er) feilet.`)
 process.exit(failures === 0 ? 0 : 1)

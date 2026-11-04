@@ -271,7 +271,7 @@ function Shell({
 function Field({ icon, children }: { icon: 'user' | 'seal'; children: React.ReactNode }) {
   return (
     <div
-      className="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors focus-within:border-[var(--accent)]"
+      className="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors focus-within:border-[var(--color-primary)]"
       style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
     >
       <Icon name={icon} className="h-4 w-4 shrink-0" style={{ color: 'var(--text-subtle)' }} />

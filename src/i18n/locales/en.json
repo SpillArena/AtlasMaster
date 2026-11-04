@@ -13,8 +13,6 @@
   "settingsMenu": {
     "settings": "Settings",
     "appearance": "Appearance",
-    "accentColor": "Accent color",
-    "chooseAccent": "Choose accent color",
     "gameplay": "Gameplay",
     "sound": "Sound effects",
     "reduceMotion": "Reduce motion",
@@ -28,10 +26,17 @@
     "normalDesc": "The standard run. Full points.",
     "blitzDesc": "Everything you land is worth 40% more.",
     "title": "Set the pace",
-    "start": "Begin expedition",
+    "start": "Start round",
     "seconds": "{{count}} seconds per place",
     "noClock": "No clock",
-    "beat": "Your best here: {{score}}"
+    "beat": "Your best here: {{score}}",
+    "summary": "Your round",
+    "region": "Region",
+    "category": "Category",
+    "mode": "Mode",
+    "pace": "Pace",
+    "clock": "Clock",
+    "guestHint": "Guests are asked for a name first"
   },
   "cookieConsent": {
     "section": "Privacy",
@@ -44,13 +49,10 @@
     "statusAccepted": "The game remembers you on this device, and your results reach the global leaderboard.",
     "statusDeclined": "Nothing is stored on this device. While you're signed in, progress and results are saved to your account until you close the tab – next time you'll need to sign in again.",
     "statusUndecided": "You haven't chosen yet. The game stores and sends nothing until you do.",
-    "clear": "Delete everything stored",
-    "clearConfirm": "This deletes your name, leaderboard, level and settings. It can't be undone.",
-    "clearYes": "Delete everything",
     "stored": {
       "settings": {
         "title": "Settings",
-        "desc": "Theme, accent color, language, sound and pace."
+        "desc": "Theme, language, sound and pace."
       },
       "player": {
         "title": "Player",
@@ -65,7 +67,11 @@
   "menu": {
     "title": "AtlasMaster",
     "subtitle": "Pick a part of the world",
-    "description": "Countries, cities, rivers and peaks. How fast are you?"
+    "description": "Countries, cities, rivers and peaks. How fast are you?",
+    "heroTitle": "Tap a part of the world.",
+    "heroAccent": "We’ll quiz you on it.",
+    "heroBody": "Ten regions, each drawn in its own projection. Click, choose or type the place that lights up and chase a combo.",
+    "step": "Step {{n}} of {{total}}"
   },
   "nav": {
     "name": "Name",
@@ -194,7 +200,9 @@
     },
     "difficulty": "Difficulty",
     "difficultyLevel": "Difficulty {{level}} of 3",
-    "worth": "Worth ×{{multiplier}} points"
+    "worth": "Worth ×{{multiplier}} points",
+    "press": "Press 1, 2 or 3",
+    "best": "Best"
   },
   "game": {
     "loading": "Loading map …",
@@ -279,7 +287,15 @@
     "world": "World",
     "count": "{{count}} categories",
     "plate": "Plate {{n}}",
-    "back": "Change region"
+    "back": "Change region",
+    "select": "Select region",
+    "online": "{{count}} regions",
+    "wholeWorld": "Whole world",
+    "list": "Or pick from the list",
+    "play": "Play {{name}}",
+    "close": "Close",
+    "best": "Your best",
+    "none": "—"
   },
   "auth": {
     "registerTitle": "Claim your name",

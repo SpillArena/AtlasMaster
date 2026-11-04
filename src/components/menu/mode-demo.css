@@ -1,0 +1,23 @@
+/* Demos are still until the player explores a row. Only transform and
+   opacity animate: SVG geometry never changes on every animation frame. */
+.mode-demo-aim { animation: demo-aim 2.4s ease-in-out infinite; }
+.mode-demo-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: demo-ring 1.8s ease-out infinite;
+}
+.mode-demo-pulse { animation: demo-pulse 2s ease-in-out infinite; }
+.mode-demo-cursor { animation: demo-pulse 1s steps(2, jump-none) infinite; }
+.mode-demo-aim, .mode-demo-ring, .mode-demo-pulse, .mode-demo-cursor {
+  animation-play-state: paused;
+}
+.group:hover .mode-demo *, .group:focus-visible .mode-demo * {
+  animation-play-state: running;
+}
+@keyframes demo-aim { 50% { transform: translate(6px, -4px); } }
+@keyframes demo-ring { to { transform: scale(1.75); opacity: 0; } }
+@keyframes demo-pulse { 50% { opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) {
+  .mode-demo * { animation: none !important; }
+}
+.reduce-motion .mode-demo * { animation: none !important; }

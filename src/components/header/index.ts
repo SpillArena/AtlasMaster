@@ -1,7 +1,6 @@
 export { Header } from './Header'
 export { Logo } from './Logo'
 export { BackToArena } from './BackToArena'
-export { PlayerChip } from './PlayerChip'
 export { NamePrompt } from './NamePrompt'
 export { ConfirmDialog } from './ConfirmDialog'
 export { AtlasMark } from './AtlasMark'

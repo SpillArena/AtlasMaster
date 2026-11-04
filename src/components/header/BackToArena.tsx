@@ -79,19 +79,21 @@ export function BackToArena({ atRoot, inGame, onBack, onGiveUp }: Props) {
   return <BackButton onBack={onBack} />
 }
 
-/** Menu navigation belongs beside the menu content, above its heading. */
-export function BackButton({ onBack }: { onBack: () => void }) {
+/**
+ * Menu navigation belongs beside the menu content, above its heading.
+ * `label` names where it goes («Europe», «Answer modes»); Escape does the same.
+ */
+export function BackButton({ onBack, label }: { onBack: () => void; label?: string }) {
   const { t } = useTranslation()
   return (
     <button
       type="button"
       onClick={onBack}
-      aria-label={t('mode.back')}
-      className="group flex h-11 shrink-0 self-start items-center gap-2 rounded-full border px-4 font-bold tracking-tight transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[var(--border-hover)]"
-      style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+      className="group inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full pr-2 text-[0.9375rem] font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
     >
       <Arrow />
-      <span className="text-sm">{t('mode.back')}</span>
+      <span>{label ?? t('mode.back')}</span>
+      <kbd aria-hidden className="kbd hidden sm:inline">Esc</kbd>
     </button>
   )
 }

@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // brødtekst: humanistisk sans, rolig og lesbar
+        // brødtekst og titler: geometrisk grotesk
         sans: [
-          '"Instrument Sans"',
+          '"Space Grotesk"',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -17,13 +17,13 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        // display: titler, region- og kategorinavn — Fraunces, høy kontrast, feltbok-ånd
-        display: ['"Fraunces"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
-        // hud: alle tal — poeng, combo, klokke. Ledger-mono, tabulær
-        hud: ['"Spline Sans Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        // display: titler, region- og kategorinavn — samme grotesk, tyngre snitt
+        display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // hud: alle tal — poeng, combo, klokke. Mono, tabulær
+        hud: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
-        accent: 'var(--accent)',
+        primary: 'var(--color-primary)',
         success: 'var(--success)',
         danger: 'var(--danger)',
         info: 'var(--info)',

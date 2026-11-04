@@ -17,7 +17,7 @@ export function ComboMeter({ streak }: Props) {
   const charge = Math.min(streak, FULL_AT) / FULL_AT
   const multiplier = comboMultiplier(streak)
   const hot = streak >= 5
-  const color = streak === 0 ? 'var(--text-subtle)' : hot ? 'var(--gold)' : 'var(--accent)'
+  const color = streak === 0 ? 'var(--text-subtle)' : hot ? 'var(--gold)' : 'var(--color-primary)'
 
   return (
     <div className="flex items-center gap-2" aria-label={t('hud.combo')}>
@@ -39,8 +39,8 @@ export function ComboMeter({ streak }: Props) {
           style={{
             width: `${charge * 100}%`,
             background: hot
-              ? 'linear-gradient(90deg, var(--accent), var(--gold))'
-              : 'var(--accent)',
+              ? 'linear-gradient(90deg, var(--color-primary), var(--gold))'
+              : 'var(--color-primary)',
           }}
         />
       </span>
