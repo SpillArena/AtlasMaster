@@ -6,8 +6,8 @@ import { MODE_MULTIPLIER } from '../../game/scoring'
 import { bestFor } from '../../game/progress'
 import { playSfx } from '../../game/sfx'
 import { ModeDemo } from './ModeDemo'
-import { Icon, type IconName } from '../Icon'
-import { BackButton } from '../header/BackToArena'
+import { StepHeader } from './StepHeader'
+import { MODE_SKIN } from './skins'
 
 interface Props {
   regionId: string
@@ -25,19 +25,10 @@ const DIFFICULTY: Record<Mode, number> = {
   pick: 1,
 }
 
-/** Instrumentet du svarer med i hver modus. */
-const INSTRUMENT: Record<Mode, IconName> = {
-  choice: 'cards',
-  click: 'dividers',
-  type: 'pen',
-  flag: 'cards',
-  pick: 'seal',
-}
-
 /**
- * Modusvalget er et valg av verktøy, ikke av innhold — derfor en reol med tre
- * instrumenter. Hver rad viser instrumentet, en levende demo av hvordan du
- * svarer, vanskegrad som blekk-pips, og hva runden er verdt.
+ * Modusvalget er et valg av hvordan du svarer, ikke hva — derfor ett stort
+ * kort per modus, med en levende demo av svaret, vanskegrad, hva runden er
+ * verdt og tasten som velger den.
  */
 export function ModePicker({ regionId, category, onPick, onBack }: Props) {
   const { t } = useTranslation()
@@ -60,129 +51,89 @@ export function ModePicker({ regionId, category, onPick, onBack }: Props) {
   }, [onPick, modeList])
 
   return (
-    <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 px-4 py-6">
-      <BackButton onBack={onBack} />
-      <div>
-        <p className="eyebrow">{t(category.labelKey)}</p>
-        <h2 className="text-h2">{t('mode.subtitle')}</h2>
-      </div>
+    <div className="w-full">
+      <div className="mx-auto flex min-h-full w-full max-w-[1360px] flex-col gap-6 px-4 py-6">
+        <StepHeader
+          step={3}
+          title={t('mode.subtitle')}
+          onBack={onBack}
+          backLabel={t(category.labelKey)}
+          hint={modeList.length === 3 ? t('mode.press') : undefined}
+        />
 
-      <ul className="flex flex-col gap-3">
-        {modeList.map((mode, i) => {
-          const best = bestFor(regionId, category.id, mode)
-          const difficulty = DIFFICULTY[mode]
-          return (
-            <li key={mode}>
-              <motion.button
-                onClick={() => {
-                  playSfx('ui')
-                  onPick(mode)
-                }}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.07, type: 'spring', stiffness: 140, damping: 18 }}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.99 }}
-                className="plate group relative flex w-full items-center gap-4 overflow-hidden p-3 text-left sm:gap-5 sm:p-4"
+        <ul className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
+          {modeList.map((mode, i) => {
+            const best = bestFor(regionId, category.id, mode)
+            const difficulty = DIFFICULTY[mode]
+            const skin = MODE_SKIN[mode]
+            return (
+              <motion.li
+                key={mode}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, type: 'spring', stiffness: 160, damping: 20 }}
+                className="flex"
               >
-                {/* messingstripe i kanten — vokser når raden er aktiv */}
-                <span
-                  aria-hidden
-                  className="absolute inset-y-0 left-0 w-1 origin-left scale-y-0 transition-transform duration-200 group-hover:scale-y-100 group-focus-visible:scale-y-100"
-                  style={{ background: 'var(--brass)' }}
-                />
-
-                {/* instrument + demo */}
-                <span className="flex shrink-0 flex-col items-center gap-1.5">
-                  <span
-                    className="stamp h-10 w-10"
-                    style={{ color: 'var(--brass)' }}
-                  >
-                    <Icon name={INSTRUMENT[mode]} className="h-5 w-5" />
-                  </span>
-                  <span
-                    aria-hidden
-                    className="h-12 w-20 rounded-md p-1 sm:h-14 sm:w-28"
-                    style={{ background: 'var(--bg-deep)' }}
-                  >
-                    <ModeDemo mode={mode} />
-                  </span>
-                </span>
-
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="flex items-center gap-2">
-                    <span
-                      className="font-display text-lg font-semibold tracking-[-0.005em] sm:text-xl"
-                      style={{ color: 'var(--text)' }}
-                    >
-                      {t(`mode.${mode}.title`)}
-                    </span>
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    playSfx('ui')
+                    onPick(mode)
+                  }}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex flex-1 flex-col gap-3 rounded-[26px] p-4 text-left text-white sm:gap-4 sm:rounded-[32px] sm:p-6"
+                  style={{ background: skin.color }}
+                >
+                  <span className="flex w-full items-center justify-between">
                     <kbd
-                      className="numeric hidden rounded border px-1.5 py-0.5 text-[0.625rem] font-bold sm:inline"
-                      style={{ borderColor: 'var(--border)', color: 'var(--text-subtle)' }}
+                      className="numeric rounded-lg bg-white px-2.5 py-1 text-sm font-bold"
+                      style={{ color: skin.color }}
                     >
                       {i + 1}
                     </kbd>
-                  </span>
-
-                  <span className="text-xs sm:text-sm" style={{ color: 'var(--text-subtle)' }}>
-                    {t(`mode.${mode}.desc`)}
-                  </span>
-
-                  <span className="mt-0.5 flex flex-wrap items-center gap-2">
-                    <span className="stat-label">{t('mode.difficulty')}</span>
-                    <span aria-hidden className="flex gap-1">
-                      {[1, 2, 3].map((step) => (
-                        <span
-                          key={step}
-                          className="h-2 w-2 rounded-full"
-                          style={{
-                            background: step <= difficulty ? 'var(--brass)' : 'var(--map-idle)',
-                          }}
-                        />
-                      ))}
-                    </span>
-                    <span className="sr-only">
-                      {t('mode.difficultyLevel', { level: difficulty })}
-                    </span>
-
-                    <span
-                      className="numeric rounded-full px-2 py-0.5 text-[0.625rem] font-bold"
-                      style={{
-                        background: 'color-mix(in srgb, var(--brass) 14%, transparent)',
-                        color: 'var(--brass)',
-                      }}
-                    >
-                      ×{MODE_MULTIPLIER[mode]}
-                    </span>
-                    <span className="sr-only">
-                      {t('mode.worth', { multiplier: MODE_MULTIPLIER[mode] })}
+                    <span className="numeric rounded-full bg-black/20 px-2.5 py-1.5 text-xs font-bold">
+                      {t('mode.worth', { multiplier: MODE_MULTIPLIER[mode] }).toUpperCase()}
                     </span>
                   </span>
-                </span>
 
-                <span className="flex shrink-0 flex-col items-end gap-1">
-                  {best > 0 && (
-                    <span
-                      className="stamp h-8 w-8 text-[0.5625rem] font-bold"
-                      style={{ color: 'var(--gold)' }}
-                    >
-                      <span className="numeric">{best}</span>
-                    </span>
-                  )}
                   <span
                     aria-hidden
-                    className="text-xl transition-transform duration-200 group-hover:translate-x-1"
-                    style={{ color: 'var(--text-subtle)' }}
+                    className="block h-24 w-full rounded-[18px] bg-[var(--bg)] p-2 sm:h-40 sm:rounded-[20px] sm:p-3"
                   >
-                    →
+                    <ModeDemo mode={mode} />
                   </span>
-                </span>
-              </motion.button>
-            </li>
-          )
-        })}
-      </ul>
+
+                  <span className="flex flex-col gap-1.5">
+                    <span className="text-2xl font-bold leading-none tracking-[-0.02em] sm:text-[1.875rem]">
+                      {t(`mode.${mode}.title`)}
+                    </span>
+                    <span className="text-[0.9375rem] leading-snug sm:text-base">{t(`mode.${mode}.desc`)}</span>
+                  </span>
+
+                  <span className="numeric mt-auto flex w-full items-center justify-between text-xs font-bold">
+                    <span className="flex items-center gap-2">
+                      {t('mode.difficulty').toUpperCase()}
+                      <span aria-hidden className="flex gap-1">
+                        {[1, 2, 3].map((step) => (
+                          <span
+                            key={step}
+                            className={`h-2.5 w-2.5 rounded-full border-2 border-white ${step <= difficulty ? 'bg-white' : ''}`}
+                          />
+                        ))}
+                      </span>
+                      <span className="sr-only">{t('mode.difficultyLevel', { level: difficulty })}</span>
+                    </span>
+                    <span>
+                      {t('mode.best').toUpperCase()} {best > 0 ? best : t('region.none')}
+                    </span>
+                  </span>
+                </motion.button>
+              </motion.li>
+            )
+          })}
+        </ul>
+      </div>
     </div>
   )
 }

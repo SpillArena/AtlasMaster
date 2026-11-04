@@ -1,0 +1,887 @@
+{
+  "reviewedAt": "2026-11-04",
+  "sources": [
+    "https://www.census.gov/newsroom/press-releases/2025/vintage-2024-popest.html",
+    "https://www.ssb.no/befolkning/folketall/artikler/de-storste-byene-og-tettstedene-i-norge",
+    "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-populated-places/"
+  ],
+  "cities": {
+    "norway": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Oslo",
+          "name": "Oslo"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.752,
+            59.914
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Bergen",
+          "name": "Bergen"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            5.322,
+            60.391
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Trondheim",
+          "name": "Trondheim"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.395,
+            63.431
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Stavanger",
+          "name": "Stavanger"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            5.733,
+            58.97
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Drammen",
+          "name": "Drammen"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.205,
+            59.744
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Fredrikstad",
+          "name": "Fredrikstad"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.93,
+            59.218
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Kristiansand",
+          "name": "Kristiansand"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            7.996,
+            58.147
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Sandnes",
+          "name": "Sandnes"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            5.736,
+            58.852
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Tromsø",
+          "name": "Tromsø"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            18.955,
+            69.649
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Sarpsborg",
+          "name": "Sarpsborg"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            11.11,
+            59.284
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Skien",
+          "name": "Skien"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.609,
+            59.21
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Ålesund",
+          "name": "Ålesund"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            6.15,
+            62.472
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Sandefjord",
+          "name": "Sandefjord"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.217,
+            59.131
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Haugesund",
+          "name": "Haugesund"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            5.268,
+            59.414
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Tønsberg",
+          "name": "Tønsberg"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.408,
+            59.267
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Moss",
+          "name": "Moss"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.66,
+            59.434
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Porsgrunn",
+          "name": "Porsgrunn"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.656,
+            59.141
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Bodø",
+          "name": "Bodø"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            14.405,
+            67.28
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Arendal",
+          "name": "Arendal"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            8.773,
+            58.461
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Hamar",
+          "name": "Hamar"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            11.068,
+            60.795
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Larvik",
+          "name": "Larvik"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.028,
+            59.054
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Halden",
+          "name": "Halden"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            11.388,
+            59.133
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Lillehammer",
+          "name": "Lillehammer"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.466,
+            61.115
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Molde",
+          "name": "Molde"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            7.157,
+            62.738
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Gjøvik",
+          "name": "Gjøvik"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.692,
+            60.796
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Jessheim",
+          "name": "Jessheim"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            11.175,
+            60.144
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Kongsberg",
+          "name": "Kongsberg"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.65,
+            59.669
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Horten",
+          "name": "Horten"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            10.485,
+            59.417
+          ]
+        }
+      }
+    ],
+    "usa": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Anchorage",
+          "name": "Anchorage"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -149.887,
+            61.214
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Atlanta",
+          "name": "Atlanta"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -84.368,
+            33.739
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Boston",
+          "name": "Boston"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -71.072,
+            42.332
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Chicago",
+          "name": "Chicago"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -87.635,
+            41.848
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Dallas",
+          "name": "Dallas"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -96.795,
+            32.772
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Denver",
+          "name": "Denver"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -104.986,
+            39.741
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Detroit",
+          "name": "Detroit"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -83.051,
+            42.334
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Honolulu",
+          "name": "Honolulu"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -157.858,
+            21.303
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Houston",
+          "name": "Houston"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -95.348,
+            29.741
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "KansasCity",
+          "name": "Kansas City"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -94.606,
+            39.109
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "LasVegas",
+          "name": "Las Vegas"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -115.151,
+            36.165
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "LosAngeles",
+          "name": "Los Angeles"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -118.232,
+            34.049
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Miami",
+          "name": "Miami"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -80.226,
+            25.79
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Minneapolis",
+          "name": "Minneapolis"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -93.254,
+            44.982
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "NewOrleans",
+          "name": "New Orleans"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -90.088,
+            29.969
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "NewYork",
+          "name": "New York"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -73.996,
+            40.722
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Philadelphia",
+          "name": "Philadelphia"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -75.18,
+            39.946
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Phoenix",
+          "name": "Phoenix"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -112.067,
+            33.448
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Portland",
+          "name": "Portland"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -122.682,
+            45.522
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "SaltLakeCity",
+          "name": "Salt Lake City"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -111.932,
+            40.777
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "SanAntonio",
+          "name": "San Antonio"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -98.493,
+            29.42
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "SanDiego",
+          "name": "San Diego"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -117.151,
+            32.719
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "SanFrancisco",
+          "name": "San Francisco"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -122.4,
+            37.784
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Seattle",
+          "name": "Seattle"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -122.315,
+            47.6
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "StLouis",
+          "name": "St. Louis"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -90.242,
+            38.637
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "WashingtonDC",
+          "name": "Washington, D.C.",
+          "aliases": [
+            "Washington",
+            "Washington DC",
+            "Washington D.C."
+          ]
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -77.011,
+            38.901
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Austin",
+          "name": "Austin"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -97.745,
+            30.269
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Charlotte",
+          "name": "Charlotte"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -80.843,
+            35.227
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Columbus",
+          "name": "Columbus"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -82.999,
+            39.961
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "FortWorth",
+          "name": "Fort Worth"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -97.331,
+            32.756
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Indianapolis",
+          "name": "Indianapolis"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -86.172,
+            39.752
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "Jacksonville",
+          "name": "Jacksonville"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -81.672,
+            30.332
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "OklahomaCity",
+          "name": "Oklahoma City"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -97.521,
+            35.472
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "SanJose",
+          "name": "San Jose"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -121.888,
+            37.331
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -26,6 +26,8 @@ import {
   writeCollection,
 } from './lib/sources.mjs'
 
+import { writeCapitals, writeCountryAliases } from './lib/geography-reference.mjs'
+
 const OUT = resolve(ROOT, 'src/data/south-america')
 
 /**
@@ -59,29 +61,6 @@ const COUNTRIES = new Map([
   [740, ['Surinam', 'Suriname']],
   [858, ['Uruguay', 'Uruguay']],
   [862, ['Venezuela', 'Venezuela']],
-])
-
-/**
- * ISO-3 landkode → [norsk navn, engelsk navn] for hovedstaden.
- *
- * Bolivia er særtilfellet: den grunnlovfestede hovedstaden er Sucre, men
- * regjeringen og de fleste ambassadene sitter i La Paz. `ne_50m_populated_places`
- * flagger La Paz som `ADM0CAP`, og det er også svaret de fleste geografiquizer
- * bruker, så det er valget her.
- */
-const CAPITALS = new Map([
-  ['ARG', ['Buenos Aires', 'Buenos Aires']],
-  ['BOL', ['La Paz', 'La Paz']],
-  ['BRA', ['Brasília', 'Brasília']],
-  ['CHL', ['Santiago', 'Santiago']],
-  ['COL', ['Bogotá', 'Bogotá']],
-  ['ECU', ['Quito', 'Quito']],
-  ['GUY', ['Georgetown', 'Georgetown']],
-  ['PRY', ['Asunción', 'Asunción']],
-  ['PER', ['Lima', 'Lima']],
-  ['SUR', ['Paramaribo', 'Paramaribo']],
-  ['URY', ['Montevideo', 'Montevideo']],
-  ['VEN', ['Caracas', 'Caracas']],
 ])
 
 /**
@@ -166,25 +145,7 @@ async function buildCountries() {
 }
 
 async function buildCapitals() {
-  const places = await naturalEarth('ne_50m_populated_places')
-  const features = []
-  const missing = new Set(CAPITALS.keys())
-
-  for (const f of places.features) {
-    const p = f.properties
-    if (p.ADM0CAP !== 1 || !missing.has(p.ADM0_A3)) continue
-    missing.delete(p.ADM0_A3)
-    const [name, nameEn] = CAPITALS.get(p.ADM0_A3)
-    features.push({
-      type: 'Feature',
-      properties: { id: name.replace(/[^A-Za-z]/g, ''), name, nameEn },
-      geometry: roundGeometry(f.geometry),
-    })
-  }
-
-  features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
-  writeCollection(resolve(OUT, 'capitals.json'), features)
-  if (missing.size > 0) console.warn(`  ! uten treff: ${[...missing].join(', ')}`)
+  writeCapitals('south-america')
 }
 
 async function buildRivers() {
@@ -274,3 +235,5 @@ await buildCountries()
 await buildCapitals()
 await buildRivers()
 await buildPeaks()
+
+writeCountryAliases('south-america')

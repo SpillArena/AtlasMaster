@@ -35,23 +35,22 @@ export function LeaderboardPanel({ regionId, onSeeAll, limit = 5 }: Props) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, type: 'spring', stiffness: 120 }}
-      className="panel mx-auto w-full max-w-[1760px] rounded-2xl p-4"
+      className="w-full rounded-[28px] border border-[var(--border)] bg-[var(--color-surface-elevated)] px-5 py-5 sm:px-7"
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display flex items-center gap-2 text-xl font-semibold tracking-[-0.005em]">
-          <Icon name="seal" className="h-5 w-5" style={{ color: 'var(--gold)' }} />
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="flex items-center gap-3 text-2xl font-bold tracking-[-0.02em]">
+          <Icon name="trophy" className="h-5 w-5 text-[var(--color-primary)]" />
           {t('leaderboard.title')}
-          <span className="stat-label">
+          <span className="hud-label">
             {offline ? t('leaderboard.local') : t('leaderboard.global')}
           </span>
         </h2>
         <button
           type="button"
           onClick={onSeeAll}
-          className="text-sm font-bold underline underline-offset-2 transition-colors hover:text-[var(--text)]"
-          style={{ color: 'var(--text-subtle)' }}
+          className="numeric min-h-11 text-sm font-bold text-[var(--color-primary)] hover:underline hover:underline-offset-4"
         >
-          {t('leaderboard.seeAll')}
+          {t('leaderboard.seeAll')} →
         </button>
       </div>
 

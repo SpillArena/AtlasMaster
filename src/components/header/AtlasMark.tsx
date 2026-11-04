@@ -17,14 +17,12 @@ interface Props {
 export function AtlasMark({ className }: Props) {
   return (
     <svg viewBox="0 0 64 64" className={className} role="img" aria-label="AtlasMaster">
-      <rect width="64" height="64" rx="16" fill="#29382f" />
-      <g stroke="#d9b864" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        <circle cx="32" cy="32" r="23" opacity=".6" />
-        <path d="M32 6v5M58 32h-5M32 58v-5M6 32h5" />
-        <path d="m32 14 6 18-6 18-6-18Z" fill="#ead9a7" />
-        <path d="m14 32 18-6 18 6-18 6Z" opacity=".6" />
-        <circle cx="32" cy="32" r="3" fill="#29382f" />
-      </g>
+      <rect width="64" height="64" rx="16" fill="#0b1424" />
+      <circle cx="32" cy="32" r="21" fill="none" stroke="#c8ff3c" strokeWidth="2.6" opacity=".45" />
+      <path d="M32 6v6M58 32h-6M32 58v-6M6 32h6" stroke="#c8ff3c" strokeWidth="3" strokeLinecap="round" />
+      <path d="m32 13 7 19H25Z" fill="#c8ff3c" />
+      <path d="m32 51 7-19H25Z" fill="#8a9bb8" />
+      <circle cx="32" cy="32" r="3.2" fill="#0b1424" stroke="#c8ff3c" strokeWidth="2" />
     </svg>
   )
 }

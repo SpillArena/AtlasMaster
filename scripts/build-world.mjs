@@ -24,8 +24,8 @@
  * har dem alle, og gir samtidig kystlinjer verdt navnet — Norge går fra 88 til
  * nesten to tusen punkter, og fjordene kommer fram.
  *
- * `playable` skiller svar fra kulisse. Suverene stater (`independent` i
- * world-countries) pluss Kosovo er svar — 194 av dem. Oversjøiske territorier,
+ * `playable` skiller svar fra kulisse. Den gjennomgåtte referanselista
+ * dekker FN-medlemmer, observatørstater, Kosovo og Taiwan. Oversjøiske territorier,
  * kronbesittelser og områder uten egen ISO-kode blir *tegnet*, så kartet ikke
  * har hull der Grønland og Vest-Sahara skal være, men er ingen å gjette på.
  * `toQuizFeatures` i game/types.ts er det som håndhever skillet.
@@ -40,6 +40,10 @@ import { topology as toTopology } from 'topojson-server'
 import { presimplify, simplify, quantile } from 'topojson-simplify'
 import { optimize } from 'svgo'
 import { dropRepeats, roundGeometry } from './lib/sources.mjs'
+
+import { geographyReference, writeCountryAliases } from './lib/geography-reference.mjs'
+
+const quizCountryIds = new Set(geographyReference.countries.map((country) => country.id))
 
 const require = createRequire(import.meta.url)
 const here = dirname(fileURLToPath(import.meta.url))
@@ -107,32 +111,6 @@ const noName = new Intl.DisplayNames(['nb'], { type: 'region' })
 const enName = new Intl.DisplayNames(['en'], { type: 'region' })
 
 /**
- * Kaster ringer som spenner over antimeridianen.
- *
- * En ring fra 178°Ø til −179°Ø har et lengdespenn på 357 grader i tallenes
- * verden, og d3-geo tegner den som hele kloden: verdenskartet blir ett
- * ensfarget rektangel. Fiji er det klassiske tilfellet — og av de tjue ringene
- * øygruppa består av i 50m er det nøyaktig én som gjør dette. Å kaste den ene
- * koster en holme og gir landet tilbake til spillet.
- *
- * Grensen er 180 grader: ingen ekte ring i datasettet er så bred, og enhver
- * som ser slik ut, er en som har brettet seg rundt kloden.
- */
-function dropAntimeridianRings(geometry) {
-  if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') return geometry
-  const span = (ring) => {
-    const lons = ring.map((c) => c[0])
-    return Math.max(...lons) - Math.min(...lons)
-  }
-  const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
-  const kept = polys.filter((poly) => span(poly[0]) <= 180)
-  if (!kept.length) return null
-  return kept.length === 1
-    ? { type: 'Polygon', coordinates: kept[0] }
-    : { type: 'MultiPolygon', coordinates: kept }
-}
-
-/**
  * Utelatt:
  * - 010 Antarktis: fyller en tredjedel av kartet og har ingen å gjette.
  * - De subantarktiske territoriene: ubebodde, og de trekker kartets sørkant
@@ -164,14 +142,14 @@ function ingest(f) {
     const [name, nameEn] = CODELESS.get(f.properties.name)
     entry = { id: `X-${f.properties.name.replace(/\W+/g, '')}`, name, nameEn, playable: false }
   } else if (id && byCcn3.has(id)) {
-    const { iso2, en, independent } = byCcn3.get(id)
+    const { iso2, en } = byCcn3.get(id)
     entry = {
       id,
       iso2,
-      name: noName.of(iso2.toUpperCase()) || en,
-      nameEn: enName.of(iso2.toUpperCase()) || en,
+      name: id === '275' ? 'Palestina' : noName.of(iso2.toUpperCase()) || en,
+      nameEn: id === '275' ? 'Palestine' : enName.of(iso2.toUpperCase()) || en,
       // territorier og kronbesittelser er kulisse, ikke svar
-      playable: independent,
+      playable: quizCountryIds.has(id),
     }
   } else {
     return
@@ -187,9 +165,9 @@ function ingest(f) {
   // Tre desimaler ≈ 110 m, samme presisjon som resten av datasettene får av
   // scripts/optimise-geo.mjs. To — det som stod her — er drøyt en kilometer,
   // og visker ut nettopp de småøyene og fjordarmene 50m er hentet inn for.
-  const clipped = dropAntimeridianRings(f.geometry)
-  if (!clipped) return
-  const geometry = dropRepeats(roundGeometry(clipped, 3))
+  // d3-geo clips valid spherical polygons at the date line itself. Dropping
+  // crossing rings removes Russia’s mainland and Fiji’s Taveuni island.
+  const geometry = dropRepeats(roundGeometry(f.geometry, 3))
   if (!geometry) return
 
   const properties = { id: entry.id, name: entry.name, nameEn: entry.nameEn }
@@ -205,7 +183,7 @@ for (const f of world.features) ingest(f)
 // andre runde: de suverene statene 50m ikke har, hentet fra 10m
 for (const f of fine.features) {
   const id = f.id == null ? null : String(f.id)
-  if (!id || taken.has(id) || EXCLUDE.has(id) || !byCcn3.get(id)?.independent) continue
+  if (!id || taken.has(id) || EXCLUDE.has(id) || !quizCountryIds.has(id)) continue
   ingest(f)
 }
 
@@ -444,3 +422,5 @@ console.log(
     `(${flagKb} kB, ${Math.round((1 - optBytes / rawBytes) * 100)} % mindre enn rått)`,
 )
 if (missingFlag.length) console.warn(`Uten flagg i settet, hoppet over: ${missingFlag.join(', ')}`)
+
+writeCountryAliases('world')

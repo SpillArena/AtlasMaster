@@ -34,6 +34,8 @@ import {
   writeCollection,
 } from './lib/sources.mjs'
 
+import { writeCapitals, writeCountryAliases } from './lib/geography-reference.mjs'
+
 const OUT = resolve(ROOT, 'src/data/asia')
 
 /**
@@ -58,7 +60,7 @@ const BOX = { minLon: 25, maxLon: 150, minLat: -12, maxLat: 56 }
 const COUNTRIES = new Map([
   [4, ['Afghanistan', 'Afghanistan']], [31, ['Aserbajdsjan', 'Azerbaijan']],
   [48, ['Bahrain', 'Bahrain']], [462, ['Maldivene', 'Maldives']],
-  [702, ['Singapore', 'Singapore']],
+  [702, ['Singapore', 'Singapore']], [275, ['Palestina', 'Palestine']],
   [50, ['Bangladesh', 'Bangladesh']], [51, ['Armenia', 'Armenia']],
   [64, ['Bhutan', 'Bhutan']], [96, ['Brunei', 'Brunei']],
   [104, ['Myanmar', 'Myanmar']], [116, ['Kambodsja', 'Cambodia']],
@@ -100,32 +102,6 @@ const RUSSIA = 643
  * bort i klippinga, i stedet for å bli et smett tvers over kartet.
  */
 const RUSSIA_BOX = { minLon: 25, maxLon: 150, minLat: 40, maxLat: 58 }
-
-/** ISO-3 landkode → [id, norsk navn, engelsk navn] for hovedstaden. */
-const CAPITALS = new Map([
-  ['AFG', ['Kabul', 'Kabul']], ['ARM', ['Jerevan', 'Yerevan']],
-  ['AZE', ['Baku', 'Baku']], ['BGD', ['Dhaka', 'Dhaka']],
-  ['BTN', ['Thimphu', 'Thimphu']], ['BRN', ['Bandar Seri Begawan', 'Bandar Seri Begawan']],
-  ['KHM', ['Phnom Penh', 'Phnom Penh']], ['CHN', ['Beijing', 'Beijing']],
-  ['TWN', ['Taipei', 'Taipei']], ['GEO', ['Tbilisi', 'Tbilisi']],
-  ['IND', ['New Delhi', 'New Delhi']], ['IDN', ['Jakarta', 'Jakarta']],
-  ['IRN', ['Teheran', 'Tehran']], ['IRQ', ['Bagdad', 'Baghdad']],
-  ['ISR', ['Jerusalem', 'Jerusalem']], ['JPN', ['Tokyo', 'Tokyo']],
-  ['JOR', ['Amman', 'Amman']], ['KAZ', ['Astana', 'Astana']],
-  ['KWT', ['Kuwait by', 'Kuwait City']], ['KGZ', ['Bisjkek', 'Bishkek']],
-  ['LAO', ['Vientiane', 'Vientiane']], ['LBN', ['Beirut', 'Beirut']],
-  ['MYS', ['Kuala Lumpur', 'Kuala Lumpur']], ['MNG', ['Ulaanbaatar', 'Ulaanbaatar']],
-  ['MMR', ['Naypyidaw', 'Naypyidaw']], ['NPL', ['Katmandu', 'Kathmandu']],
-  ['PRK', ['Pyongyang', 'Pyongyang']], ['KOR', ['Seoul', 'Seoul']],
-  ['OMN', ['Muskat', 'Muscat']], ['PAK', ['Islamabad', 'Islamabad']],
-  ['PHL', ['Manila', 'Manila']], ['QAT', ['Doha', 'Doha']],
-  ['SAU', ['Riyadh', 'Riyadh']], ['LKA', ['Colombo', 'Colombo']],
-  ['SYR', ['Damaskus', 'Damascus']], ['TJK', ['Dusjanbe', 'Dushanbe']],
-  ['THA', ['Bangkok', 'Bangkok']], ['TLS', ['Dili', 'Dili']],
-  ['TUR', ['Ankara', 'Ankara']], ['TKM', ['Asjgabat', 'Ashgabat']],
-  ['ARE', ['Abu Dhabi', 'Abu Dhabi']], ['UZB', ['Tasjkent', 'Tashkent']],
-  ['VNM', ['Hanoi', 'Hanoi']], ['YEM', ['Sanaa', 'Sanaa']],
-])
 
 /**
  * Elver, med Natural Earths segmentnavn.
@@ -221,27 +197,7 @@ async function buildCountries() {
 }
 
 async function buildCapitals() {
-  const places = await naturalEarth('ne_50m_populated_places')
-  const features = []
-  const missing = new Set(CAPITALS.keys())
-
-  for (const f of places.features) {
-    const p = f.properties
-    // `missing` er også vaktposten mot doble treff: noen land har mer enn én
-    // hovedstad i datasettet, og spillet tåler ikke to features med samme id.
-    if (p.ADM0CAP !== 1 || !missing.has(p.ADM0_A3)) continue
-    missing.delete(p.ADM0_A3)
-    const [name, nameEn] = CAPITALS.get(p.ADM0_A3)
-    features.push({
-      type: 'Feature',
-      properties: { id: name.replace(/[^A-Za-z]/g, ''), name, nameEn },
-      geometry: roundGeometry(f.geometry),
-    })
-  }
-
-  features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
-  writeCollection(resolve(OUT, 'capitals.json'), features)
-  if (missing.size > 0) console.warn(`  ! uten treff: ${[...missing].join(', ')}`)
+  writeCapitals('asia')
 }
 
 async function buildRivers() {
@@ -323,3 +279,5 @@ await buildCountries()
 await buildCapitals()
 await buildRivers()
 await buildPeaks()
+
+writeCountryAliases('asia')

@@ -26,10 +26,17 @@
     "normalDesc": "Standardrunden. Full poengsum.",
     "blitzDesc": "Alt du rekker er verdt 40 % mer.",
     "title": "Sett tempoet",
-    "start": "Sett i gang",
+    "start": "Start runden",
     "seconds": "{{count}} sekunder per sted",
     "noClock": "Ingen klokke",
-    "beat": "Din rekord her: {{score}}"
+    "beat": "Din rekord her: {{score}}",
+    "summary": "Runden din",
+    "region": "Region",
+    "category": "Kategori",
+    "mode": "Modus",
+    "pace": "Tempo",
+    "clock": "Klokke",
+    "guestHint": "Gjester blir bedt om et navn først"
   },
   "cookieConsent": {
     "section": "Personvern",
@@ -60,7 +67,11 @@
   "menu": {
     "title": "AtlasMaster",
     "subtitle": "Velg hvor i verden",
-    "description": "Land, byer, elver og fjell. Hvor rask er du?"
+    "description": "Land, byer, elver og fjell. Hvor rask er du?",
+    "heroTitle": "Trykk på en del av verden.",
+    "heroAccent": "Så spør vi deg ut om den.",
+    "heroBody": "Ti regioner, hver tegnet i sin egen projeksjon. Klikk, velg eller skriv stedet som lyser opp, og jakt på combo.",
+    "step": "Steg {{n}} av {{total}}"
   },
   "nav": {
     "name": "Navn",
@@ -189,7 +200,9 @@
     },
     "difficulty": "Vanskelighet",
     "difficultyLevel": "Vanskelighet {{level}} av 3",
-    "worth": "Verdt ×{{multiplier}} poeng"
+    "worth": "Verdt ×{{multiplier}} poeng",
+    "press": "Trykk 1, 2 eller 3",
+    "best": "Beste"
   },
   "game": {
     "loading": "Laster kart …",
@@ -274,7 +287,15 @@
     "world": "Verden",
     "count": "{{count}} kategorier",
     "plate": "Plate {{n}}",
-    "back": "Bytt region"
+    "back": "Bytt region",
+    "select": "Velg region",
+    "online": "{{count}} regioner",
+    "wholeWorld": "Hele verden",
+    "list": "Eller velg fra lista",
+    "play": "Spill {{name}}",
+    "close": "Lukk",
+    "best": "Din beste",
+    "none": "—"
   },
   "auth": {
     "registerTitle": "Ta navnet ditt",

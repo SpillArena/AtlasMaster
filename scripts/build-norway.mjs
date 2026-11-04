@@ -38,6 +38,8 @@ import { resolve } from 'node:path'
 import rewind from '@mapbox/geojson-rewind'
 import { ROOT, dropRepeats, fetchCached, roundGeometry, writeCollection } from './lib/sources.mjs'
 
+import { writeMajorCities } from './lib/geography-reference.mjs'
+
 const OUT = resolve(ROOT, 'src/data/norway/counties.json')
 const SOURCE_URL =
   'https://raw.githubusercontent.com/robhop/fylker-og-kommuner/main/Fylker-S.geojson'
@@ -79,3 +81,5 @@ writeCollection(OUT, collection.features)
 const points = collection.features.reduce((n, f) => n + countPoints(f.geometry.coordinates), 0)
 console.log(`  ${sourcePoints} → ${points} punkt (avrundet til 3 desimaler, dupliserte punkt fjernet)`)
 if (features.length !== 15) console.warn(`  ! ventet 15 fylker, fikk ${features.length}`)
+
+writeMajorCities('norway')

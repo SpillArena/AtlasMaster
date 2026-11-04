@@ -38,15 +38,17 @@ AtlasMaster started as a Norway-only county quiz and now covers the whole globe.
 | Region | Categories | Projection |
 | --- | --- | --- |
 | Norway | Counties (15), cities, rivers, peaks | Conic conformal, 60/70° |
-| Europe | Countries (39), capitals, rivers, peaks | ETRS89-LCC |
-| Asia | Countries (44), capitals, rivers, peaks | Azimuthal equal area |
+| Europe | Countries (46), capitals, rivers, peaks | ETRS89-LCC |
+| Asia | Countries (49), capitals, rivers, peaks | Azimuthal equal area |
 | Africa | Countries (54), capitals, rivers, peaks, flags | Azimuthal equal area |
 | South America | Countries (12), capitals, rivers, peaks, flags | Azimuthal equal area |
 | North America | Countries (23), capitals, rivers, peaks, flags | Azimuthal equal area |
 | Oceania | Countries (14), capitals, rivers, peaks, flags | Azimuthal equal area |
 | Antarctica | Research stations (8), peaks (6) | Azimuthal equal area |
 | USA | States (50), cities, rivers, peaks | Albers USA |
-| World | Countries (195), flags, oceans and seas (17) | Natural Earth 1 |
+| World | Countries (197), flags, oceans and seas (17) | Natural Earth 1 |
+
+Coverage rules and verified corrections are recorded in the [geography audit](docs/GEOGRAPHY_AUDIT.md).
 
 Projection details, dataset pipelines and how to add a region are in the [developer reference](docs/REFERENCE.md).
 
@@ -65,6 +67,7 @@ The leaderboard and accounts are Cloudflare Pages Functions backed by D1. To tes
 
 ```bash
 npm run lint
+npm run check:facts     # country/capital completeness, locations and names
 npm run check:regions   # loaders, projections, translations, score validation
 npm run check:geo       # extent, ring winding, emblem coverage
 npm run check:engine    # game rules against the reducer

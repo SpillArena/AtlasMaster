@@ -36,6 +36,8 @@ import {
   writeCollection,
 } from './lib/sources.mjs'
 
+import { writeMajorCities } from './lib/geography-reference.mjs'
+
 const OUT = resolve(ROOT, 'src/data/usa')
 
 /**
@@ -52,36 +54,6 @@ const US_BOXES = [
 
 /** FIPS-koder som ikke er stater. DC og territoriene faller bort her. */
 const NOT_A_STATE = new Set(['11', '60', '66', '69', '72', '78'])
-
-/** By → delstaten den ligger i, for å skille de mange like bynavnene fra hverandre. */
-const CITIES = [
-  ['New York', 'New York'],
-  ['Los Angeles', 'California'],
-  ['Chicago', 'Illinois'],
-  ['Houston', 'Texas'],
-  ['Phoenix', 'Arizona'],
-  ['Philadelphia', 'Pennsylvania'],
-  ['San Antonio', 'Texas'],
-  ['San Diego', 'California'],
-  ['Dallas', 'Texas'],
-  ['San Francisco', 'California'],
-  ['Seattle', 'Washington'],
-  ['Denver', 'Colorado'],
-  ['Boston', 'Massachusetts'],
-  ['Miami', 'Florida'],
-  ['Atlanta', 'Georgia'],
-  ['Washington, D.C.', 'District of Columbia'],
-  ['Detroit', 'Michigan'],
-  ['Minneapolis', 'Minnesota'],
-  ['New Orleans', 'Louisiana'],
-  ['Las Vegas', 'Nevada'],
-  ['Portland', 'Oregon'],
-  ['St. Louis', 'Missouri'],
-  ['Salt Lake City', 'Utah'],
-  ['Kansas City', 'Missouri'],
-  ['Anchorage', 'Alaska'],
-  ['Honolulu', 'Hawaii'],
-]
 
 /**
  * Elver, med Natural Earths segmentnavn.
@@ -150,29 +122,7 @@ function buildStates() {
 }
 
 async function buildCities() {
-  const places = await naturalEarth('ne_50m_populated_places')
-  const features = []
-
-  for (const [name, state] of CITIES) {
-    const hit = places.features.find(
-      (f) =>
-        f.properties.ADM0_A3 === 'USA' &&
-        f.properties.ADM1NAME === state &&
-        normaliseName(f.properties.NAME) === name,
-    )
-    if (!hit) {
-      console.warn(`  ! fant ikke ${name} (${state})`)
-      continue
-    }
-    features.push({
-      type: 'Feature',
-      properties: { id: name.replace(/[^A-Za-z]/g, ''), name },
-      geometry: roundGeometry(hit.geometry),
-    })
-  }
-
-  features.sort((a, b) => a.properties.name.localeCompare(b.properties.name, 'nb'))
-  writeCollection(resolve(OUT, 'cities.json'), features)
+  writeMajorCities('usa')
 }
 
 async function buildRivers() {
