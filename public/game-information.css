@@ -1,0 +1,11 @@
+/* Shared by the initial HTML and the running game. Scoped to avoid changing gameplay. */
+.spillarena-game-information { box-sizing: border-box; max-width: 840px; width: 100%; margin: 24px auto; padding: 20px; color: var(--ink, #292335); background: var(--paper, #f7f5ef); font: 400 15px/1.75 system-ui, sans-serif; overflow-wrap: anywhere; border-radius: 12px; }
+.spillarena-game-information h2 { margin: 20px 0 8px; font: 600 19px/1.4 system-ui, sans-serif; color: inherit; }
+.spillarena-game-information p { margin: 10px 0; font: inherit; color: inherit; }
+.spillarena-game-information summary { cursor: pointer; min-height: 44px; padding: 8px 0; font-weight: 650; }
+.spillarena-game-information a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.spillarena-game-information :focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+.spillarena-game-information [data-game-info-language="en"] { display: none; }
+html[lang^="en"] .spillarena-game-information [data-game-info-language="no"] { display: none; }
+html[lang^="en"] .spillarena-game-information [data-game-info-language="en"] { display: block; }
+@media (prefers-color-scheme: dark) { .spillarena-game-information { color: var(--ink, #f5f0f7); background: var(--paper, #211d29); } }
