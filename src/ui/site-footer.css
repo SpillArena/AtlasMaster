@@ -1,0 +1,26 @@
+/* Vendored with SiteFooter.tsx: identical in every game. Doubled class names win over the older footer rules in arena.css. */
+footer.arena-footer.arena-footer { flex: 0 0 auto; width: 100%; margin-top: auto; border-top: 1px solid var(--arena-rule); color: var(--arena-muted); padding-block: 0; }
+.arena-footer.arena-footer .arena-footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding-block: 17px; font-size: 11px; line-height: 1.5; }
+.arena-footer.arena-footer a, .arena-footer.arena-footer button { color: inherit; font: inherit; text-decoration: none; }
+.arena-footer.arena-footer button { background: none; border: 0; padding: 0; cursor: pointer; }
+.arena-footer.arena-footer a:hover, .arena-footer.arena-footer button:hover { color: var(--arena-ink); }
+.arena-footer-affiliation { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.arena-footer-logo { display: block; width: 20px; height: 20px; flex-shrink: 0; object-fit: contain; }
+.arena-footer-links { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px 18px; }
+
+/* The rules text, moved here from the bottom of the page (see SiteFooter.tsx). Quiet by default: one line until opened. */
+.arena-footer-info { border-top: 1px solid var(--arena-rule); }
+.arena-footer-info:empty { display: none; }
+/* The game's own language decides which text shows, not the page's lang attribute (the static document is Norwegian). */
+.arena-footer .arena-footer-info [data-game-info-language] { display: none !important; }
+.arena-footer .arena-footer-info[data-language="no"] [data-game-info-language="no"], .arena-footer .arena-footer-info[data-language="en"] [data-game-info-language="en"] { display: block !important; }
+.arena-footer .spillarena-game-information { max-width: none; margin: 0; padding: 4px 0 12px; background: none; border-radius: 0; color: var(--arena-muted); font: 400 13px/1.7 system-ui, sans-serif; }
+.arena-footer .spillarena-game-information summary { min-height: 0; padding: 10px 0; color: var(--arena-ink); font-size: 13px; font-weight: 600; }
+.arena-footer .spillarena-game-information details > :not(summary) { max-width: 72ch; }
+.arena-footer .spillarena-game-information h2 { margin: 16px 0 6px; font: 600 14px/1.4 system-ui, sans-serif; color: var(--arena-ink); }
+.arena-footer .spillarena-game-information p { margin: 8px 0; }
+.arena-footer .spillarena-game-information a { color: var(--arena-ink); }
+@media (max-width: 560px) {
+  .arena-footer.arena-footer .arena-footer-row { flex-direction: column; align-items: flex-start; }
+  .arena-footer-links { justify-content: flex-start; }
+}
