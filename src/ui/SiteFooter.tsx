@@ -20,6 +20,7 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
   const t = copy[lang]
   const host = useRef<HTMLDivElement>(null)
   const [hasInfo, setHasInfo] = useState(false)
+  const [open, setOpen] = useState(false)
   const guide = `https://spillarena.no/games/${game.toLowerCase()}/`
 
   useEffect(() => {
@@ -28,15 +29,17 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
     if (!element || !section) return
     element.appendChild(section)
     setHasInfo(true)
-    return () => { document.body.appendChild(section); setHasInfo(false) }
+    return () => { document.body.appendChild(section); setHasInfo(false); setOpen(false) }
   }, [])
 
-  // Both languages are in the section; site-footer.css shows the one the game is set to. Open that one.
-  const showHowTo = () => {
-    const shown = [...(host.current?.querySelectorAll<HTMLDetailsElement>('details') ?? [])].find(details => details.getClientRects().length > 0)
-    if (!shown) return
-    shown.open = true
-    shown.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  // Both languages are in the section; site-footer.css shows the one the game is set to. The section's own summary is
+  // hidden: "How to play" in the link row is the one control, and it opens and closes the text.
+  const toggleHowTo = () => {
+    const shown = [...(host.current?.querySelectorAll<HTMLDetailsElement>('details') ?? [])].find(details => details.parentElement?.getClientRects().length)
+    const next = !open
+    host.current?.querySelectorAll<HTMLDetailsElement>('details').forEach(details => { details.open = next })
+    setOpen(next)
+    if (next) shown?.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
   return <footer className="arena-footer">
@@ -48,7 +51,7 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
         </a>
         <nav className="arena-footer-links" aria-label={t.nav}>
           {hasInfo
-            ? <button type="button" onClick={showHowTo}>{t.howTo}</button>
+            ? <button type="button" aria-expanded={open} onClick={toggleHowTo}>{t.howTo}</button>
             : <a href={guide} target="_blank" rel="noreferrer">{t.howTo}</a>}
           <a href={guide} target="_blank" rel="noreferrer">{t.faq}</a>
           {children}
