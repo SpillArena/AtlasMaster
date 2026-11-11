@@ -9,3 +9,8 @@
 html[lang^="en"] .spillarena-game-information [data-game-info-language="no"] { display: none; }
 html[lang^="en"] .spillarena-game-information [data-game-info-language="en"] { display: block; }
 @media (prefers-color-scheme: dark) { .spillarena-game-information { color: var(--ink, #f5f0f7); background: var(--paper, #211d29); } }
+/* With scripting on, the game replaces the fallback in #root and moves the rules text into its footer dialog, so neither
+   may flash as a card while the game loads. Still in the document, only out of sight. Without scripting they stay visible. */
+@media (scripting: enabled) {
+  #root > main.spillarena-game-information, body > section.spillarena-game-information { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+}
