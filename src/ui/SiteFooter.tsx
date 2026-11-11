@@ -6,8 +6,8 @@ import spillArenaLogo from './spillarena-logo.svg'
 import './site-footer.css'
 
 const copy = {
-  en: { affiliation: 'Part of SpillArena', nav: 'Footer navigation', howTo: 'How to play', faq: 'FAQ', storage: 'Cookies & storage', close: 'Close' },
-  no: { affiliation: 'En del av SpillArena', nav: 'Bunntekstlenker', howTo: 'Slik spiller du', faq: 'Vanlige spørsmål', storage: 'Informasjonskapsler og lagring', close: 'Lukk' },
+  en: { affiliation: 'Part of SpillArena', nav: 'Footer navigation', howTo: 'How to play', storage: 'Cookies & storage', close: 'Close' },
+  no: { affiliation: 'En del av SpillArena', nav: 'Bunntekstlenker', howTo: 'Slik spiller du', storage: 'Informasjonskapsler og lagring', close: 'Lukk' },
 }
 
 /** The rules text is plain HTML in index.html, readable before any script runs (SpillArena's
@@ -54,7 +54,6 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
           {hasInfo
             ? <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>{t.howTo}</button>
             : <a href={guide} target="_blank" rel="noreferrer">{t.howTo}</a>}
-          <a href={guide} target="_blank" rel="noreferrer">{t.faq}</a>
           {children}
           <button type="button" onClick={openConsentDialog}>{t.storage}</button>
         </nav>
