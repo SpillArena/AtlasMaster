@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { adsRequested, getAdConsentState, onAdConsentStateChange, openAdSettings, type AdConsentState } from './ads'
-import { getConsent, onConsentChange, onOpenConsentDialog, setConsent } from './consent'
+import { CONSENT_PARTS, getConsent, getConsentParts, onConsentChange, onOpenConsentDialog, setConsentParts, type ConsentPart } from './consent'
 import { detectLanguage } from './language'
-import { useConsent } from './useConsent'
+import { useConsent, useConsentParts } from './useConsent'
 
 /**
  * The consent question, the same in every game and on the front page.
  *
  * Centred, and it stays until it is answered: no close button, Escape or click
  * outside the first time. A strip at the bottom of the screen was easy to miss
- * or dismiss unread, and a "no" costs more than it looks — so the dialog says
+ * or dismiss unread, and a "no" costs more than it looks, so the dialog says
  * what a "no" means BEFORE the choice, and lists what is stored in words a
  * player understands (no storage keys). Opened again from a settings menu
  * (openConsentDialog), there is already an answer, and it closes like any
@@ -28,12 +28,17 @@ import { useConsent } from './useConsent'
  * AccountBadge: this file is vendored into repos with different Tailwind
  * versions and theme variables. It follows the system colour scheme.
  *
+ * The player can pick what is stored (sign-in, progress and results, settings) instead of all or nothing, see
+ * ConsentPart in consent.ts. "No" stays one small click away, a quiet link under the main button.
+ *
  * The text is built in, in Norwegian and English, because it is the same
- * question with the same answer everywhere — only the list of what a game
+ * question with the same answer everywhere, only the list of what a game
  * stores differs, and that comes in through `items`.
  */
 
 export interface ConsentItem {
+    /** Which choice this belongs under. Left out, it is worked out from the title (settings, or else progress). */
+    part?: ConsentPart
     no: { title: string; body: string }
     en: { title: string; body: string }
 }
@@ -46,7 +51,7 @@ export interface ConsentDialogProps {
     /**
      * What THIS game stores beyond the sign-in and the answer itself, in plain
      * words: "your progress in this game", "your chosen difficulty". Never a
-     * storage key — a player cannot read those.
+     * storage key, a player cannot read those.
      */
     items?: ConsentItem[]
     /** Game-specific disclosure for external media services, if used. */
@@ -67,11 +72,22 @@ const TEXT = {
             'Runder du spiller uten å være innlogget, havner ikke under navnet ditt på ledertavlene.',
             'Innstillingene dine nullstilles ved hvert besøk.',
         ],
-        storedTitle: 'Dette lagres i nettleseren din',
-        session: {
-            title: 'Holder deg innlogget',
-            body: 'Brukernavnet ditt og en innloggingsnøkkel som varer i opptil 30 dager, så du slipper å logge inn på nytt i hvert spill. PIN-koden din lagres aldri her.',
+        storedTitle: 'Velg hva som lagres i nettleseren din',
+        parts: {
+            session: {
+                title: 'Holder deg innlogget',
+                body: 'Brukernavnet ditt og en innloggingsnøkkel som varer i opptil 30 dager, så du slipper å logge inn på nytt i hvert spill. PIN-koden din lagres aldri her.',
+            },
+            progress: {
+                title: 'Fremgang og resultater',
+                body: 'XP, nivå, rekorder og resultater, så du ser dem igjen neste gang – også uten å logge inn.',
+            },
+            settings: {
+                title: 'Innstillinger',
+                body: 'Tema, farge, språk, lyd og lignende valg.',
+            },
         },
+        inThisGame: (game?: string) => (game ? `I ${game}:` : 'Her:'),
         choice: {
             title: 'Svaret ditt på dette spørsmålet',
             body: 'Om du sa ja eller nei, så vi ikke spør igjen. Dette lagres også hvis du avslår.',
@@ -82,8 +98,10 @@ const TEXT = {
         ads: 'Reklamen på denne siden kommer fra Google. Om den kan tilpasses deg, avgjøres i Googles eget samtykkevalg, ikke her: dette spørsmålet gjelder bare SpillArenas egen lagring.',
         adSettings: 'Annonseinnstillinger',
         accept: 'Godta og lagre',
+        saveChoice: 'Lagre valget mitt',
         decline: 'Avslå',
-        current: (accepted: boolean) => `Valget ditt nå: ${accepted ? 'godtatt' : 'avslått'}`,
+        declineAll: 'Avslå alt',
+        current: (state: 'all' | 'some' | 'none') => `Valget ditt nå: ${state === 'all' ? 'alt godtatt' : state === 'some' ? 'delvis godtatt' : 'avslått'}`,
         close: 'Lukk',
         reminder: 'Fremgangen din lagres ikke på denne enheten.',
         turnOn: 'Slå på',
@@ -102,11 +120,22 @@ const TEXT = {
             "Rounds you play while signed out aren't posted under your name on the leaderboards.",
             'Your settings reset on every visit.',
         ],
-        storedTitle: 'What is stored in your browser',
-        session: {
-            title: 'Keeps you signed in',
-            body: "Your username and a sign-in key that lasts up to 30 days, so you don't have to sign in again in every game. Your PIN is never stored here.",
+        storedTitle: 'Choose what is stored in your browser',
+        parts: {
+            session: {
+                title: 'Keeps you signed in',
+                body: "Your username and a sign-in key that lasts up to 30 days, so you don't have to sign in again in every game. Your PIN is never stored here.",
+            },
+            progress: {
+                title: 'Progress and results',
+                body: 'Your XP, level, records and results, so you see them again next time – even without signing in.',
+            },
+            settings: {
+                title: 'Settings',
+                body: 'Theme, colour, language, sound and similar choices.',
+            },
         },
+        inThisGame: (game?: string) => (game ? `In ${game}:` : 'Here:'),
         choice: {
             title: 'Your answer to this question',
             body: "Whether you said yes or no, so we don't ask again. This is saved even if you decline.",
@@ -117,8 +146,10 @@ const TEXT = {
         ads: "Ads on this page come from Google. Whether they may be personalised is decided in Google's own consent choice, not here: this question covers only SpillArena's own storage.",
         adSettings: 'Ad settings',
         accept: 'Accept and save',
+        saveChoice: 'Save my choice',
         decline: 'Decline',
-        current: (accepted: boolean) => `Your current choice: ${accepted ? 'accepted' : 'declined'}`,
+        declineAll: 'Decline all',
+        current: (state: 'all' | 'some' | 'none') => `Your current choice: ${state === 'all' ? 'everything accepted' : state === 'some' ? 'partly accepted' : 'declined'}`,
         close: 'Close',
         reminder: "Your progress isn't being saved on this device.",
         turnOn: 'Turn on',
@@ -147,7 +178,7 @@ const CSS = `
 }
 .sac-dialog *, .sac-reminder * { box-sizing: border-box; }
 /*
- * The host game's global styles reach in here — FleetBot uppercases every h2
+ * The host game's global styles reach in here, FleetBot uppercases every h2
  * and colours every p. Reset what they touch; the rules below that need a
  * different value are scoped under .sac-dialog so they still win.
  */
@@ -201,7 +232,19 @@ const CSS = `
 }
 .sac-foot { padding: 14px 22px 18px; border-top: 1px solid rgba(0, 0, 0, 0.1); }
 .sac-dialog .sac-current { margin: 0 0 10px; font-size: 12.5px; opacity: 0.72; }
-.sac-buttons { display: flex; flex-direction: column-reverse; gap: 8px; }
+.sac-buttons { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.sac-opt { cursor: pointer; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(0, 0, 0, 0.1); }
+.sac-opt:hover { background: rgba(0, 0, 0, 0.03); }
+.sac-opt--on { border-color: rgba(124, 58, 237, 0.45); background: rgba(124, 58, 237, 0.06); }
+.sac-opt:has(input:focus-visible) { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+.sac-check { flex: none; width: 18px; height: 18px; margin: 2px 0 0; accent-color: #7c3aed; cursor: pointer; }
+.sac-dialog .sac-sub { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 12px; line-height: 1.35; opacity: 0.72; }
+.sac-dialog .sac-sub li { font-size: 12px; }
+.sac-quiet {
+  align-self: center; margin: 2px 0 0; padding: 6px 10px; border: 0; background: transparent; color: inherit; cursor: pointer; opacity: 0.7;
+  font: 500 12px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; text-decoration: underline; text-underline-offset: 2px;
+}
+.sac-quiet:hover { opacity: 1; }
 .sac-btn {
   flex: 1; padding: 11px 16px; border-radius: 12px; cursor: pointer;
   font: 600 14px/1.1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -211,7 +254,7 @@ const CSS = `
 .sac-btn--no:hover { background: rgba(0, 0, 0, 0.05); }
 .sac-btn--yes { border: 0; background: #7c3aed; color: #fff; }
 .sac-btn--yes:hover { transform: scale(1.02); }
-.sac-btn:focus-visible, .sac-close:focus-visible, .sac-link:focus-visible, .sac-pill button:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+.sac-btn:focus-visible, .sac-close:focus-visible, .sac-link:focus-visible, .sac-quiet:focus-visible, .sac-pill button:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
 
 .sac-reminder {
   position: fixed; left: 0; right: 0; bottom: 16px; z-index: 2147482900;
@@ -244,7 +287,6 @@ const CSS = `
   .sac-body { padding: 28px 28px 20px; }
   .sac-foot { padding: 16px 28px 20px; }
   .sac-title { font-size: 24px; }
-  .sac-buttons { flex-direction: row; }
 }
 @media (prefers-color-scheme: dark) {
   .sac-dialog { background: #1d1e17; color: #edefe4; border-color: rgba(255, 255, 255, 0.12); }
@@ -252,12 +294,16 @@ const CSS = `
   .sac-close:hover, .sac-pill__x:hover { background: rgba(255, 255, 255, 0.08); }
   .sac-warn { background: rgba(120, 53, 15, 0.45); color: #fffbeb; }
   .sac-dot { border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
+  .sac-opt { border-color: rgba(255, 255, 255, 0.12); }
+  .sac-opt:hover { background: rgba(255, 255, 255, 0.04); }
+  .sac-opt--on { border-color: rgba(167, 139, 250, 0.55); background: rgba(167, 139, 250, 0.1); }
+  .sac-check { accent-color: #a78bfa; }
   .sac-dialog .sac-chip { background: rgba(255, 255, 255, 0.08); }
   .sac-link { color: #c4b5fd; }
   .sac-foot { border-top-color: rgba(255, 255, 255, 0.12); }
   .sac-btn--no { border-color: rgba(255, 255, 255, 0.18); }
   .sac-btn--no:hover { background: rgba(255, 255, 255, 0.06); }
-  /* the dark-mode button background is a light shade; white on it is hard to read */
+  /* the dark-mode accent is a light shade; white on it is hard to read */
   .sac-btn--yes, .sac-pill__on { background: #a78bfa; color: #14140f; }
   .sac-pill { background: rgba(29, 30, 23, 0.94); color: #edefe4; border-color: rgba(255, 255, 255, 0.14); }
   .sac-pill__warn { color: #fbbf24; }
@@ -352,12 +398,16 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
     useInjectedStyle()
     const text = TEXT[detectLanguage(language)]
     const consent = useConsent()
+    const parts = useConsentParts()
     const [adState, setAdState] = useState<AdConsentState>(getAdConsentState)
     // unanswered, and no consent message from Google on its way: ask now
     const [open, setOpen] = useState<boolean>(() => getConsent() === null && getAdConsentState() === 'off')
     const [reminderHidden, setReminderHidden] = useState(reminderSeen)
+    // what the player has ticked; starts from the saved choice, or from everything when nothing has been answered
+    const [picked, setPicked] = useState<ConsentPart[]>(() => (getConsent() === null ? [...CONSENT_PARTS] : getConsentParts()))
+    const choose = (part: ConsentPart) => setPicked((now) => (now.includes(part) ? now.filter((p) => p !== part) : [...now, part]))
     const dialogRef = useRef<HTMLDivElement>(null)
-    // opened by itself rather than from a menu — only then may Google's message replace it
+    // opened by itself rather than from a menu, only then may Google's message replace it
     const autoOpened = useRef(open)
     const dismissible = consent !== null
     const showReminder = consent === 'declined' && !open && !reminderHidden
@@ -370,6 +420,7 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
         () =>
             onOpenConsentDialog(() => {
                 autoOpened.current = false
+                setPicked(getConsent() === null ? [...CONSENT_PARTS] : getConsentParts())
                 setOpen(true)
             }),
         [],
@@ -395,7 +446,7 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
         [],
     )
 
-    // answered elsewhere — the front page, or another game in another tab
+    // answered elsewhere, the front page, or another game in another tab
     useEffect(
         () =>
             onConsentChange((status) => {
@@ -422,7 +473,7 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
             }
             const dialog = dialogRef.current
             if (event.key !== 'Tab' || !dialog) return
-            const focusable = dialog.querySelectorAll<HTMLElement>('button:not([disabled])')
+            const focusable = dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')
             if (focusable.length === 0) return
             const first = focusable[0]
             const last = focusable[focusable.length - 1]
@@ -445,8 +496,8 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
         }
     }, [open])
 
-    const answer = (status: 'accepted' | 'declined') => {
-        setConsent(status)
+    const answer = (chosen: readonly ConsentPart[]) => {
+        setConsentParts(chosen)
         setOpen(false)
     }
 
@@ -456,11 +507,15 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
     }
 
     const lang = detectLanguage(language)
-    const stored = [
-        { key: 'session', icon: <KeyIcon />, ...text.session, always: false },
-        ...items.map((item, index) => ({ key: `game-${index}`, icon: <BoxIcon />, ...item[lang], always: false })),
-        { key: 'choice', icon: <CheckIcon />, ...text.choice, always: true },
+    const partOfItem = (item: ConsentItem): ConsentPart =>
+        item.part ?? (/innstilling|setting|språk|language|utseende|appearance|tema|theme/i.test(item[lang].title) ? 'settings' : 'progress')
+    const cards: { part: ConsentPart; icon: ReactNode; title: string; body: string; extra: ConsentItem[] }[] = [
+        { part: 'session', icon: <KeyIcon />, ...text.parts.session, extra: items.filter((item) => item.part === 'session') },
+        { part: 'progress', icon: <BoxIcon />, ...text.parts.progress, extra: items.filter((item) => item.part !== 'session' && partOfItem(item) === 'progress') },
+        { part: 'settings', icon: <BoxIcon />, ...text.parts.settings, extra: items.filter((item) => item.part !== 'session' && partOfItem(item) === 'settings') },
     ]
+    const state = picked.length === CONSENT_PARTS.length ? 'all' : picked.length === 0 ? 'none' : 'some'
+    const currentState = parts.length === CONSENT_PARTS.length ? 'all' : parts.length === 0 ? 'none' : 'some'
 
     return (
         <>
@@ -513,20 +568,38 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
 
                             <h3 className="sac-h3">{text.storedTitle}</h3>
                             <ul className="sac-items">
-                                {stored.map((item) => (
-                                    <li key={item.key} className="sac-item">
-                                        <span className="sac-dot" aria-hidden="true">
-                                            {item.icon}
-                                        </span>
-                                        <div style={{ minWidth: 0, flex: 1 }}>
-                                            <p className="sac-item__title">
-                                                {item.title}
-                                                {item.always && <span className="sac-chip">{text.alwaysStored}</span>}
-                                            </p>
-                                            <p className="sac-item__body">{item.body}</p>
-                                        </div>
+                                {cards.map((card) => (
+                                    <li key={card.part}>
+                                        <label className={`sac-item sac-opt${picked.includes(card.part) ? ' sac-opt--on' : ''}`}>
+                                            <input type="checkbox" className="sac-check" checked={picked.includes(card.part)} onChange={() => choose(card.part)} />
+                                            <div style={{ minWidth: 0, flex: 1 }}>
+                                                <p className="sac-item__title">{card.title}</p>
+                                                <p className="sac-item__body">{card.body}</p>
+                                                {card.extra.length > 0 && (
+                                                    <ul className="sac-sub">
+                                                        {card.extra.map((item) => (
+                                                            <li key={item[lang].title}>
+                                                                <strong>{item[lang].title}.</strong> {item[lang].body}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </label>
                                     </li>
                                 ))}
+                                <li className="sac-item" style={{ padding: '0 12px' }}>
+                                    <span className="sac-dot" aria-hidden="true">
+                                        <CheckIcon />
+                                    </span>
+                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                        <p className="sac-item__title">
+                                            {text.choice.title}
+                                            <span className="sac-chip">{text.alwaysStored}</span>
+                                        </p>
+                                        <p className="sac-item__body">{text.choice.body}</p>
+                                    </div>
+                                </li>
                             </ul>
 
                             <p className="sac-note">☁ {text.server}</p>
@@ -550,14 +623,16 @@ export function ConsentDialog({ language, game, items = [], privacyNote }: Conse
                         </div>
 
                         <div className="sac-foot">
-                            {dismissible && <p className="sac-current">{text.current(consent === 'accepted')}</p>}
+                            {dismissible && <p className="sac-current">{text.current(currentState)}</p>}
                             <div className="sac-buttons">
-                                <button type="button" className="sac-btn sac-btn--no" onClick={() => answer('declined')}>
-                                    {text.decline}
+                                <button type="button" className="sac-btn sac-btn--yes" onClick={() => answer(picked)}>
+                                    {state === 'all' ? text.accept : state === 'some' ? text.saveChoice : text.decline}
                                 </button>
-                                <button type="button" className="sac-btn sac-btn--yes" onClick={() => answer('accepted')}>
-                                    {text.accept}
-                                </button>
+                                {state !== 'none' && (
+                                    <button type="button" className="sac-quiet" onClick={() => answer([])}>
+                                        {state === 'all' ? text.decline : text.declineAll}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
