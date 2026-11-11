@@ -57,7 +57,6 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
           <a href={guide} target="_blank" rel="noreferrer">{t.faq}</a>
           {children}
           <button type="button" onClick={openConsentDialog}>{t.storage}</button>
-          <a href={`https://github.com/SpillArena/${game}`} target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
         </nav>
       </div>
       {note}
