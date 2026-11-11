@@ -8,19 +8,32 @@ footer.arena-footer.arena-footer { flex: 0 0 auto; width: 100%; margin-top: auto
 .arena-footer-logo { display: block; width: 20px; height: 20px; flex-shrink: 0; object-fit: contain; }
 .arena-footer-links { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px 18px; }
 
-/* The rules text, moved here from the bottom of the page (see SiteFooter.tsx). Hidden until "How to play" opens it. */
-.arena-footer-info { border-top: 1px solid var(--arena-rule); }
-.arena-footer-info:empty, .arena-footer-info:not(:has(details[open])) { display: none; }
-/* The game's own language decides which text shows, not the page's lang attribute (the static document is Norwegian). */
-.arena-footer .arena-footer-info [data-game-info-language] { display: none !important; }
-.arena-footer .arena-footer-info[data-language="no"] [data-game-info-language="no"], .arena-footer .arena-footer-info[data-language="en"] [data-game-info-language="en"] { display: block !important; }
-.arena-footer .spillarena-game-information { max-width: none; margin: 0; padding: 0 0 16px; background: none; border-radius: 0; color: var(--arena-muted); font: 400 13px/1.7 system-ui, sans-serif; }
-.arena-footer .spillarena-game-information summary { display: none; }
-.arena-footer .spillarena-game-information details > :not(summary) { max-width: 72ch; }
-.arena-footer .spillarena-game-information h2 { margin: 16px 0 6px; font: 600 14px/1.4 system-ui, sans-serif; color: var(--arena-ink); }
-.arena-footer .spillarena-game-information p { margin: 8px 0; }
-.arena-footer .spillarena-game-information a { color: var(--arena-ink); }
+/* "How to play": the rules text from index.html, in a window (see SiteFooter.tsx). */
+dialog.arena-howto { box-sizing: border-box; width: min(680px, calc(100vw - 24px)); max-width: none; max-height: min(86vh, 780px); padding: 0; margin: auto; overflow: hidden; border: 1px solid var(--arena-rule); border-radius: 18px; background: var(--arena-paper); color: var(--arena-ink); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.55); font: 400 14px/1.5 system-ui, sans-serif; text-align: left; }
+dialog.arena-howto[open] { display: flex; flex-direction: column; }
+dialog.arena-howto::backdrop { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(4px); }
+html:has(dialog.arena-howto[open]) { overflow: hidden; }
+.arena-howto * { box-sizing: border-box; }
+.arena-howto-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 14px; border-bottom: 1px solid var(--arena-rule); }
+.arena-howto .arena-howto-kicker { margin: 0; color: var(--arena-muted); font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; }
+.arena-howto .arena-howto-title { margin: 2px 0 0; color: var(--arena-ink); font: 650 20px/1.3 system-ui, sans-serif; letter-spacing: normal; text-transform: none; }
+.arena-howto button.arena-howto-close { flex: none; width: 34px; height: 34px; margin: -4px -6px 0 0; border: 0; border-radius: 999px; background: transparent; color: var(--arena-muted); cursor: pointer; font-size: 22px; line-height: 1; }
+.arena-howto button.arena-howto-close:hover { background: var(--arena-rule); color: var(--arena-ink); }
+.arena-howto :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 3px; }
+.arena-howto-body { overflow-y: auto; padding: 6px 22px 22px; }
+.arena-howto-body:empty { display: none; }
+/* the language the game is set to decides which text shows, not the page's lang attribute (the static document is Norwegian) */
+.arena-howto-body [data-game-info-language] { display: none !important; }
+.arena-howto-body[data-language="no"] [data-game-info-language="no"], .arena-howto-body[data-language="en"] [data-game-info-language="en"] { display: block !important; }
+.arena-howto-body .spillarena-game-information { max-width: none; margin: 0; padding: 0; background: none; border-radius: 0; color: var(--arena-ink); font: 400 15px/1.7 system-ui, sans-serif; }
+.arena-howto-body .spillarena-game-information summary { display: none; }
+.arena-howto-body .spillarena-game-information h2 { display: none; }
+.arena-howto-body .spillarena-game-information p { margin: 14px 0 0; color: var(--arena-ink); }
+.arena-howto-body .spillarena-game-information p:first-of-type { margin-top: 12px; color: var(--arena-muted); }
+.arena-howto-body .spillarena-game-information p:last-of-type { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--arena-rule); font-size: 13px; }
+.arena-howto-body .spillarena-game-information a { color: var(--arena-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 560px) {
   .arena-footer.arena-footer .arena-footer-row { flex-direction: column; align-items: flex-start; }
   .arena-footer-links { justify-content: flex-start; }
+  dialog.arena-howto { max-height: 88vh; }
 }
