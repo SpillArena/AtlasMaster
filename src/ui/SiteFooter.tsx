@@ -41,6 +41,10 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
   }, [lang])
 
   const hasInfo = title !== null
+  // "HangBot: find the hidden word" -> the name is the heading, the rest is the line under it
+  const split = (title ?? game).indexOf(': ')
+  const name = split > 0 ? (title ?? game).slice(0, split) : (title ?? game)
+  const tagline = split > 0 ? (title ?? game).slice(split + 2) : null
   const close = () => dialog.current?.close()
 
   return <footer className="arena-footer">
@@ -62,9 +66,9 @@ export function SiteFooter({ game, language = 'en', children, note }: { game: st
     </div>
     <dialog ref={dialog} className="arena-howto" aria-labelledby="arena-howto-title" onClick={event => { if (event.target === dialog.current) close() }}>
       <div className="arena-howto-head">
-        <div>
-          <p className="arena-howto-kicker">{t.howTo}</p>
-          <h2 id="arena-howto-title" className="arena-howto-title">{title ?? game}</h2>
+        <div className="arena-howto-heading">
+          <h2 id="arena-howto-title" className="arena-howto-title">{name}</h2>
+          {tagline && <p className="arena-howto-tagline">{tagline}</p>}
         </div>
         <button type="button" className="arena-howto-close" aria-label={t.close} onClick={close}>×</button>
       </div>
