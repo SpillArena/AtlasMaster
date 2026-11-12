@@ -1,6 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
 import { openConsentDialog, setConsent, useConsent } from '../account'
-import spillArenaLogo from './spillarena-logo.svg'
 
 const copy = {
   en: { lobby: 'Back to the Arena', settings: 'Settings', storage: 'Cookies & storage', accepted: 'Storage is on. Your results and settings are remembered on this device.', declined: 'Storage is off. Results and settings stay in this tab only.', undecided: 'Nothing new is saved until you choose.', accept: 'Accept', decline: 'Decline', manage: 'Manage storage choice', affiliation: 'Part of SpillArena' },
@@ -44,22 +43,4 @@ export function StorageSettings({ language = 'en', onManage }: { language?: stri
   </section>
 }
 
-export function SiteFooter({ game, language = 'en', children, note }: { game: string; language?: string; children?: ReactNode; note?: ReactNode }) {
-  const t = labels(language)
-  return <footer className="arena-footer">
-    <div className="arena-container">
-      <div className="arena-footer-row">
-        <a className="arena-footer-affiliation" href="https://spillarena.no/">
-          <img className="arena-footer-logo" src={spillArenaLogo} alt="" width={20} height={20} />
-          <span>{t.affiliation}</span>
-        </a>
-        <div className="arena-footer-links">
-          {children}
-          <button type="button" onClick={openConsentDialog}>{t.storage}</button>
-          <a href={`https://github.com/SpillArena/${game}`} target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-        </div>
-      </div>
-      {note}
-    </div>
-  </footer>
-}
+export { SiteFooter } from './SiteFooter'
